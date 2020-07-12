@@ -1,0 +1,52 @@
+h2 {
+    font-family: Verdana, serif;
+    color: teal;
+    padding-right: 8px;
+    border-bottom: solid 2px teal;
+}
+
+div.code {
+    vertical-align: top;
+    font-family: monospace;
+    font-size: 1.44em;
+    margin: 4px;
+    padding: 8px;
+}
+
+table {
+    display: inline-block;
+    vertical-align: top;
+    font-family: monospace;
+    font-size: 1.44em;
+    border: solid 1px gray;
+    margin: 4px;
+    padding: 8px;
+    border-collapse: collapse;
+}
+td {
+    border: solid 1px black;
+    padding-right: 4px;
+    padding-left: 4px;
+}
+
+div.active {
+    background-color: #ffc0cb;
+    /*background-color: #f0f0f0;*/
+}
+.bordered {
+    /*border: solid 1px gray;*/
+}
+
+span.keyword {
+    font-weight: bold;
+    color: darkblue;
+}
+
+span.number {
+    font-weight: bold;
+    color: darkred;
+}
+
+span.variable {
+    text-decoration: underline;
+}
