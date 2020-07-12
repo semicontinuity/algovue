@@ -19,7 +19,7 @@ vm = function() {
      */
     let state;
 
-    let currentLine;
+    let currentLineStatement;
 
     const actions = Object.freeze({
         NO_ACTION: Symbol("NO_ACTION"),
@@ -80,12 +80,12 @@ vm = function() {
         return view;
     }
 
-    function highlight(element) {
-        if (element) element.className += ' active';
+    function highlight(s) {
+        if (s) s.view.classList.add("active");
     }
 
-    function unhighlight(element) {
-        if (element) element.className = element.className.replace(/(?:^|\s)active(?!\S)/ , '');
+    function unhighlight(s) {
+        if (s) s.view.classList.remove("active");
     }
 
     function border(s) {
@@ -174,7 +174,8 @@ vm = function() {
             state = 0;
 
             statement.seek();
-            highlight(currentLine);
+            // highlight(currentLine);
+            highlight(currentLineStatement);
             border(statement);
         },
 
@@ -186,7 +187,7 @@ vm = function() {
                 case actions.POP_REPEAT:
                 case actions.POP:
                     if (stack.length === 0) {
-                        currentLine = undefined;
+                        currentLineStatement = undefined;
                         statement = undefined;
                         return false;
                     } else {
@@ -212,7 +213,8 @@ vm = function() {
             console.log("@ ---------------------------------------------------");
 
             let runnable = true;
-            unhighlight(currentLine);
+            unhighlight(currentLineStatement);
+            // unhighlight(currentLine);
             unborder(statement);
 
             do {
@@ -233,7 +235,8 @@ vm = function() {
                 while (r);
             }
             console.log("@ highlighting");
-            highlight(currentLine);
+            // highlight(currentLine);
+            highlight(currentLineStatement);
             border(statement);
 
             return runnable;
@@ -420,7 +423,7 @@ vm = function() {
                 },
                 seek: function() {
                     console.log("@ assignment.seek: state=" + state);
-                    currentLine = this.view;
+                    currentLineStatement = this;
                     selectStatement(this);
                     if (state === 0) {
                         // before possible function call
@@ -452,7 +455,7 @@ vm = function() {
 
 
         /* should normally contain at least one statement */
-        sequence: function(statements) {
+        sequenceStatement: function(statements) {
             return {
                 childIndent: 0,
                 makeView: function(parent) {
@@ -499,7 +502,7 @@ vm = function() {
                 },
                 seek: function() {
                     console.log("@ returnStatement.seek");
-                    currentLine = this.view;
+                    currentLineStatement = this;
                     selectStatement(this);
                 },
                 invoke: function() {
@@ -519,9 +522,8 @@ vm = function() {
                 childIndent: 1,
                 makeView: function(parent) {
                     this.indent = parent.indent + parent.childIndent;
-                    this.view = div();
-                    const ifLine = this.ifLine = this.makeIfLine();
-                    return this.view = this.composeView(ifLine, ifStatements, elseStatements);
+                    this.conditionStatement = this.makeConditionStatement();
+                    return this.view = this.composeView(this.conditionStatement.makeView(parent), ifStatements, elseStatements);
                 },
                 composeView: function(ifLine, ifStatements, elseStatements) {
                     const view = div();
@@ -536,23 +538,27 @@ vm = function() {
                     }
                     return view;
                 },
-                makeIfLine: function() {
-                    return div(
-                        indentSpan(this.indent),
-                        keyword('if'),
-                        space(),
-                        opParen(),
-                        condition.makeView(),
-                        clParen(),
-                        space(),
-                        opBrace()
-                    );
+                makeConditionStatement: function() {
+                    return {
+                        makeView: function (parent) {
+                            return this.view = div(
+                                indentSpan(parent.indent + parent.childIndent),
+                                keyword('if'),
+                                space(),
+                                opParen(),
+                                condition.makeView(),
+                                clParen(),
+                                space(),
+                                opBrace()
+                            );
+                        }
+                    };
                 },
                 seek: function() {
                     console.log("@ ifStatement.seek: state=" + state);
                     if (state === 0) {
                         // call condition
-                        currentLine = this.ifLine;
+                        currentLineStatement = this.conditionStatement;
 
                         selectStatement(this);
                         changeState(state + 1);
@@ -587,35 +593,39 @@ vm = function() {
         },
 
 
-        whileStatement: function(condition, body) {
+        whileStatement: function(condition, bodyStatement) {
             return {
                 childIndent: 1,
                 makeView: function(parent) {
                     this.indent = parent.indent + parent.childIndent;
-                    const whileLine = this.firstLine = this.whileLine();
+                    this.conditionStatement = this.makeConditionStatement();
                     return this.view = div(
-                        whileLine,
-                        body.makeView(this),
+                        this.conditionStatement.makeView(parent),
+                        bodyStatement.makeView(this),
                         div(indentSpan(this.indent), clBrace())
                     );
                 },
-                whileLine: function() {
-                    return div(
-                        indentSpan(this.indent),
-                        keyword('while'),
-                        space(),
-                        opParen(),
-                        condition.makeView(),
-                        clParen(),
-                        space(),
-                        opBrace()
-                    );
+                makeConditionStatement: function() {
+                    return {
+                        makeView: function (parent) {
+                            return this.view = div(
+                                indentSpan(parent.indent + parent.childIndent),
+                                keyword('while'),
+                                space(),
+                                opParen(),
+                                condition.makeView(),
+                                clParen(),
+                                space(),
+                                opBrace()
+                            );
+                        }
+                    };
                 },
                 seek: function() {
                     console.log("@ whileStatement.seek: state=" + state);
                     if (state === 0) {
                         // call condition
-                        currentLine = this.firstLine;
+                        currentLineStatement = this.conditionStatement;
 
                         changeState(1); //  next time: call body
                         push();
@@ -630,7 +640,7 @@ vm = function() {
                         push();
 
                         state = 0;
-                        body.seek();
+                        bodyStatement.seek();
                     }
                 },
                 invoke: function() {

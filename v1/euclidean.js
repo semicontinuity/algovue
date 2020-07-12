@@ -5,7 +5,7 @@ algorithms.euclidian = algorithms.euclidian || function() {
     const gcd = vm.functionDeclaration(
         'gcd',
         [pA, pB],
-        vm.sequence([
+        vm.sequenceStatement([
             vm.ifStatement(
                 // if (a == 0) {
                 vm.expression(vm.equals(), pA, vm.number(0)),
@@ -15,9 +15,9 @@ algorithms.euclidian = algorithms.euclidian || function() {
             vm.whileStatement(
                 vm.expression(vm.notEquals(), pB, vm.number(0)),
                 vm.ifStatement(
-                    // if (a == b) {
+                    // if (a > b) {
                     vm.expression(vm.gt(), pA, pB),
-                    //   a = a - b
+                    //   then a = a - b
                     vm.assignment(pA, vm.expression(vm.minus(), pA, pB)),
                     //   else b = b - a
                     vm.assignment(pB, vm.expression(vm.minus(), pB, pA))
@@ -27,7 +27,7 @@ algorithms.euclidian = algorithms.euclidian || function() {
         ])
     );
 
-    const code = vm.sequence([gcd]);
+    const code = vm.sequenceStatement([gcd]);
 
     return {
         functions: { gcd: gcd },

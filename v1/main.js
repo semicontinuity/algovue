@@ -7,7 +7,7 @@ const assignment = vm.assignment(
         [vm.number(15), vm.number(25)]
     )
 );
-const code = vm.sequence([assignment]);
+const code = vm.sequenceStatement([assignment]);
 const frame = {};
 let active = true;
 
