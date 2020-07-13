@@ -40,6 +40,7 @@ vm = function() {
         vmLog('STATE ' + newState);
     }
 
+
     function indentSpan(size) {
         var view = document.createElement('span');
         for (let i = 0; i < size * 4; i++) view.innerText += '\u00a0';
@@ -52,6 +53,12 @@ vm = function() {
         return view;
     }
 
+    function div(...args) {
+        const view = document.createElement('div');
+        args.forEach(c => view.appendChild(c));
+        return view;
+    }
+
     function text(innerText, className) {
         const view = document.createElement('span');
         if (innerText !== undefined) view.innerText = innerText;
@@ -60,11 +67,8 @@ vm = function() {
     }
 
     function space() {
-        const view = document.createElement('span');
-        view.innerText = ' ';
-        return view;
+        return text(' ');
     }
-
 
     function keyword(innerText) {
         return text(innerText, 'keyword');
@@ -74,11 +78,6 @@ vm = function() {
         return text(innerText, 'op_sign');
     }
 
-    function div(...args) {
-        const view = document.createElement('div');
-        args.forEach(c => view.appendChild(c));
-        return view;
-    }
 
     function highlight(s) {
         if (s) s.view.classList.add("active");
@@ -95,6 +94,7 @@ vm = function() {
     function unborder(s) {
         if (s) s.view.classList.remove("bordered");
     }
+
 
     function push() {
         vmLog("PUSH");
@@ -410,10 +410,9 @@ vm = function() {
          */
         assignment: function(lvalue, rvalue) {
             return {
-                makeView: function(parent) {
-                    this.indent = parent.indent + parent.childIndent;
+                makeView: function(indent) {
                     return this.view = div(
-                        indentSpan(this.indent),
+                        indentSpan(indent),
                         lvalue.makeView(),
                         space(),
                         opSign('='),
@@ -457,14 +456,12 @@ vm = function() {
         /* should normally contain at least one statement */
         sequenceStatement: function(statements) {
             return {
-                childIndent: 0,
-                makeView: function(parent) {
-                    this.indent = parent.indent + parent.childIndent;
-                    return this.view = this.populateView(div());
+                makeView: function(indent) {
+                    return this.view = this.populateView(div(), indent);
                 },
-                populateView: function(view) {
+                populateView: function(view, indent) {
                     for (let i = 0; i < statements.length; i++) {
-                        view.appendChild(statements[i].makeView(this));
+                        view.appendChild(statements[i].makeView(indent));
                     }
                     return view;
                 },
@@ -495,9 +492,8 @@ vm = function() {
 
         returnStatement: function(expression) {
             return {
-                makeView: function(parent) {
-                    this.indent = parent.indent + parent.childIndent;
-                    this.view = div(indentSpan(this.indent), keyword('return'), space(), expression.makeView());
+                makeView: function(indent) {
+                    this.view = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
                     return this.view;
                 },
                 seek: function() {
@@ -519,30 +515,30 @@ vm = function() {
         // states: 0=call condition, 1=call branch, 2=exit
         ifStatement: function(condition, ifStatements, elseStatements) {
             return {
-                childIndent: 1,
-                makeView: function(parent) {
-                    this.indent = parent.indent + parent.childIndent;
+                makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
-                    return this.view = this.composeView(this.conditionStatement.makeView(parent), ifStatements, elseStatements);
+                    return this.view = this.composeView(
+                        this.conditionStatement.makeView(indent), ifStatements, elseStatements, indent
+                    );
                 },
-                composeView: function(ifLine, ifStatements, elseStatements) {
+                composeView: function(ifLine, ifStatements, elseStatements, indent) {
                     const view = div();
                     view.appendChild(ifLine);
-                    view.appendChild(ifStatements.makeView(this));
-                    view.appendChild(div(indentSpan(this.indent), clBrace()));
+                    view.appendChild(ifStatements.makeView(indent + 1));
+                    view.appendChild(div(indentSpan(indent), clBrace()));
                     if (elseStatements) {
-                        const elseLine = div(indentSpan(this.indent), keyword('else'), space(), opBrace());
+                        const elseLine = div(indentSpan(indent), keyword('else'), space(), opBrace());
                         view.appendChild(elseLine);
-                        view.appendChild(elseStatements.makeView(this));
-                        view.appendChild(div(indentSpan(this.indent), clBrace()));
+                        view.appendChild(elseStatements.makeView(indent + 1));
+                        view.appendChild(div(indentSpan(indent), clBrace()));
                     }
                     return view;
                 },
                 makeConditionStatement: function() {
                     return {
-                        makeView: function (parent) {
+                        makeView: function (indent) {
                             return this.view = div(
-                                indentSpan(parent.indent + parent.childIndent),
+                                indentSpan(indent),
                                 keyword('if'),
                                 space(),
                                 opParen(),
@@ -595,21 +591,19 @@ vm = function() {
 
         whileStatement: function(condition, bodyStatement) {
             return {
-                childIndent: 1,
-                makeView: function(parent) {
-                    this.indent = parent.indent + parent.childIndent;
+                makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
                     return this.view = div(
-                        this.conditionStatement.makeView(parent),
-                        bodyStatement.makeView(this),
-                        div(indentSpan(this.indent), clBrace())
+                        this.conditionStatement.makeView(indent),
+                        bodyStatement.makeView(indent + 1),
+                        div(indentSpan(indent), clBrace())
                     );
                 },
                 makeConditionStatement: function() {
                     return {
-                        makeView: function (parent) {
+                        makeView: function (indent) {
                             return this.view = div(
-                                indentSpan(parent.indent + parent.childIndent),
+                                indentSpan(indent),
                                 keyword('while'),
                                 space(),
                                 opParen(),
@@ -669,21 +663,19 @@ vm = function() {
 
         functionDeclaration: function(name, args, /* assume sequence */body) {
             return {
-                indent: 0,
-                childIndent: 1,
                 name: name,
                 args: args,
-                makeView: function() {
-                    return this.view = div(this.firstLine(), body.makeView(this), div(clBrace()));
+                makeView: function(indent) {
+                    return this.view = div(this.firstLine(), body.makeView(indent + 1), div(clBrace()));
                 },
                 firstLine: function() {
                     return div(
                         keyword('function'),
                         space(),
                         text(name, 'id'),
-                        text('(', 'par'),
+                        opParen(),
                         this.argList(),
-                        text(')', 'par'),
+                        clParen(),
                         space(),
                         opBrace()
                     );
@@ -710,8 +702,7 @@ vm = function() {
 
         variableDeclaration: function(variable) {
             return {
-                makeView: function(parent) {
-                    this.indent = parent.indent + parent.childIndent;
+                makeView: function(indent) {
                     return this.view = div(keyword('var'), space(), variable.makeView());
                 },
                 invoke: () => { }

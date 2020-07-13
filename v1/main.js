@@ -29,8 +29,8 @@ function $(elementId) {
 function main() {
     logView = $('logView');
     stackView = $('stackView');
-    $('algorithmView').appendChild(algorithms.euclidian.code.makeView({indent:0, childIndent: 0}));
-    $('exampleView').appendChild(code.makeView({indent:0, childIndent: 0}));
+    $('algorithmView').appendChild(algorithms.euclidian.code.makeView(0));
+    $('exampleView').appendChild(code.makeView(0));
     document.body.onkeydown = onKeyDown;
     document.body.onmousedown = onKeyDown;
 
