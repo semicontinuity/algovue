@@ -367,6 +367,9 @@ vm = function() {
                     console.log("@ functionCall.seek");
                     selectStatement(this);
                 },
+                evaluate: function() {
+                    return 0;
+                },
                 invoke: function() {
                     console.log("@ functionCall.invoke");
                     if (state === 0) {
@@ -375,6 +378,7 @@ vm = function() {
                         const newContext = {};
                         for (let i = 0; i < length; i++) {
                             const /*variable*/ arg = decl.args[i];
+                            console.log("@ functionCall.invoke: args=" + args);
                             const value = args[i].evaluate();
                             console.log("@ functionCall.invoke: new context: set " + arg.name + " to " + value);
                             newContext[arg.name] = value;
@@ -706,6 +710,21 @@ vm = function() {
                     return this.view = div(keyword('var'), space(), variable.makeView());
                 },
                 invoke: () => { }
+            };
+        },
+
+        codeBlocks: function(declarations) {
+            return {
+                makeView: function () {
+                    return this.view = this.populateView(div());
+                },
+                populateView: function (view) {
+                    for (let i = 0; i < declarations.length; i++) {
+                        view.appendChild(declarations[i].makeView(0));
+                        view.appendChild(document.createElement('hr'));
+                    }
+                    return view;
+                }
             };
         }
     };
