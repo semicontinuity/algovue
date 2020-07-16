@@ -7,9 +7,8 @@ vm = function() {
     const DEBUG = false;
 
     const stack = [];
+    const frames = [];
 
-    let frame;
-    let statement;
     /**
      * Keeps the result of the last computation
      */
@@ -19,7 +18,29 @@ vm = function() {
      */
     let state;
 
+    let context;
+
     let currentLineStatement;
+
+
+    function newFrame() {
+        const newFrame = {
+            contexts: [],
+            variables: new Map()
+        };
+        frames.push(newFrame);
+        return newFrame;
+    }
+
+    function deleteFrame() {
+        if (frames.length === 1) return false;
+        frames.pop();
+        return true;
+    }
+
+    function currentFrame() {
+        return frames[frames.length - 1];
+    }
 
     const actions = Object.freeze({
         NO_ACTION: Symbol("NO_ACTION"),
@@ -168,18 +189,49 @@ vm = function() {
 
         // vm control
         //----------------------------------------------------------------------
-        init: function(aStatement, aContext) {
-            statement = aStatement;
-            frame = aContext;
+        init: function(aStatement) {
+            context = {
+                statement: aStatement,
+                coro: aStatement.run(),
+            };
+/*
             state = 0;
 
             statement.seek();
             // highlight(currentLine);
             highlight(currentLineStatement);
             border(statement);
+*/
+            return newFrame().variables;
         },
-
-
+        getCurrentFrame: () => currentFrame(),
+        stack: () => stack,
+        step: function() {
+            const next = context.coro.next();
+            if (next.done) {
+                // statement completed
+                // try to activate previous context
+                console.log("step: statement completed; try to activate previous context");
+                context = currentFrame().contexts.pop();
+                console.log(context);
+                if (context === undefined) {    // reached end of function call
+                    console.log("step: reached end of function call");
+                    if (deleteFrame()) {
+                        console.log("step: reached end of program");
+                        // successfully switched to previous frame; restore statement that was executing in that frame
+                        context = currentFrame().contexts.pop();
+                    }
+                } else {
+                    console.log("step: activated previous context of " + context.statement);
+                }
+            } else {
+                // statement delegates to sub-statement: it yielded sub-statement
+                console.log(`step: new sub-context for '${next.value}'`);
+                currentFrame().contexts.push(context);
+                context = {statement: next.value, coro: next.value.run()};
+            }
+            return context;
+        },
         handleStepAction: function(action) {
             switch (action) {
                 case actions.NO_ACTION:
@@ -249,6 +301,10 @@ vm = function() {
         number: value => ({
             makeView: () => text(value, 'number'),
             evaluate: () => value,
+            run: function*() {
+                console.log("@ number.run: push " + value);
+                stack.push(value);
+            },
             seek: () => {
                 console.log("@ number.seek");
                 selectStatement(this);
@@ -264,6 +320,11 @@ vm = function() {
         variable: name => ({
             name: name,
             makeView: () => text(name, 'variable'),
+            run: function*() {
+                const r = currentFrame().variables.get(name);
+                console.log("@ variable.run: push value " + r);
+                stack.push(r);
+            },
             evaluate: () => frame[name],
             seek: () => {
                 console.log("@ variable.seek");
@@ -283,6 +344,20 @@ vm = function() {
                     return this.view = span(
                         leftSide.makeView(), space(), functor.makeView(), space(), rightSide.makeView()
                     );
+                },
+                run: function*() {
+                    console.log("@ expression.run: executing " + this);
+
+                    console.log("@ expression.run: yield left: " + leftSide);
+                    yield leftSide;
+
+                    console.log("@ expression.run: yield right: " + rightSide);
+                    yield rightSide;
+
+                    console.log("@ expression.run: pop sub-results");
+                    const r = functor.apply(stack.pop(), stack.pop());
+                    console.log("@ expression.run: push result " + r);
+                    stack.push(r);
                 },
                 seek: function() {
                     console.log("@ expression.seek /// " + this.toString());
@@ -363,6 +438,23 @@ vm = function() {
                     }
                     return view;
                 },
+                run: function*() {
+                    console.log("@ functionCall.run (0): new frame");
+                    const aNewFrame = newFrame();
+                    console.log(aNewFrame);
+                    for (let i = 0; i < args.length; i++) {
+                        console.log("@ functionCall.run (1): eval arg " + i);
+                        yield args[i];
+                        const value = stack.pop();
+                        aNewFrame.variables.set(decl.args[i].name, value);
+                        console.log("@ functionCall.run (1): bound value " + value + " to arg " + decl.args[i].name);
+                        console.log('current frame variables:');
+                        console.log(currentFrame().variables);
+                    }
+
+                    console.log(`@ functionCall.run (2): running body of ${decl}`);
+                    yield decl.body;
+                },
                 seek: function() {
                     console.log("@ functionCall.seek");
                     selectStatement(this);
@@ -424,6 +516,15 @@ vm = function() {
                         rvalue.makeView()
                     );
                 },
+                run: function*() {
+                    console.log("@ assignment.run (1): eval rvalue " + rvalue);
+                    yield rvalue;
+                    const value = stack.pop();
+                    console.log(`@ assignment.run (2): set var ${lvalue.name} to ${value}`);
+                    currentFrame().variables.set(lvalue.name, value);
+                    console.log(`current frame vars:`);
+                    console.log(currentFrame().variables);
+                },
                 seek: function() {
                     console.log("@ assignment.seek: state=" + state);
                     currentLineStatement = this;
@@ -469,6 +570,10 @@ vm = function() {
                     }
                     return view;
                 },
+                run: function(parent) {
+                    console.log("@ sequenceStatement.run");
+                    return parent;
+                },
                 seek: function() {
                     console.log("@ ############### sequence.seek: state=" + state);
                     if (state >= statements.length) {
@@ -500,6 +605,12 @@ vm = function() {
                     this.view = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
                     return this.view;
                 },
+                run: function*() {
+                    console.log("@ returnStatement.run: evaluate return expression");
+                    yield expression;
+                    console.log("@ returnStatement.run: delete frame");
+                    deleteFrame();
+                },
                 seek: function() {
                     console.log("@ returnStatement.seek");
                     currentLineStatement = this;
@@ -512,7 +623,7 @@ vm = function() {
                     }
                     return actions.RETURN;  // RETURN
                 },
-                toString: () => 'return'
+                toString: () => `return ${expression}`
             };
         },
 
@@ -669,6 +780,7 @@ vm = function() {
             return {
                 name: name,
                 args: args,
+                body: body,
                 makeView: function(indent) {
                     return this.view = div(this.firstLine(), body.makeView(indent + 1), div(clBrace()));
                 },

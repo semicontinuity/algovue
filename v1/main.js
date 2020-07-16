@@ -1,26 +1,13 @@
 
-const frame = {};
-let active = true;
+// const frame = new Map();
+// let active = true;
 
 function $(elementId) {
     return document.getElementById(elementId);
 }
-
-function stepInto(e) {
-    if (active) {
-        active = vm.stepInto();
-        if (!active) {
-            $('result').innerText = frame['result'];
-        }
-    }
-}
-
-
 function main() {
-    document.body.onkeydown = stepInto;
-
-    logView = $('logView');
-    stackView = $('stackView');
+    // logView = $('logView');
+    // stackView = $('stackView');
 
     // const result = vm.variable('result');
     // const assignment = vm.assignment(
@@ -40,5 +27,14 @@ function main() {
     $('algorithmView').appendChild(test.code.makeView(0));
     // $('exampleView').appendChild(test.invocation.makeView(0));
 
-    vm.init(test.invocation, frame);
+    const variables = vm.init(test.invocation);
+
+    let active = true;
+    document.body.onkeydown = function (e) {
+        if (!active) return;
+
+        active = vm.step() !== undefined;
+        $('stackView').innerText = vm.stack().join();
+        $('variables').innerText = JSON.stringify([...vm.getCurrentFrame().variables]);
+    };
 }
