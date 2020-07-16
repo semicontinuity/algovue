@@ -136,7 +136,7 @@ vm = function() {
 
         number: function (value) {
             return {
-                makeView: function() { return this.view = text(value, 'number');},
+                makeView: function() { return text(value, 'number');},
                 run: function* () {
                     stack.push(value);
                 },
@@ -148,7 +148,7 @@ vm = function() {
         variable: function(name) {
             return {
                 name: name,
-                makeView: function() { return this.view = text(name, 'variable');},
+                makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     stack.push(currentFrame().variables.get(name));
                 },
@@ -160,7 +160,7 @@ vm = function() {
         expression: function(functor, leftSide, rightSide) {
             return {
                 makeView: function() {
-                    return this.view = span(
+                    return span(
                         leftSide.makeView(), space(), functor.makeView(), space(), rightSide.makeView()
                     );
                 },
@@ -226,7 +226,7 @@ vm = function() {
         functionCall: function(decl, args) {
             return {
                 makeView: function() {
-                    return this.view = span(text(decl.name, 'id'), opParen(), this.argList(), clParen());
+                    return span(text(decl.name, 'id'), opParen(), this.argList(), clParen());
                 },
                 argList: () => {
                     const view = span();
@@ -265,7 +265,7 @@ vm = function() {
         assignment: function(lvalue, rvalue) {
             return {
                 makeView: function(indent) {
-                    return this.view = this.line = div(
+                    return this.line = div(
                         indentSpan(indent),
                         lvalue.makeView(),
                         space(),
@@ -287,7 +287,7 @@ vm = function() {
         sequenceStatement: function(statements) {
             return {
                 makeView: function(indent) {
-                    return this.view = this.populateView(div(), indent);
+                    return this.populateView(div(), indent);
                 },
                 populateView: function(view, indent) {
                     for (let i = 0; i < statements.length; i++) {
@@ -308,8 +308,8 @@ vm = function() {
         returnStatement: function(expression) {
             return {
                 makeView: function(indent) {
-                    this.view = this.line = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
-                    return this.view;
+                    return this.line = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
+                    // return this.view;
                 },
                 run: function*() {
                     yield expression;
@@ -319,12 +319,11 @@ vm = function() {
             };
         },
 
-        // states: 0=call condition, 1=call branch, 2=exit
         ifStatement: function(condition, ifStatements, elseStatements) {
             return {
                 makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
-                    return this.view = this.composeView(
+                    return this.composeView(
                         this.conditionStatement.makeView(indent), ifStatements, elseStatements, indent
                     );
                 },
@@ -344,7 +343,7 @@ vm = function() {
                 makeConditionStatement: function() {
                     return {
                         makeView: function (indent) {
-                            return this.view = this.line = div(
+                            return this.line = div(
                                 indentSpan(indent),
                                 keyword('if'),
                                 space(),
@@ -379,7 +378,7 @@ vm = function() {
             return {
                 makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
-                    return this.view = div(
+                    return div(
                         this.conditionStatement.makeView(indent),
                         bodyStatement.makeView(indent + 1),
                         div(indentSpan(indent), clBrace())
@@ -388,7 +387,7 @@ vm = function() {
                 makeConditionStatement: function() {
                     return {
                         makeView: function (indent) {
-                            return this.view = this.line = div(
+                            return this.line = div(
                                 indentSpan(indent),
                                 keyword('while'),
                                 space(),
@@ -424,7 +423,7 @@ vm = function() {
                 args: args,
                 body: body,
                 makeView: function(indent) {
-                    return this.view = div(this.firstLine(), body.makeView(indent + 1), div(clBrace()));
+                    return div(this.firstLine(), body.makeView(indent + 1), div(clBrace()));
                 },
                 firstLine: function() {
                     return div(
@@ -457,7 +456,7 @@ vm = function() {
         variableDeclaration: function(variable) {
             return {
                 makeView: function(indent) {
-                    return this.view = div(keyword('var'), space(), variable.makeView());
+                    return div(keyword('var'), space(), variable.makeView());
                 }
             };
         },
@@ -465,7 +464,7 @@ vm = function() {
         codeBlocks: function(declarations) {
             return {
                 makeView: function () {
-                    return this.view = this.populateView(div());
+                    return this.populateView(div());
                 },
                 populateView: function (view) {
                     for (let i = 0; i < declarations.length; i++) {
