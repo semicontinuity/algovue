@@ -1,36 +1,34 @@
-algorithms.euclidian = algorithms.euclidian || function() {
+test = function() {
 
-    const pA = vm.variable('a');
-    const pB = vm.variable('b');
     const gcd = vm.functionDeclaration(
         'gcd',
-        [pA, pB],
+        [(vm.variable('a')), (vm.variable('b'))],
         vm.sequenceStatement([
             vm.ifStatement(
                 // if (a == 0) {
-                vm.expression(vm.equals(), pA, vm.number(0)),
+                vm.expression(vm.equals(), vm.variable('a'), vm.number(0)),
                 //   return b
-                vm.returnStatement(pB)
+                vm.returnStatement(vm.variable('b'))
             ),
             vm.whileStatement(
-                vm.expression(vm.notEquals(), pB, vm.number(0)),
+                vm.expression(vm.notEquals(), vm.variable('b'), vm.number(0)),
                 vm.ifStatement(
                     // if (a > b) {
-                    vm.expression(vm.gt(), pA, pB),
+                    vm.expression(vm.gt(), vm.variable('a'), vm.variable('b')),
                     //   then a = a - b
-                    vm.assignment(pA, vm.expression(vm.minus(), pA, pB)),
+                    vm.assignment(vm.variable('a'), vm.expression(vm.minus(), vm.variable('a'), vm.variable('b'))),
                     //   else b = b - a
-                    vm.assignment(pB, vm.expression(vm.minus(), pB, pA))
+                    vm.assignment(vm.variable('b'), vm.expression(vm.minus(), vm.variable('b'), vm.variable('a')))
                 )
             ),
-            vm.returnStatement(pA)
+            vm.returnStatement(vm.variable('a'))
         ])
     );
 
-    const code = vm.sequenceStatement([gcd]);
+    const usage = vm.functionCall(gcd, [vm.number(15), vm.number(25)]);
 
     return {
-        functions: { gcd: gcd },
-        code: code
+        code: vm.codeBlocks([gcd, usage]),
+        entry: usage
     };
 }();

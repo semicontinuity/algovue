@@ -27,7 +27,7 @@ function main() {
     $('algorithmView').appendChild(test.code.makeView(0));
     // $('exampleView').appendChild(test.invocation.makeView(0));
 
-    const variables = vm.init(test.invocation);
+    const variables = vm.init(test.entry);
 
     let active = true;
     document.body.onkeydown = function (e) {

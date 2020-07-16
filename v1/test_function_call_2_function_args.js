@@ -36,6 +36,6 @@ test = function() {
 
     return {
         code: vm.codeBlocks([fFunctionDeclaration, gFunctionDeclaration, testFunctionDeclaration, assignment]),
-        invocation: assignment
+        entry: assignment
     };
 }();

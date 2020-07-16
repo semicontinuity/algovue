@@ -34,7 +34,7 @@ div.active {
     /*background-color: #f0f0f0;*/
 }
 .bordered {
-    /*border: solid 1px gray;*/
+    border: solid 1px gray;
 }
 
 span.keyword {

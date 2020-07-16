@@ -207,6 +207,7 @@ vm = function() {
         getCurrentFrame: () => currentFrame(),
         stack: () => stack,
         step: function() {
+            unborder(context.statement);
             const next = context.coro.next();
             if (next.done) {
                 // statement completed
@@ -230,6 +231,7 @@ vm = function() {
                 currentFrame().contexts.push(context);
                 context = {statement: next.value, coro: next.value.run()};
             }
+            if (context) border(context.statement);
             return context;
         },
         handleStepAction: function(action) {
@@ -298,44 +300,48 @@ vm = function() {
         // expression parts
         //----------------------------------------------------------------------
 
-        number: value => ({
-            makeView: () => text(value, 'number'),
-            evaluate: () => value,
-            run: function*() {
-                console.log("@ number.run: push " + value);
-                stack.push(value);
-            },
-            seek: () => {
-                console.log("@ number.seek");
-                selectStatement(this);
-            },
-            invoke: () => {
-                register = value;
-                return actions.POP_REPEAT;
-            },
-            toString: () => value
-        }),
+        number: function (value) {
+            return {
+                makeView: function() { return this.view = text(value, 'number');},
+                evaluate: () => value,
+                run: function* () {
+                    console.log('@ number.run: push ' + value);
+                    stack.push(value);
+                },
+                seek: () => {
+                    console.log('@ number.seek');
+                    selectStatement(this);
+                },
+                invoke: () => {
+                    register = value;
+                    return actions.POP_REPEAT;
+                },
+                toString: () => value
+            };
+        },
 
 
-        variable: name => ({
-            name: name,
-            makeView: () => text(name, 'variable'),
-            run: function*() {
-                const r = currentFrame().variables.get(name);
-                console.log("@ variable.run: push value " + r);
-                stack.push(r);
-            },
-            evaluate: () => frame[name],
-            seek: () => {
-                console.log("@ variable.seek");
-                selectStatement(this);
-            },
-            invoke: () => {
-                register = this.evaluate();
-                return actions.POP;
-            },
-            toString: () => name
-        }),
+        variable: function(name) {
+            return {
+                name: name,
+                makeView: function() { return this.view = text(name, 'variable');},
+                run: function* () {
+                    const r = currentFrame().variables.get(name);
+                    console.log('@ variable.run: push value ' + r);
+                    stack.push(r);
+                },
+                evaluate: () => frame[name],
+                seek: () => {
+                    console.log('@ variable.seek');
+                    selectStatement(this);
+                },
+                invoke: () => {
+                    register = this.evaluate();
+                    return actions.POP;
+                },
+                toString: () => name
+            };
+        },
 
 
         expression: function(functor, leftSide, rightSide) {
@@ -355,7 +361,9 @@ vm = function() {
                     yield rightSide;
 
                     console.log("@ expression.run: pop sub-results");
-                    const r = functor.apply(stack.pop(), stack.pop());
+                    const arg1 = stack.pop();
+                    const arg2 = stack.pop();
+                    const r = functor.apply(arg2, arg1);    // LIFO
                     console.log("@ expression.run: push result " + r);
                     stack.push(r);
                 },
@@ -570,9 +578,11 @@ vm = function() {
                     }
                     return view;
                 },
-                run: function(parent) {
+                run: function*() {
                     console.log("@ sequenceStatement.run");
-                    return parent;
+                    for (let i = 0; i < statements.length; i++) {
+                        yield statements[i];
+                    }
                 },
                 seek: function() {
                     console.log("@ ############### sequence.seek: state=" + state);
@@ -662,8 +672,26 @@ vm = function() {
                                 space(),
                                 opBrace()
                             );
-                        }
+                        },
+                        run: function*() {
+                            yield condition;
+                        },
+                        toString: () => condition.toString()
                     };
+                },
+                run: function*() {
+                    console.log("@ ifStatement.run: this=" + this);
+                    console.log("@ ifStatement.run: eval condition " + condition);
+                    console.log("@ ifStatement.run: eval condition " + this.conditionStatement);
+                    yield this.conditionStatement;
+
+                    const r = stack.pop();
+                    console.log("@ ifStatement.run: condition=" + r);
+                    if (r) {
+                        yield ifStatements;
+                    } else if (elseStatements) {
+                        yield elseStatements;
+                    }
                 },
                 seek: function() {
                     console.log("@ ifStatement.seek: state=" + state);
@@ -727,8 +755,23 @@ vm = function() {
                                 space(),
                                 opBrace()
                             );
+                        },
+                        run: function*() {
+                            yield condition;
                         }
                     };
+                },
+                run: function*() {
+                    while (true) {
+                        console.log("@ whileStatement.run: eval condition " + this.conditionStatement);
+                        yield this.conditionStatement;
+                        const r = stack.pop();
+                        console.log("@ whileStatement.run: eval condition " + this.conditionStatement + " -> " + r);
+                        if (!r) break;
+
+                        console.log("@ whileStatement.run: eval body of " + this);
+                        yield bodyStatement;
+                    }
                 },
                 seek: function() {
                     console.log("@ whileStatement.seek: state=" + state);
@@ -769,7 +812,7 @@ vm = function() {
                     console.log("... body finished, repeat");
                     return 0;   // REPEAT
                 },
-                toString: () => 'while'
+                toString: () => 'while ' + condition
             };
         },
 
