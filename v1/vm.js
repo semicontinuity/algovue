@@ -64,8 +64,6 @@ vm = function() {
 
     const highlight = s => {if (s) s.classList.add("active");};
     const unhighlight = s => {if (s) s.classList.remove("active");};
-    const border = s => {if (s) s.view.classList.add("bordered");};
-    const unborder = s => {if (s) s.view.classList.remove("bordered");};
 
 
     function vmLog(type, action) {
@@ -106,22 +104,15 @@ vm = function() {
             if (next.done) {
                 // statement completed
                 // try to activate previous context
-                console.log("step: statement completed; try to activate previous context");
                 context = currentFrame().contexts.pop();
-                console.log(context);
                 if (context === undefined) {    // reached end of function call
-                    console.log("step: reached end of function call");
                     if (deleteFrame()) {
-                        console.log("step: reached end of program");
                         // successfully switched to previous frame; restore statement that was executing in that frame
                         context = currentFrame().contexts.pop();
                     }
-                } else {
-                    console.log("step: activated previous context of " + context.statement);
                 }
             } else {
                 // statement delegates to sub-statement: it yielded sub-statement
-                console.log(`step: new sub-context for '${next.value}'`);
                 currentFrame().contexts.push(context);
                 context = {statement: next.value, coro: next.value.run()};
             }
@@ -134,8 +125,6 @@ vm = function() {
                 if (newLine !== undefined && newLine !== line) {
                     unhighlight(line);
                     line = newLine;
-                    console.log("HIGHLIGHT " + context.statement);
-                    console.log("LINE: " + line);
                     highlight(line);
                 }
                 return line;
@@ -149,7 +138,6 @@ vm = function() {
             return {
                 makeView: function() { return this.view = text(value, 'number');},
                 run: function* () {
-                    console.log('@ number.run: push ' + value);
                     stack.push(value);
                 },
                 toString: () => value
@@ -162,9 +150,7 @@ vm = function() {
                 name: name,
                 makeView: function() { return this.view = text(name, 'variable');},
                 run: function* () {
-                    const r = currentFrame().variables.get(name);
-                    console.log('@ variable.run: push value ' + r);
-                    stack.push(r);
+                    stack.push(currentFrame().variables.get(name));
                 },
                 toString: () => name
             };
@@ -179,20 +165,11 @@ vm = function() {
                     );
                 },
                 run: function*() {
-                    console.log("@ expression.run: executing " + this);
-
-                    console.log("@ expression.run: yield left: " + leftSide);
                     yield leftSide;
-
-                    console.log("@ expression.run: yield right: " + rightSide);
+                    const leftValue = stack.pop();
                     yield rightSide;
-
-                    console.log("@ expression.run: pop sub-results");
-                    const arg1 = stack.pop();
-                    const arg2 = stack.pop();
-                    const r = functor.apply(arg2, arg1);    // LIFO
-                    console.log("@ expression.run: push result " + r);
-                    stack.push(r);
+                    const rightValue = stack.pop();
+                    stack.push(functor.apply(leftValue, rightValue));
                 },
                 toString: () => leftSide.toString() + ' ' + functor.toString() + ' ' + rightSide.toString()
             };
@@ -263,20 +240,12 @@ vm = function() {
                     return view;
                 },
                 run: function*() {
-                    console.log("@ functionCall.run (0): new frame");
                     const aNewFrame = newFrame();
-                    console.log(aNewFrame);
                     for (let i = 0; i < args.length; i++) {
-                        console.log("@ functionCall.run (1): eval arg " + i);
                         yield args[i];
-                        const value = stack.pop();
-                        aNewFrame.variables.set(decl.args[i].name, value);
-                        console.log("@ functionCall.run (1): bound value " + value + " to arg " + decl.args[i].name);
-                        console.log('current frame variables:');
-                        console.log(currentFrame().variables);
+                        aNewFrame.variables.set(decl.args[i].name, stack.pop());
                     }
 
-                    console.log(`@ functionCall.run (2): running body of ${decl}`);
                     yield decl.body;
                 },
                 toString: () => decl.name + '(...)'
@@ -306,13 +275,8 @@ vm = function() {
                     );
                 },
                 run: function*() {
-                    console.log("@ assignment.run (1): eval rvalue " + rvalue);
                     yield rvalue;
-                    const value = stack.pop();
-                    console.log(`@ assignment.run (2): set var ${lvalue.name} to ${value}`);
-                    currentFrame().variables.set(lvalue.name, value);
-                    console.log(`current frame vars:`);
-                    console.log(currentFrame().variables);
+                    currentFrame().variables.set(lvalue.name, stack.pop());
                 },
                 toString: () => (lvalue ? (lvalue + ' = ') : '') + rvalue
             };
@@ -332,7 +296,6 @@ vm = function() {
                     return view;
                 },
                 run: function*() {
-                    console.log("@ sequenceStatement.run");
                     for (let i = 0; i < statements.length; i++) {
                         yield statements[i];
                     }
@@ -349,9 +312,7 @@ vm = function() {
                     return this.view;
                 },
                 run: function*() {
-                    console.log("@ returnStatement.run: evaluate return expression");
                     yield expression;
-                    console.log("@ returnStatement.run: delete frame");
                     deleteFrame();
                 },
                 toString: () => `return ${expression}`
@@ -401,14 +362,9 @@ vm = function() {
                     };
                 },
                 run: function*() {
-                    console.log("@ ifStatement.run: this=" + this);
-                    console.log("@ ifStatement.run: eval condition " + condition);
-                    console.log("@ ifStatement.run: eval condition " + this.conditionStatement);
                     yield this.conditionStatement;
 
-                    const r = stack.pop();
-                    console.log("@ ifStatement.run: condition=" + r);
-                    if (r) {
+                    if (stack.pop()) {
                         yield ifStatements;
                     } else if (elseStatements) {
                         yield elseStatements;
@@ -450,13 +406,8 @@ vm = function() {
                 },
                 run: function*() {
                     while (true) {
-                        console.log("@ whileStatement.run: eval condition " + this.conditionStatement);
                         yield this.conditionStatement;
-                        const r = stack.pop();
-                        console.log("@ whileStatement.run: eval condition " + this.conditionStatement + " -> " + r);
-                        if (!r) break;
-
-                        console.log("@ whileStatement.run: eval body of " + this);
+                        if (!stack.pop()) break;
                         yield bodyStatement;
                     }
                 },
