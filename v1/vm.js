@@ -1,27 +1,10 @@
-/**
- * Restrictions:
- *
- * Results of function calls can only be assigned to variables - cannot participate in expressions.
- */
 vm = function() {
     const DEBUG = false;
 
     const stack = [];
     const frames = [];
 
-    /**
-     * Keeps the result of the last computation
-     */
-    let register;
-    /**
-     * used as instruction pointer: index of current sub-statement in the current statement.
-     */
-    let state;
-
     let context;
-
-    let currentLineStatement;
-
 
     function newFrame() {
         const newFrame = {
@@ -40,25 +23,6 @@ vm = function() {
 
     function currentFrame() {
         return frames[frames.length - 1];
-    }
-
-    const actions = Object.freeze({
-        NO_ACTION: Symbol("NO_ACTION"),
-        POP: Symbol("POP"),
-        RETURN: Symbol("RETURN"),
-        POP_REPEAT: Symbol("POP_REPEAT"),
-        UNKNOWN: Symbol("UNKNOWN"),
-    });
-
-
-    function selectStatement(s) {
-        statement = s;
-        vmLog('SELECT ' + s.toString());
-    }
-
-    function changeState(newState) {
-        state  = newState;
-        vmLog('STATE ' + newState);
     }
 
 
@@ -87,65 +51,20 @@ vm = function() {
         return view;
     }
 
-    function space() {
-        return text(' ');
-    }
-
-    function keyword(innerText) {
-        return text(innerText, 'keyword');
-    }
-
-    function opSign(innerText) {
-        return text(innerText, 'op_sign');
-    }
+    const space = () => text(' ');
+    const keyword = innerText => text(innerText, 'keyword');
+    const opSign = innerText => text(innerText, 'op_sign');
+    const opParen = () => text('(', 'par');
+    const clParen = () => text(')', 'par');
+    const opBrace = () => text('{', 'brace');
+    const clBrace = () => text('}', 'brace');
+    const comma = () => text(',', 'comma');
 
 
-    function highlight(s) {
-        if (s) s.view.classList.add("active");
-    }
-
-    function unhighlight(s) {
-        if (s) s.view.classList.remove("active");
-    }
-
-    function border(s) {
-        if (s) s.view.classList.add("bordered");
-    }
-
-    function unborder(s) {
-        if (s) s.view.classList.remove("bordered");
-    }
-
-
-    function push() {
-        vmLog("PUSH");
-        console.log("  push");
-        console.log("  | state: " + state);
-        console.log("  | context: " + frame);
-        console.log("  | statement: " + statement.toString());
-        stack.push(state);
-        stack.push(frame);
-        stack.push(statement);
-
-        const item = document.createElement('div');
-        item.innerText = state + ' ' + statement.toString();
-        if (DEBUG) stackView.appendChild(item);
-    }
-
-    function pop() {
-        console.log("  pop: stack.length=" + stack.length);
-
-        if (DEBUG) stackView.removeChild(stackView.lastChild);
-
-        statement = stack.pop();
-        frame = stack.pop();
-        state = stack.pop();
-
-        vmLog("POP");
-        console.log("  | state: " + state);
-        console.log("  | context: " + frame);
-        console.log("  | statement: " + statement.toString());
-    }
+    const highlight = s => {if (s) s.view.classList.add("active");};
+    const unhighlight = s => {if (s) s.view.classList.remove("active");};
+    const border = s => {if (s) s.view.classList.add("bordered");};
+    const unborder = s => {if (s) s.view.classList.remove("bordered");};
 
 
     function vmLog(type, action) {
@@ -165,25 +84,6 @@ vm = function() {
         }
     }
 
-    function opParen() {
-        return text('(', 'par');
-    }
-
-    function clParen() {
-        return text(')', 'par');
-    }
-
-    function opBrace() {
-        return text('{', 'brace');
-    }
-
-    function clBrace() {
-        return text('}', 'brace');
-    }
-
-    function comma() {
-        return text(',', 'comma');
-    }
 
     return {
 
@@ -194,14 +94,6 @@ vm = function() {
                 statement: aStatement,
                 coro: aStatement.run(),
             };
-/*
-            state = 0;
-
-            statement.seek();
-            // highlight(currentLine);
-            highlight(currentLineStatement);
-            border(statement);
-*/
             return newFrame().variables;
         },
         getCurrentFrame: () => currentFrame(),
@@ -234,68 +126,6 @@ vm = function() {
             if (context) border(context.statement);
             return context;
         },
-        handleStepAction: function(action) {
-            switch (action) {
-                case actions.NO_ACTION:
-                    break;
-                case actions.POP_REPEAT:
-                case actions.POP:
-                    if (stack.length === 0) {
-                        currentLineStatement = undefined;
-                        statement = undefined;
-                        return false;
-                    } else {
-                        pop();
-                    }
-                    break;
-                case actions.RETURN:
-                    while (true) {
-                        pop();
-                        if (state === -1) {
-                            pop();
-                            console.log("@ found assignment that called the function");
-                            break;
-                        }
-                    }
-                    break;
-            }
-            return true;
-        },
-
-        stepInto: function() {
-            let action;
-            console.log("@ ---------------------------------------------------");
-
-            let runnable = true;
-            unhighlight(currentLineStatement);
-            // unhighlight(currentLine);
-            unborder(statement);
-
-            do {
-                console.log("@ invoking " + statement.toString());
-                action = statement.invoke();
-                vmLog('<b>INVOKE</b>', action);
-                console.log("| action: " + action.description);
-                runnable = this.handleStepAction(action);
-            } while (runnable && action === actions.POP_REPEAT);
-
-            if (runnable) {
-                console.log('@ seeking ' + statement.toString());
-                let r;
-                do {
-                    r = statement.seek();
-                    if (r) pop();
-                }
-                while (r);
-            }
-            console.log("@ highlighting");
-            // highlight(currentLine);
-            highlight(currentLineStatement);
-            border(statement);
-
-            return runnable;
-        },
-
 
         // expression parts
         //----------------------------------------------------------------------
@@ -303,18 +133,9 @@ vm = function() {
         number: function (value) {
             return {
                 makeView: function() { return this.view = text(value, 'number');},
-                evaluate: () => value,
                 run: function* () {
                     console.log('@ number.run: push ' + value);
                     stack.push(value);
-                },
-                seek: () => {
-                    console.log('@ number.seek');
-                    selectStatement(this);
-                },
-                invoke: () => {
-                    register = value;
-                    return actions.POP_REPEAT;
                 },
                 toString: () => value
             };
@@ -329,15 +150,6 @@ vm = function() {
                     const r = currentFrame().variables.get(name);
                     console.log('@ variable.run: push value ' + r);
                     stack.push(r);
-                },
-                evaluate: () => frame[name],
-                seek: () => {
-                    console.log('@ variable.seek');
-                    selectStatement(this);
-                },
-                invoke: () => {
-                    register = this.evaluate();
-                    return actions.POP;
                 },
                 toString: () => name
             };
@@ -367,17 +179,6 @@ vm = function() {
                     console.log("@ expression.run: push result " + r);
                     stack.push(r);
                 },
-                seek: function() {
-                    console.log("@ expression.seek /// " + this.toString());
-                    // will not seek to sub-expression (function call as sub-expression is not allowed)
-                    selectStatement(this);
-                },
-                invoke: function() {
-                    register = this.evaluate();
-                    console.log("@ expression.invoke: register set to " + register);
-                    return actions.POP_REPEAT;
-                },
-                evaluate: () => functor.apply(leftSide.evaluate(), rightSide.evaluate()),
                 toString: () => leftSide.toString() + ' ' + functor.toString() + ' ' + rightSide.toString()
             };
         },
@@ -463,41 +264,6 @@ vm = function() {
                     console.log(`@ functionCall.run (2): running body of ${decl}`);
                     yield decl.body;
                 },
-                seek: function() {
-                    console.log("@ functionCall.seek");
-                    selectStatement(this);
-                },
-                evaluate: function() {
-                    return 0;
-                },
-                invoke: function() {
-                    console.log("@ functionCall.invoke");
-                    if (state === 0) {
-                        // create new context
-                        const length = args.length;
-                        const newContext = {};
-                        for (let i = 0; i < length; i++) {
-                            const /*variable*/ arg = decl.args[i];
-                            console.log("@ functionCall.invoke: args=" + args);
-                            const value = args[i].evaluate();
-                            console.log("@ functionCall.invoke: new context: set " + arg.name + " to " + value);
-                            newContext[arg.name] = value;
-                        }
-
-                        changeState(-1);
-                        push();
-
-                        state     = 0;
-                        frame     = newContext;
-                        selectStatement(decl);
-                        console.log("@ functionCall.invoke: switched to new context!");
-
-                        return actions.NO_ACTION;
-                    }
-                    else {  // state == -1, call completed
-                        return actions.POP;
-                    }
-                },
                 toString: () => decl.name + '(...)'
             };
         },
@@ -533,34 +299,6 @@ vm = function() {
                     console.log(`current frame vars:`);
                     console.log(currentFrame().variables);
                 },
-                seek: function() {
-                    console.log("@ assignment.seek: state=" + state);
-                    currentLineStatement = this;
-                    selectStatement(this);
-                    if (state === 0) {
-                        // before possible function call
-                        state = 1;
-                        push();
-
-                        state = 0;
-                        rvalue.seek();
-                    }
-                    else {
-                        // after possible function call
-                        console.log("+--- will invoke assignment");
-                        selectStatement(this);
-                    }
-                },
-                invoke: function() {
-                    // invoked only after function call
-                    console.log("@ assignment.invoke: register=" + register);
-                    if (lvalue) {
-                        console.log("@ assignment.invoke: write to " + lvalue.name);
-                        frame[lvalue.name] = register;
-                        console.log("@ assignment.invoke: check: " + frame[lvalue.name]);
-                    }
-                    return actions.POP_REPEAT; // done(?)
-                },
                 toString: () => (lvalue ? (lvalue + ' = ') : '') + rvalue
             };
         },
@@ -584,26 +322,6 @@ vm = function() {
                         yield statements[i];
                     }
                 },
-                seek: function() {
-                    console.log("@ ############### sequence.seek: state=" + state);
-                    if (state >= statements.length) {
-                        console.log("@ ############### sequence.seek: reached end");
-                    }
-                    else {
-                        selectStatement(this);
-                        const child = statements[state];
-                        changeState(state + 1);
-                        push();
-
-                        state = 0;
-                        selectStatement(child);
-                        statement.seek();
-                    }
-                },
-                invoke: function() {
-                    console.log("@ ############### sequence.invoke: state=" + state);
-                    return actions.POP;
-                },
                 toString: () => 'sequence'
             };
         },
@@ -620,18 +338,6 @@ vm = function() {
                     yield expression;
                     console.log("@ returnStatement.run: delete frame");
                     deleteFrame();
-                },
-                seek: function() {
-                    console.log("@ returnStatement.seek");
-                    currentLineStatement = this;
-                    selectStatement(this);
-                },
-                invoke: function() {
-                    console.log("@ returnStatement.invoke");
-                    if (expression) {
-                        register = expression.evaluate();
-                    }
-                    return actions.RETURN;  // RETURN
                 },
                 toString: () => `return ${expression}`
             };
@@ -693,40 +399,6 @@ vm = function() {
                         yield elseStatements;
                     }
                 },
-                seek: function() {
-                    console.log("@ ifStatement.seek: state=" + state);
-                    if (state === 0) {
-                        // call condition
-                        currentLineStatement = this.conditionStatement;
-
-                        selectStatement(this);
-                        changeState(state + 1);
-                        push();
-
-                        state = 0;
-                        condition.seek();
-                    }
-                    else if (state === 1) {
-                        // will call branch
-                        changeState(state + 1);
-                        const branch = register ? ifStatements : elseStatements;
-                        if (branch) {
-                            push();
-
-                            state = 0;
-                            console.log(">> branch");
-                            branch.seek();
-                        }
-                    }
-                },
-                invoke: function() {
-                    console.log("@ ifStatement.invoke: state=" + state);
-                    if (state === 1) {
-                        return elseStatements ? actions.NO_ACTION : actions.POP;
-                    }
-                    else
-                        return actions.POP_REPEAT;
-                },
                 toString: () => 'if (' + condition.toString() + ')'
             };
         },
@@ -773,45 +445,6 @@ vm = function() {
                         yield bodyStatement;
                     }
                 },
-                seek: function() {
-                    console.log("@ whileStatement.seek: state=" + state);
-                    if (state === 0) {
-                        // call condition
-                        currentLineStatement = this.conditionStatement;
-
-                        changeState(1); //  next time: call body
-                        push();
-
-                        state = 0;
-                        console.log(">> cond");
-                        condition.seek();
-                    }
-                    else if (state === 1) {
-                        // call body
-                        changeState(0); //  next time: call condition
-                        push();
-
-                        state = 0;
-                        bodyStatement.seek();
-                    }
-                },
-                invoke: function() {
-                    console.log("@ whileStatement.invoke: state=" + state);
-                    if (state === 1) {
-                        // condition just called
-                        if (register)
-                            return actions.NO_ACTION;
-                        else {
-                            state = 2;  //done
-                            return actions.POP;
-                        }
-                    }
-                    else {
-                        // should not happen?
-                    }
-                    console.log("... body finished, repeat");
-                    return 0;   // REPEAT
-                },
                 toString: () => 'while ' + condition
             };
         },
@@ -850,10 +483,6 @@ vm = function() {
                     }
                     return argList;
                 },
-                seek: function() {
-                    console.log("@ functionDeclaration.seek");
-                    body.seek();
-                },
                 toString: () => name + '(...) {...}'
             };
         },
@@ -863,8 +492,7 @@ vm = function() {
             return {
                 makeView: function(indent) {
                     return this.view = div(keyword('var'), space(), variable.makeView());
-                },
-                invoke: () => { }
+                }
             };
         },
 
