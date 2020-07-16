@@ -25,7 +25,10 @@ test = function() {
         ])
     );
 
-    const usage = vm.functionCall(gcd, [vm.number(15), vm.number(25)]);
+    const usage = vm.assignment(
+        vm.variable('result'),
+        vm.functionCall(gcd, [vm.number(15), vm.number(25)])
+    );
 
     return {
         code: vm.codeBlocks([gcd, usage]),

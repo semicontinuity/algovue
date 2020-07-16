@@ -5,6 +5,7 @@ vm = function() {
     const frames = [];
 
     let context;
+    let line;
 
     function newFrame() {
         const newFrame = {
@@ -61,8 +62,8 @@ vm = function() {
     const comma = () => text(',', 'comma');
 
 
-    const highlight = s => {if (s) s.view.classList.add("active");};
-    const unhighlight = s => {if (s) s.view.classList.remove("active");};
+    const highlight = s => {if (s) s.classList.add("active");};
+    const unhighlight = s => {if (s) s.classList.remove("active");};
     const border = s => {if (s) s.view.classList.add("bordered");};
     const unborder = s => {if (s) s.view.classList.remove("bordered");};
 
@@ -90,16 +91,17 @@ vm = function() {
         // vm control
         //----------------------------------------------------------------------
         init: function(aStatement) {
+            newFrame();
             context = {
                 statement: aStatement,
                 coro: aStatement.run(),
             };
-            return newFrame().variables;
+            if (aStatement.line) highlight(line = aStatement.line);
+            return line;
         },
         getCurrentFrame: () => currentFrame(),
         stack: () => stack,
         step: function() {
-            unborder(context.statement);
             const next = context.coro.next();
             if (next.done) {
                 // statement completed
@@ -123,8 +125,21 @@ vm = function() {
                 currentFrame().contexts.push(context);
                 context = {statement: next.value, coro: next.value.run()};
             }
-            if (context) border(context.statement);
-            return context;
+
+            if (context === undefined) {
+                unhighlight(line);  // program finished
+                return undefined;
+            } else {
+                const newLine = context.statement.line;
+                if (newLine !== undefined && newLine !== line) {
+                    unhighlight(line);
+                    line = newLine;
+                    console.log("HIGHLIGHT " + context.statement);
+                    console.log("LINE: " + line);
+                    highlight(line);
+                }
+                return line;
+            }
         },
 
         // expression parts
@@ -281,7 +296,7 @@ vm = function() {
         assignment: function(lvalue, rvalue) {
             return {
                 makeView: function(indent) {
-                    return this.view = div(
+                    return this.view = this.line = div(
                         indentSpan(indent),
                         lvalue.makeView(),
                         space(),
@@ -330,7 +345,7 @@ vm = function() {
         returnStatement: function(expression) {
             return {
                 makeView: function(indent) {
-                    this.view = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
+                    this.view = this.line = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
                     return this.view;
                 },
                 run: function*() {
@@ -368,7 +383,7 @@ vm = function() {
                 makeConditionStatement: function() {
                     return {
                         makeView: function (indent) {
-                            return this.view = div(
+                            return this.view = this.line = div(
                                 indentSpan(indent),
                                 keyword('if'),
                                 space(),
@@ -417,7 +432,7 @@ vm = function() {
                 makeConditionStatement: function() {
                     return {
                         makeView: function (indent) {
-                            return this.view = div(
+                            return this.view = this.line = div(
                                 indentSpan(indent),
                                 keyword('while'),
                                 space(),
