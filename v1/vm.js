@@ -172,7 +172,10 @@ vm = function() {
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     stack.push(currentFrame().variables.get(name));
-                    if (targetArray !== undefined) addRelation(targetArray, name);
+                    if (targetArray !== undefined) {
+                        addRelation(targetArray, name);
+                        addRelation(name, targetArray);
+                    }
                 },
                 toString: () => name
             };
@@ -184,7 +187,10 @@ vm = function() {
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     currentFrame().variables.set(this.name, stack.pop());
-                    if (targetArray !== undefined) addRelation(targetArray, name);
+                    if (targetArray !== undefined) {
+                        addRelation(targetArray, name);
+                        addRelation(name, targetArray);
+                    }
                 },
                 toString: () => name
             };

@@ -5,16 +5,23 @@ function $(elementId) {
 function renderList(name, l, pointerNames, variables) {
     const t = table('listview');
     for (let i = 0; i < l.length; i++) {
-        const pointers = new Set();
+        const entryPointers = new Set();
         if (pointerNames !== undefined) {
             for (let p of pointerNames) {
                 const v = variables.get(p);
-                if (v === i) pointers.add(p);
+                if (v === i) entryPointers.add(p);
             }
         }
 
         const vPointers = e('td', 'listview-pointers');
-        vPointers.innerText = [...pointers].join(',');
+        for (let p of entryPointers) {
+            const vPointer = e('span', 'pointer');
+            vPointer.innerText = p;
+            vPointers.appendChild(vPointer);
+        }
+        if (entryPointers.size > 0) vPointers.appendChild(text('\u2192'));
+
+        // vPointers.innerText = [...entryPointers].join(',');
 
         const vIndex = e('td', 'listview-index');
         vIndex.innerText = i;
@@ -37,12 +44,13 @@ function renderVariables(variables, relations) {
     for (let v of variables) {
         const name = v[0];
         const value = v[1];
+        const pointers = relations.get(name);
         if (Array.isArray(value)) {
-            let qName = name;
-            const pointers = relations.get(name);
-            t.appendChild(tr(td(text(qName, 'variable')), td(renderList(name, value, pointers, variables))));
+            t.appendChild(tr(td(text(name, 'variable')), td(renderList(name, value, pointers, variables))));
         } else {
-            t.appendChild(tr(td(text(name, 'variable')), td(text(value, 'number'))));
+            if (pointers === undefined) {
+                t.appendChild(tr(td(text(name, 'variable')), td(text(value, 'number'))));
+            }
         }
     }
     return t;
