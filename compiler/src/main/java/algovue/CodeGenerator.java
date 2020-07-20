@@ -2,11 +2,8 @@ package algovue;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -20,7 +17,6 @@ import algovue.codegen.tree.Statements;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.util.List;
 
 
 public class CodeGenerator {
@@ -85,7 +81,11 @@ public class CodeGenerator {
                 FunctionDeclaration.builder()
                         .name(e.getName().toString())
                         .params(e.getParameters().stream().map(p -> p.name.toString()).collect(Collectors.toList()))
-                        .body(Statements.builder())
+                        .body(generateFrom(e.body))
         );
+    }
+
+    private Statements generateFrom(JCTree.JCBlock e) {
+        return Statements.builder();
     }
 }
