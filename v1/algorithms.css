@@ -77,7 +77,6 @@ span.variable {
 .listview-value {
     font-size: 1.44em;
     font-weight: bold;
-    background: white;
     color: darkred;
     border: solid 1px grey;
     padding-left: 1ex;
