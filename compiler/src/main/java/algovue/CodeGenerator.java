@@ -12,7 +12,10 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import algovue.codegen.tree.Declarations;
+import algovue.codegen.tree.Expression;
 import algovue.codegen.tree.FunctionDeclaration;
+import algovue.codegen.tree.Number;
+import algovue.codegen.tree.ReturnStatement;
 import algovue.codegen.tree.Statements;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
@@ -37,8 +40,8 @@ public class CodeGenerator {
         final Iterable<? extends JavaFileObject> sources =
                 manager.getJavaFileObjectsFromFiles(Collections.singletonList(file));
 
-        final JavacTask task = (JavacTask) compiler.getTask( null, manager, diagnostics,
-                null, null, sources );
+        final JavacTask task = (JavacTask) compiler.getTask(null, manager, diagnostics,
+                null, null, sources);
 
         CodeGenerator codeGenerator = new CodeGenerator();
         codeGenerator.generateFrom(task);
@@ -72,10 +75,14 @@ public class CodeGenerator {
     }
 
     private void generateFrom(JCTree.JCMethodDecl e) {
-        if ("<init>".equals(e.getName().toString())) return;
+        if ("<init>".equals(e.getName().toString())) {
+            return;
+        }
 
         JCTree returnType = e.getReturnType();
-        if (returnType.getTag() != JCTree.Tag.TYPEIDENT) return;
+        if (returnType.getTag() != JCTree.Tag.TYPEIDENT) {
+            return;
+        }
 
         declarations.declaration(
                 FunctionDeclaration.builder()
@@ -86,6 +93,34 @@ public class CodeGenerator {
     }
 
     private Statements generateFrom(JCTree.JCBlock e) {
-        return Statements.builder();
+        Statements result = Statements.builder();
+        for (JCTree def : e.stats) {
+            if (def instanceof JCTree.JCReturn) {
+                result.statement(generateFrom((JCTree.JCReturn) def));
+            }
+        }
+        return result;
+    }
+
+    private ReturnStatement generateFrom(JCTree.JCReturn e) {
+        return ReturnStatement.builder().expression(generateFrom(e.expr));
+    }
+
+    private Expression generateFrom(JCTree.JCExpression e) {
+        if (e instanceof JCTree.JCLiteral) {
+            return generateFrom((JCTree.JCLiteral) e);
+        } else if (e instanceof JCTree.JCBinary) {
+            return generateFrom((JCTree.JCBinary) e);
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private Expression generateFrom(JCTree.JCLiteral e) {
+        return new Number((Integer) e.value);
+    }
+
+    private Expression generateFrom(JCTree.JCBinary e) {
+        return null;
     }
 }

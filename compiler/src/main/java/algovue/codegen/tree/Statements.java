@@ -21,7 +21,7 @@ public class Statements extends Statement {
         StringBuilder b = new StringBuilder();
         indent(b, indent).append("vm.sequenceStatement([\n");
         for (Statement statement : statements) {
-            indent(b, indent).append(statement.charSequence(0));
+            indent(b, indent + 1).append(statement.charSequence(0));
         }
         indent(b, indent).append("])");
         return b;

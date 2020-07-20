@@ -35,7 +35,7 @@ public class FunctionDeclaration extends Declaration {
         indent(b, indent).append("'").append(name).append("',\n");
         indent(b, indent)
                 .append('[')
-                .append(params.stream().map(p -> "vm.variable('" + p + "')").collect(Collectors.joining(",")))
+                .append(params.stream().map(p -> "vm.variable('" + p + "')").collect(Collectors.joining(", ")))
                 .append("]\n");
         b.append(body.charSequence(indent)).append('\n');
         b.append(")");
