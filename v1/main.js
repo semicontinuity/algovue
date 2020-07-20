@@ -2,9 +2,20 @@ function $(elementId) {
     return document.getElementById(elementId);
 }
 
-function renderList(name, l) {
+function renderList(name, l, pointerNames, variables) {
     const t = table('listview');
     for (let i = 0; i < l.length; i++) {
+        const pointers = new Set();
+        if (pointerNames !== undefined) {
+            for (let p of pointerNames) {
+                const v = variables.get(p);
+                if (v === i) pointers.add(p);
+            }
+        }
+
+        const vPointers = e('td', 'listview-pointers');
+        vPointers.innerText = [...pointers].join(',');
+
         const vIndex = e('td', 'listview-index');
         vIndex.innerText = i;
 
@@ -13,7 +24,7 @@ function renderList(name, l) {
 
         t.appendChild(
             tr(
-                vIndex, vValue
+                vPointers, vIndex, vValue
             )
         );
     }
@@ -29,8 +40,7 @@ function renderVariables(variables, relations) {
         if (Array.isArray(value)) {
             let qName = name;
             const pointers = relations.get(name);
-            if (pointers !== undefined) qName = qName + "#" + [...pointers].join(',');
-            t.appendChild(tr(td(text(qName, 'variable')), td(renderList(name, value))));
+            t.appendChild(tr(td(text(qName, 'variable')), td(renderList(name, value, pointers, variables))));
         } else {
             t.appendChild(tr(td(text(name, 'variable')), td(text(value, 'number'))));
         }
