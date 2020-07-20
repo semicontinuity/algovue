@@ -2,9 +2,10 @@ package algovue.codegen.tree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FunctionDeclaration extends Declaration {
-    private List<String> args = new ArrayList<>();
+    private List<String> params = new ArrayList<>();
     private Statement body;
 
     public static FunctionDeclaration builder() {
@@ -16,8 +17,8 @@ public class FunctionDeclaration extends Declaration {
         return this;
     }
 
-    public FunctionDeclaration arg(String arg) {
-        this.args.add(arg);
+    public FunctionDeclaration params(List<String> params) {
+        this.params = params;
         return this;
     }
 
@@ -32,7 +33,10 @@ public class FunctionDeclaration extends Declaration {
         StringBuilder b = new StringBuilder();
         b.append("vm.functionDeclaration(").append('\n');
         indent(b, indent).append("'").append(name).append("',\n");
-        indent(b, indent).append("[],\n");
+        indent(b, indent)
+                .append('[')
+                .append(params.stream().map(p -> "vm.variable('" + p + "')").collect(Collectors.joining(",")))
+                .append("]\n");
         b.append(body.charSequence(indent)).append('\n');
         b.append(")");
         return b;

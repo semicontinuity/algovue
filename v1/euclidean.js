@@ -2,7 +2,7 @@ test = function() {
 
     const gcd = vm.functionDeclaration(
         'gcd',
-        [(vm.variable('a')), (vm.variable('b'))],
+        [vm.variable('a'), vm.variable('b')],
         vm.sequenceStatement([
             vm.ifStatement(
                 // if (a == 0) {
