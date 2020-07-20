@@ -3,6 +3,12 @@ function renderIn(container, content) {
     container.appendChild(content);
 }
 
+function e(tag, ...clazz) {
+    const element = document.createElement(tag);
+    if (clazz.length !== 0) element.classList.add(clazz);
+    return element;
+}
+
 function table(...clazz) {
     const element = document.createElement('table');
     if (clazz.length !== 0) element.classList.add(clazz);

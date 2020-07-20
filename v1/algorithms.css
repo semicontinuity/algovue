@@ -45,3 +45,39 @@ span.variable {
     font-weight: bold;
     /*text-decoration: underline;*/
 }
+
+/*****************************************/
+.listview {
+    font-family: monospace;
+    border-collapse: collapse;
+}
+
+.listview-pointers {
+    font-size: 1.44em;
+    text-align: right;
+}
+
+.listview-index {
+    font-size: 1.44em;
+    color: lightslategray;
+    padding-left: 1ex;
+    padding-right: 1ex;
+}
+
+.listview-value {
+    font-size: 1.44em;
+    font-weight: bold;
+    background: white;
+    color: darkred;
+    border: solid 1px grey;
+    padding-left: 1ex;
+    padding-right: 1ex;
+}
+
+.pointer {
+    font-weight: bold;
+    border: solid 1px grey;
+    padding-left: 1ex;
+    padding-right: 1ex;
+    margin: 1px;
+}

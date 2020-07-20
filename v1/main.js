@@ -2,10 +2,34 @@ function $(elementId) {
     return document.getElementById(elementId);
 }
 
+function renderList(name, l) {
+    const t = table('listview');
+    for (let i = 0; i < l.length; i++) {
+        const vIndex = e('td', 'listview-index');
+        vIndex.innerText = i;
+
+        const vValue = e('td', 'listview-value');
+        vValue.innerText = l[i];
+
+        t.appendChild(
+            tr(
+                vIndex, vValue
+            )
+        );
+    }
+    return t;
+}
+
 function renderVariables(vars) {
     const t = table('variables');
     for (let v of vars) {
-        t.appendChild(tr(td(text(v[0], 'variable')), td(text(v[1], 'number'))));
+        const name = v[0];
+        const value = v[1];
+        if (Array.isArray(value)) {
+            t.appendChild(tr(td(text(name, 'variable')), td(renderList(name, value))));
+        } else {
+            t.appendChild(tr(td(text(name, 'variable')), td(text(value, 'number'))));
+        }
     }
     return t;
 }
