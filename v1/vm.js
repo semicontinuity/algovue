@@ -51,7 +51,6 @@ vm = function() {
 
 
     function addRelation(targetArray, name) {
-        console.log("addRelation", targetArray, name);
         let target = currentFrame().relations.get(targetArray);
         if (target === undefined) {
             target = new Set();

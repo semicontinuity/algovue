@@ -9,7 +9,8 @@ function renderList(name, l, pointerNames, variables) {
         if (pointerNames !== undefined) {
             for (let p of pointerNames) {
                 const v = variables.get(p);
-                if (v === i) entryPointers.add(p);
+                // noinspection EqualityComparisonWithCoercionJS
+                if (v == i) entryPointers.add(p);
             }
         }
 
@@ -39,7 +40,6 @@ function renderList(name, l, pointerNames, variables) {
 }
 
 function renderVariables(variables, relations) {
-    console.log(relations);
     const t = table('variables');
     for (let v of variables) {
         const name = v[0];
