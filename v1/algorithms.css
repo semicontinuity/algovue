@@ -1,38 +1,32 @@
-h2 {
-    font-family: Verdana, serif;
-    color: teal;
-    padding-right: 8px;
-    border-bottom: solid 2px teal;
+body {
+    margin: 0;
+}
+.info {
+    width: 100%; background: lightblue; padding: 2pt 4pt 2pt 4pt ; margin: 4pt 0; font-family: Verdana,serif
 }
 
+/* ********************************************** */
+table.variables {
+    width: 100%;
+    height: 100%;
+    font-family: monospace;
+    font-size: 1.44em;
+}
+table.variables td {
+    padding: 0 4pt;
+}
+
+/* ********************************************** */
 div.code {
     vertical-align: top;
     font-family: monospace;
     font-size: 1.44em;
-    margin: 4px;
-    padding: 8px;
-}
-
-table {
-    display: inline-block;
-    vertical-align: top;
-    font-family: monospace;
-    font-size: 1.44em;
-    border: solid 1px gray;
-    margin: 4px;
-    padding: 8px;
-    border-collapse: collapse;
-}
-td {
-    border: solid 1px black;
-    padding-right: 4px;
-    padding-left: 4px;
 }
 
 div.active {
-    background-color: #ffc0cb;
-    /*background-color: #f0f0f0;*/
+    background-color: #c0c0e0;
 }
+
 .bordered {
     border: solid 1px gray;
 }
@@ -48,5 +42,6 @@ span.number {
 }
 
 span.variable {
-    text-decoration: underline;
+    font-weight: bold;
+    /*text-decoration: underline;*/
 }

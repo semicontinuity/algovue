@@ -33,25 +33,6 @@ vm = function() {
         return view;
     }
 
-    function span(...args) {
-        const view = document.createElement('span');
-        args.forEach(c => view.appendChild(c));
-        return view;
-    }
-
-    function div(...args) {
-        const view = document.createElement('div');
-        args.forEach(c => view.appendChild(c));
-        return view;
-    }
-
-    function text(innerText, className) {
-        const view = document.createElement('span');
-        if (innerText !== undefined) view.innerText = innerText;
-        if (className) view.className = className;
-        return view;
-    }
-
     const space = () => text(' ');
     const keyword = innerText => text(innerText, 'keyword');
     const opSign = innerText => text(innerText, 'op_sign');
@@ -469,7 +450,7 @@ vm = function() {
                 populateView: function (view) {
                     for (let i = 0; i < declarations.length; i++) {
                         view.appendChild(declarations[i].makeView(0));
-                        view.appendChild(document.createElement('hr'));
+                        if (i < declarations.length - 1) view.appendChild(div(text('\u202F')));
                     }
                     return view;
                 }
