@@ -20,13 +20,17 @@ function renderList(name, l) {
     return t;
 }
 
-function renderVariables(vars) {
+function renderVariables(variables, relations) {
+    console.log(relations);
     const t = table('variables');
-    for (let v of vars) {
+    for (let v of variables) {
         const name = v[0];
         const value = v[1];
         if (Array.isArray(value)) {
-            t.appendChild(tr(td(text(name, 'variable')), td(renderList(name, value))));
+            let qName = name;
+            const pointers = relations.get(name);
+            if (pointers !== undefined) qName = qName + "#" + [...pointers].join(',');
+            t.appendChild(tr(td(text(qName, 'variable')), td(renderList(name, value))));
         } else {
             t.appendChild(tr(td(text(name, 'variable')), td(text(value, 'number'))));
         }
@@ -49,6 +53,6 @@ function main() {
             }
         }
         // $('stackView').innerText = vm.stack().join();
-        renderIn($('variables'), renderVariables(vm.getCurrentFrame().variables));
+        renderIn($('variables'), renderVariables(vm.getCurrentFrame().variables, vm.getCurrentFrame().relations));
     };
 }

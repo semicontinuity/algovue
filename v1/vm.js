@@ -10,7 +10,8 @@ vm = function() {
     function newFrame() {
         const newFrame = {
             contexts: [],
-            variables: new Map()
+            variables: new Map(),
+            relations: new Map()
         };
         frames.push(newFrame);
         return newFrame;
@@ -49,6 +50,17 @@ vm = function() {
     const unhighlight = s => {if (s) s.classList.remove("active");};
 
 
+    function addRelation(targetArray, name) {
+        console.log("addRelation", targetArray, name);
+        let target = currentFrame().relations.get(targetArray);
+        if (target === undefined) {
+            target = new Set();
+            currentFrame().relations.set(targetArray, target);
+        }
+        target.add(name);
+    }
+
+
     function vmLog(type, action) {
         if (DEBUG) {
             const item = document.createElement('tr');
@@ -65,7 +77,6 @@ vm = function() {
             logView.appendChild(item);
         }
     }
-
 
     return {
 
@@ -155,23 +166,25 @@ vm = function() {
             };
         },
 
-        variable: function(name) {
+        variable: function(name, targetArray) {
             return {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     stack.push(currentFrame().variables.get(name));
+                    if (targetArray !== undefined) addRelation(targetArray, name);
                 },
                 toString: () => name
             };
         },
 
-        varWrite: function(name) {
+        varWrite: function(name, targetArray) {
             return {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     currentFrame().variables.set(this.name, stack.pop());
+                    if (targetArray !== undefined) addRelation(targetArray, name);
                 },
                 toString: () => name
             };
