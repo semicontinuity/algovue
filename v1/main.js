@@ -8,7 +8,10 @@ function dataRWStyle(read, write) {
     if (write) return "data-w";
 }
 
-function renderList(name, l, pointerNames, variables, reads, writes) {
+function renderList(name, l, pointerNames, variables, dataAccessLog) {
+    const reads = dataAccessLog.arrayReads.get(name);
+    const writes = dataAccessLog.arrayWrites.get(name);
+
     const t = table('listview');
     for (let i = 0; i < l.length; i++) {
         const entryPointers = new Set();
@@ -23,6 +26,8 @@ function renderList(name, l, pointerNames, variables, reads, writes) {
         const vPointers = e('td', 'listview-pointers');
         for (let p of entryPointers) {
             const vPointer = e('span', 'pointer');
+            const rwStyle = dataRWStyle(dataAccessLog.varReads.has(p), dataAccessLog.varWrites.has(p));
+            vPointer.classList.add(rwStyle);
             vPointer.innerText = p;
             vPointers.appendChild(vPointer);
         }
@@ -50,11 +55,9 @@ function renderVariables(variables, relations, dataAccessLog) {
         const value = v[1];
         const pointers = relations.get(name);
         if (Array.isArray(value)) {
-            const reads = dataAccessLog.arrayReads.get(name);
-            const writes = dataAccessLog.arrayWrites.get(name);
             t.appendChild(tr(
                 td(text(name, 'variable')),
-                td(renderList(name, value, pointers, variables, reads, writes))
+                td(renderList(name, value, pointers, variables, dataAccessLog))
             ));
         } else {
             if (pointers === undefined) {
