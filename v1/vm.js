@@ -106,7 +106,7 @@ vm = function() {
     }
 
     function writeArrayElement(name, indexValue, value) {
-        getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
+        getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
         (currentFrame().variables.get(name))[indexValue] = value;
     }
 

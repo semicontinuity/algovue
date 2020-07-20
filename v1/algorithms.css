@@ -47,6 +47,16 @@ span.variable {
 }
 
 /*****************************************/
+.data-r {
+    background: lightgreen;
+}
+.data-w {
+    background: mistyrose;
+}
+.data-rw {
+    background: lightgoldenrodyellow;
+}
+/*****************************************/
 .listview {
     font-family: monospace;
     border-collapse: collapse;

@@ -2,7 +2,13 @@ function $(elementId) {
     return document.getElementById(elementId);
 }
 
-function renderList(name, l, pointerNames, variables) {
+function dataRWStyle(read, write) {
+    if (read && write) return "data-rw";
+    if (read) return "data-r";
+    if (write) return "data-w";
+}
+
+function renderList(name, l, pointerNames, variables, reads, writes) {
     const t = table('listview');
     for (let i = 0; i < l.length; i++) {
         const entryPointers = new Set();
@@ -22,8 +28,6 @@ function renderList(name, l, pointerNames, variables) {
         }
         if (entryPointers.size > 0) vPointers.appendChild(text('\u2192'));
 
-        // vPointers.innerText = [...entryPointers].join(',');
-
         const vIndex = e('td', 'listview-index');
         vIndex.innerText = i;
 
@@ -39,17 +43,27 @@ function renderList(name, l, pointerNames, variables) {
     return t;
 }
 
-function renderVariables(variables, relations) {
+function renderVariables(variables, relations, dataAccessLog) {
     const t = table('variables');
     for (let v of variables) {
         const name = v[0];
         const value = v[1];
         const pointers = relations.get(name);
         if (Array.isArray(value)) {
-            t.appendChild(tr(td(text(name, 'variable')), td(renderList(name, value, pointers, variables))));
+            const reads = dataAccessLog.arrayReads.get(name);
+            const writes = dataAccessLog.arrayWrites.get(name);
+            t.appendChild(tr(
+                td(text(name, 'variable')),
+                td(renderList(name, value, pointers, variables, reads, writes))
+            ));
         } else {
             if (pointers === undefined) {
-                t.appendChild(tr(td(text(name, 'variable')), td(text(value, 'number'))));
+                const view = text(value, 'number');
+                const rwStyle = dataRWStyle(dataAccessLog.varReads.has(name), dataAccessLog.varWrites.has(name));
+                if (rwStyle !== undefined) {
+                    view.classList.add(rwStyle);
+                }
+                t.appendChild(tr(td(text(name, 'variable')), td(view)));
             }
         }
     }
@@ -74,6 +88,13 @@ function main() {
         const dataAccessLog = vm.getDataAccessLog();
 
         // $('stackView').innerText = vm.stack().join();
-        renderIn($('variables'), renderVariables(vm.getCurrentFrame().variables, vm.getCurrentFrame().relations));
+        renderIn(
+            $('variables'),
+            renderVariables(
+                vm.getCurrentFrame().variables,
+                vm.getCurrentFrame().relations,
+                vm.getDataAccessLog()
+            )
+        );
     };
 }
