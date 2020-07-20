@@ -31,17 +31,22 @@ div.active {
     border: solid 1px gray;
 }
 
-span.keyword {
+.keyword {
     font-weight: bold;
     color: darkblue;
 }
 
-span.number {
+.number {
     font-weight: bold;
     color: darkred;
 }
 
-span.variable {
+.char {
+    font-weight: bold;
+    color: royalblue;
+}
+
+.variable {
     font-weight: bold;
     /*text-decoration: underline;*/
 }
@@ -56,6 +61,7 @@ span.variable {
 .data-rw {
     background: lightgoldenrodyellow;
 }
+
 /*****************************************/
 .listview {
     font-family: monospace;

@@ -25,7 +25,7 @@ test = function() {
         vm.varWrite('result'),
         vm.functionCall(
             testFunctionDeclaration,
-            [vm.arrayLiteral([vm.number(1), vm.number(2), vm.number(3), vm.number(4), vm.number(5)]), vm.number(5)]
+            [vm.arrayLiteral([vm.char('h'), vm.char('e'), vm.char('l'), vm.char('l'), vm.char('o')]), vm.number(5)]
         )
     );
 

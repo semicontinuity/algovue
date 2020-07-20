@@ -162,6 +162,16 @@ vm = function() {
         // expression parts
         //----------------------------------------------------------------------
 
+        char: function (value) {
+            return {
+                makeView: function() { return span(text("'" + value + "'", 'char'));},
+                run: function* () {
+                    stack.push(value);
+                },
+                toString: () => value
+            };
+        },
+
         number: function (value) {
             return {
                 makeView: function() { return text(value, 'number');},
