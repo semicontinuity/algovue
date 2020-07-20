@@ -16,9 +16,9 @@ test = function() {
                     // if (a > b) {
                     vm.expression(vm.gt(), vm.variable('a'), vm.variable('b')),
                     //   then a = a - b
-                    vm.assignment(vm.variable('a'), vm.expression(vm.minus(), vm.variable('a'), vm.variable('b'))),
+                    vm.assignment(vm.varWrite('a'), vm.expression(vm.minus(), vm.variable('a'), vm.variable('b'))),
                     //   else b = b - a
-                    vm.assignment(vm.variable('b'), vm.expression(vm.minus(), vm.variable('b'), vm.variable('a')))
+                    vm.assignment(vm.varWrite('b'), vm.expression(vm.minus(), vm.variable('b'), vm.variable('a')))
                 )
             ),
             vm.returnStatement(vm.variable('a'))
@@ -26,7 +26,7 @@ test = function() {
     );
 
     const usage = vm.assignment(
-        vm.variable('result'),
+        vm.varWrite('result'),
         vm.functionCall(gcd, [vm.number(15), vm.number(25)])
     );
 

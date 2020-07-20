@@ -35,12 +35,14 @@ vm = function() {
 
     const space = () => text(' ');
     const keyword = innerText => text(innerText, 'keyword');
-    const opSign = innerText => text(innerText, 'op_sign');
-    const opParen = () => text('(', 'par');
-    const clParen = () => text(')', 'par');
-    const opBrace = () => text('{', 'brace');
-    const clBrace = () => text('}', 'brace');
-    const comma = () => text(',', 'comma');
+    const opSign = innerText => text(innerText);
+    const opBracket = () => text('[');
+    const clBracket = () => text(']');
+    const opParen = () => text('(');
+    const clParen = () => text(')');
+    const opBrace = () => text('{');
+    const clBrace = () => text('}');
+    const comma = () => text(',');
 
 
     const highlight = s => {if (s) s.classList.add("active");};
@@ -125,6 +127,33 @@ vm = function() {
             };
         },
 
+        arrayLiteral: function(items) {
+            return {
+                makeView: function() {
+                    return span(opBracket(), this.argList(), clBracket());
+                },
+                argList: () => {
+                    const view = span();
+                    for (let i = 0; i < items.length; i++) {
+                        view.appendChild(items[i].makeView());
+                        if (i < items.length - 1) {
+                            view.appendChild(comma());
+                            view.appendChild(space());
+                        }
+                    }
+                    return view;
+                },
+                run: function*() {
+                    const value = [];
+                    for (let i = 0; i < items.length; i++) {
+                        yield items[i];
+                        value.push(stack.pop());
+                    }
+                    stack.push(value);
+                },
+                toString: () => decl.name + '[...]'
+            };
+        },
 
         variable: function(name) {
             return {
@@ -132,6 +161,48 @@ vm = function() {
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     stack.push(currentFrame().variables.get(name));
+                },
+                toString: () => name
+            };
+        },
+
+        varWrite: function(name) {
+            return {
+                name: name,
+                makeView: function() { return text(name, 'variable');},
+                run: function* () {
+                    currentFrame().variables.set(this.name, stack.pop());
+                },
+                toString: () => name
+            };
+        },
+
+        arrItem: function(name, index) {
+            return {
+                name: name,
+                makeView: function() {
+                    return span(text(name, 'variable'), opBracket(), index.makeView(), clBracket());
+                },
+                run: function* () {
+                    yield index;
+                    const indexValue = stack.pop();
+                    stack.push(currentFrame().variables.get(name)[indexValue]);
+                },
+                toString: () => name
+            };
+        },
+
+        arrItemWrite: function(name, index) {
+            return {
+                name: name,
+                makeView: function() {
+                    return span(text(name, 'variable'), opBracket(), index.makeView(), clBracket());
+                },
+                run: function* () {
+                    yield index;
+                    const indexValue = stack.pop();
+                    const array = currentFrame().variables.get(this.name);
+                    array[indexValue] = stack.pop();
                 },
                 toString: () => name
             };
@@ -257,7 +328,8 @@ vm = function() {
                 },
                 run: function*() {
                     yield rvalue;
-                    currentFrame().variables.set(lvalue.name, stack.pop());
+                    yield lvalue;
+                    // currentFrame().variables.set(lvalue.name, stack.pop());
                 },
                 toString: () => (lvalue ? (lvalue + ' = ') : '') + rvalue
             };
