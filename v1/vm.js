@@ -6,6 +6,16 @@ vm = function() {
 
     let context;
     let line;
+    let dataAccessLog;
+
+    function getOrEmptySet(map, key) {
+        let set = map.get(key);
+        if (set === undefined) {
+            set = new Set();
+            map.set(key, set);
+        }
+        return set;
+    }
 
     function newFrame() {
         const newFrame = {
@@ -28,6 +38,15 @@ vm = function() {
     }
 
 
+    function newDataAccessLog() {
+        return {
+            varReads: new Set(),
+            varWrites: new Set(),
+            arrayReads: new Map(),
+            arrayWrites: new Map()
+        };
+    }
+
     function indentSpan(size) {
         var view = document.createElement('span');
         for (let i = 0; i < size * 4; i++) view.innerText += '\u00a0';
@@ -49,14 +68,8 @@ vm = function() {
     const highlight = s => {if (s) s.classList.add("active");};
     const unhighlight = s => {if (s) s.classList.remove("active");};
 
-
     function addRelation(targetArray, name) {
-        let target = currentFrame().relations.get(targetArray);
-        if (target === undefined) {
-            target = new Set();
-            currentFrame().relations.set(targetArray, target);
-        }
-        target.add(name);
+        getOrEmptySet(currentFrame().relations, targetArray).add(name);
     }
 
 
@@ -77,6 +90,26 @@ vm = function() {
         }
     }
 
+    function readVar(name) {
+        dataAccessLog.varReads.add(name);
+        return currentFrame().variables.get(name);
+    }
+
+    function writeVar(name, value) {
+        dataAccessLog.varWrites.add(name);
+        currentFrame().variables.set(name, value);
+    }
+
+    function readArrayElement(name, indexValue) {
+        getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
+        return currentFrame().variables.get(name)[indexValue];
+    }
+
+    function writeArrayElement(name, indexValue, value) {
+        getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
+        (currentFrame().variables.get(name))[indexValue] = value;
+    }
+
     return {
 
         // vm control
@@ -92,6 +125,8 @@ vm = function() {
         },
         getCurrentFrame: () => currentFrame(),
         stack: () => stack,
+        clearDataAccessLog: () => {dataAccessLog = newDataAccessLog()},
+        getDataAccessLog: () => dataAccessLog,
         step: function() {
             const next = context.coro.next();
             if (next.done) {
@@ -170,7 +205,7 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    stack.push(currentFrame().variables.get(name));
+                    stack.push(readVar(name));
                     if (targetArray !== undefined) {
                         addRelation(targetArray, name);
                         addRelation(name, targetArray);
@@ -185,7 +220,8 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    currentFrame().variables.set(this.name, stack.pop());
+                    const value = stack.pop();
+                    writeVar(name, value);
                     if (targetArray !== undefined) {
                         addRelation(targetArray, name);
                         addRelation(name, targetArray);
@@ -204,7 +240,7 @@ vm = function() {
                 run: function* () {
                     yield index;
                     const indexValue = stack.pop();
-                    stack.push(currentFrame().variables.get(name)[indexValue]);
+                    stack.push(readArrayElement(name, indexValue));
                 },
                 toString: () => name
             };
@@ -219,8 +255,8 @@ vm = function() {
                 run: function* () {
                     yield index;
                     const indexValue = stack.pop();
-                    const array = currentFrame().variables.get(this.name);
-                    array[indexValue] = stack.pop();
+                    const value = stack.pop();
+                    writeArrayElement(name, indexValue, value);
                 },
                 toString: () => name
             };

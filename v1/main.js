@@ -63,6 +63,7 @@ function main() {
 
     document.body.onkeydown = function (e) {
         if (!line) return;
+        vm.clearDataAccessLog();
         while (true) {
             const newLine = vm.step();
             if (line !== newLine) {
@@ -70,6 +71,8 @@ function main() {
                 break;
             }
         }
+        const dataAccessLog = vm.getDataAccessLog();
+
         // $('stackView').innerText = vm.stack().join();
         renderIn($('variables'), renderVariables(vm.getCurrentFrame().variables, vm.getCurrentFrame().relations));
     };

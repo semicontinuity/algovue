@@ -4,7 +4,7 @@ test = function() {
         'reverse',
         [vm.variable('a'), vm.variable('length')],
         vm.sequenceStatement([
-            vm.assignment(vm.varWrite('head', 'a'), vm.number(vm.number(0))),
+            vm.assignment(vm.varWrite('head', 'a'), vm.number(0)),
             vm.assignment(vm.varWrite('tail', 'a'), vm.expression(vm.minus(), vm.variable('length'), vm.number(1))),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('head'), vm.variable('tail')),
