@@ -16,6 +16,7 @@ import algovue.codegen.tree.ArrayElementRead;
 import algovue.codegen.tree.ArrayElementWrite;
 import algovue.codegen.tree.ArrayLiteral;
 import algovue.codegen.tree.BinaryExpression;
+import algovue.codegen.tree.Char;
 import algovue.codegen.tree.Declarations;
 import algovue.codegen.tree.Expression;
 import algovue.codegen.tree.ExpressionStatement;
@@ -33,6 +34,7 @@ import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Pair;
 
@@ -280,7 +282,12 @@ public class CodeGenerator {
     }
 
     private Expression generateFrom(JCTree.JCLiteral e) {
-        return new Number((Integer) e.value);
+        Integer value = (Integer) e.value;
+        if (e.typetag == TypeTag.CHAR) {
+            return new Char((char) (int) value);
+        } else {
+            return new Number(value);
+        }
     }
 
     private BinaryExpression generateFrom(JCTree.JCBinary e) {
