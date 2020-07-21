@@ -341,6 +341,18 @@ vm = function() {
             toString: () => '<='
         }),
 
+        or: () => ({
+            makeView: () => opSign('||'),
+            apply: (a, b) => a || b,
+            toString: () => '||'
+        }),
+
+        and: () => ({
+            makeView: () => opSign('&&'),
+            apply: (a, b) => a && b,
+            toString: () => '&&'
+        }),
+
         minus: () => ({
             makeView: () => opSign('-'),
             apply: (a, b) => a - b,

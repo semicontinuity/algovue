@@ -6,11 +6,17 @@ body {
 }
 
 /* ********************************************** */
+#variables {
+    width: 16.6%; display: table-cell; background: darkgray;
+}
 table.variables {
     width: 100%;
     height: 100%;
     font-family: monospace;
     font-size: 1.44em;
+}
+table.variables tr {
+    background: lightgray;
 }
 table.variables td {
     padding: 0 4pt;

@@ -17,7 +17,7 @@ function table(...clazz) {
 
 function tr(...args) {
     const view = document.createElement('tr');
-    args.forEach(c => view.appendChild(c));
+    args.forEach(c => { if (c !== undefined) view.appendChild(c) });
     return view;
 }
 

@@ -52,6 +52,12 @@ function renderList(name, l, pointerNames, variables, dataAccessLog) {
     return t;
 }
 
+function firstItem(set) {
+    for (let i of set) {
+        return i
+    }
+}
+
 function renderVariables(variables, relations, dataAccessLog) {
     const t = table('variables');
     for (let v of variables) {
@@ -64,7 +70,16 @@ function renderVariables(variables, relations, dataAccessLog) {
                 td(renderList(name, value, pointers, variables, dataAccessLog))
             ));
         } else {
+            let renderThisVar;
             if (pointers === undefined) {
+                renderThisVar = true;
+            } else {
+                const arrayName = firstItem(pointers);
+                const array = variables.get(arrayName);
+                if (value < 0 || value >= array.length) renderThisVar = true;
+            }
+            
+            if (renderThisVar) {
                 const view = text(value, 'number');
                 const rwStyle = dataRWStyle(dataAccessLog.varReads.has(name), dataAccessLog.varWrites.has(name));
                 if (rwStyle !== undefined) {
