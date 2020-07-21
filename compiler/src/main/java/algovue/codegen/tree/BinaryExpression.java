@@ -26,11 +26,10 @@ public class BinaryExpression extends Expression {
 
     @Override
     public CharSequence charSequence(int indent) {
-        return "vm.expression("
-                + "vm." + functor + "(), "
-                + left.charSequence(0) + ", "
-                + right.charSequence(0)
-                + ")";
+        StringBuilder b = new StringBuilder();
+        indent(b, indent).append("vm.expression(" + "vm.")
+                .append(functor).append("(), ").append(left.charSequence(0))
+                .append(", ").append(right.charSequence(0)).append(")");
+        return b.toString();
     }
-
 }

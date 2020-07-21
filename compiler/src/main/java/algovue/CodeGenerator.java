@@ -22,8 +22,10 @@ import algovue.codegen.tree.Expression;
 import algovue.codegen.tree.ExpressionStatement;
 import algovue.codegen.tree.FunctionCall;
 import algovue.codegen.tree.FunctionDeclaration;
+import algovue.codegen.tree.IfStatement;
 import algovue.codegen.tree.Number;
 import algovue.codegen.tree.ReturnStatement;
+import algovue.codegen.tree.Statement;
 import algovue.codegen.tree.Statements;
 import algovue.codegen.tree.VarRead;
 import algovue.codegen.tree.VarWrite;
@@ -122,17 +124,37 @@ public class CodeGenerator {
     private Statements generateFrom(JCTree.JCBlock e) {
         Statements result = Statements.builder();
         for (JCTree def : e.stats) {
-            if (def instanceof JCTree.JCReturn) {
-                result.statement(generateFrom((JCTree.JCReturn) def));
-            } else if (def instanceof JCTree.JCVariableDecl) {
-                result.statement(generateFrom((JCTree.JCVariableDecl) def));
-            } else if (def instanceof JCTree.JCExpressionStatement) {
-                result.statement(generateFrom((JCTree.JCExpressionStatement) def));
-            } else {
-                throw new IllegalArgumentException(def.getClass().getName());
-            }
+            result.statement(generateFrom((JCTree.JCStatement) def));
         }
         return result;
+    }
+
+    private Statement generateFrom(JCTree.JCStatement def) {
+        if (def instanceof JCTree.JCReturn) {
+            return generateFrom((JCTree.JCReturn) def);
+        } else if (def instanceof JCTree.JCVariableDecl) {
+            return generateFrom((JCTree.JCVariableDecl) def);
+        } else if (def instanceof JCTree.JCExpressionStatement) {
+            return generateFrom((JCTree.JCExpressionStatement) def);
+        } else if (def instanceof JCTree.JCIf) {
+            return generateFrom((JCTree.JCIf) def);
+        } else {
+            throw new IllegalArgumentException(def.getClass().getName());
+        }
+    }
+
+    private IfStatement generateFrom(JCTree.JCIf e) {
+        IfStatement result = IfStatement.builder()
+                .expression(generateFrom(unparen(e)))
+                .ifStatement(generateFrom(e.thenpart));
+        if (e.elsepart != null) {
+            result.elseStatement(generateFrom(e.elsepart));
+        }
+        return result;
+    }
+
+    private JCTree.JCExpression unparen(JCTree.JCIf e) {
+        return ((JCTree.JCParens) e.cond).expr;
     }
 
     private ExpressionStatement generateFrom(JCTree.JCExpressionStatement e) {

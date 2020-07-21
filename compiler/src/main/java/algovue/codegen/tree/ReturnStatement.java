@@ -16,7 +16,7 @@ public class ReturnStatement extends Statement {
     @Override
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
-        indent(b, indent).append("vm.returnStatement(").append(expression.charSequence(0)).append(")\n");
+        indent(b, indent).append("vm.returnStatement(").append(expression.charSequence(0)).append(")");
         return b;
     }
 }
