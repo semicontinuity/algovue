@@ -11,6 +11,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import algovue.codegen.tree.BinaryExpression;
 import algovue.codegen.tree.Declarations;
 import algovue.codegen.tree.Expression;
 import algovue.codegen.tree.FunctionDeclaration;
@@ -112,7 +113,7 @@ public class CodeGenerator {
         } else if (e instanceof JCTree.JCBinary) {
             return generateFrom((JCTree.JCBinary) e);
         } else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(e.getClass().getName());
         }
     }
 
@@ -120,7 +121,10 @@ public class CodeGenerator {
         return new Number((Integer) e.value);
     }
 
-    private Expression generateFrom(JCTree.JCBinary e) {
-        return null;
+    private BinaryExpression generateFrom(JCTree.JCBinary e) {
+        return BinaryExpression.builder()
+                .functor(e.getTag().toString().toLowerCase())
+                .left(generateFrom(e.lhs))
+                .right(generateFrom(e.rhs));
     }
 }

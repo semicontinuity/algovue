@@ -6,12 +6,12 @@ test = function() {
         vm.sequenceStatement([
             vm.ifStatement(
                 // if (a == 0) {
-                vm.expression(vm.equals(), vm.variable('a'), vm.number(0)),
+                vm.expression(vm.eq(), vm.variable('a'), vm.number(0)),
                 //   return b
                 vm.returnStatement(vm.variable('b'))
             ),
             vm.whileStatement(
-                vm.expression(vm.notEquals(), vm.variable('b'), vm.number(0)),
+                vm.expression(vm.ne(), vm.variable('b'), vm.number(0)),
                 vm.ifStatement(
                     // if (a > b) {
                     vm.expression(vm.gt(), vm.variable('a'), vm.variable('b')),

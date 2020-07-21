@@ -295,13 +295,13 @@ vm = function() {
         // functors
         // ---------------------------------------------------------------------
 
-        equals: () => ({
+        eq: () => ({
             makeView: () => opSign('=='),
             apply: (a, b) => a === b,
             toString: () => '=='
         }),
 
-        notEquals: () => ({
+        ne: () => ({
             makeView: () => opSign('!='),
             apply: (a, b) => a !== b,
             toString: () => '!='
@@ -313,10 +313,22 @@ vm = function() {
             toString: () => '>'
         }),
 
+        ge: () => ({
+            makeView: () => opSign('>='),
+            apply: (a, b) => a > b,
+            toString: () => '>'
+        }),
+
         lt: () => ({
             makeView:  ()=> opSign('<'),
             apply: (a, b) => a < b,
             toString: () => '<'
+        }),
+
+        le: () => ({
+            makeView:  ()=> opSign('<='),
+            apply: (a, b) => a < b,
+            toString: () => '<='
         }),
 
         minus: () => ({
@@ -329,6 +341,18 @@ vm = function() {
             makeView: () => opSign('+'),
             apply: (a, b) => a + b,
             toString: () => '+'
+        }),
+
+        mul: () => ({
+            makeView: () => opSign('*'),
+            apply: (a, b) => a * b,
+            toString: () => '*'
+        }),
+
+        div: () => ({
+            makeView: () => opSign('/'),
+            apply: (a, b) => a / b,
+            toString: () => '/'
         }),
 
 
