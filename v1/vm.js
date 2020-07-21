@@ -4,6 +4,7 @@ vm = function() {
     const stack = [];
     const frames = [];
 
+    let token;
     let context;
     let line;
     let dataAccessLog;
@@ -128,21 +129,28 @@ vm = function() {
         clearDataAccessLog: () => {dataAccessLog = newDataAccessLog()},
         getDataAccessLog: () => dataAccessLog,
         step: function() {
-            const next = context.coro.next();
+            const next = context.coro.next(token);
             if (next.done) {
                 // statement completed
                 // try to activate previous context
+                token = next.value;
+                console.log("@ step: done; token=" + token);
+
                 context = currentFrame().contexts.pop();
                 if (context === undefined) {    // reached end of function call
                     if (deleteFrame()) {
                         // successfully switched to previous frame; restore statement that was executing in that frame
                         context = currentFrame().contexts.pop();
                     }
+                } else {
+                    console.log("@ step: switched to ");
+                    console.log(context.statement.toString());
                 }
             } else {
                 // statement delegates to sub-statement: it yielded sub-statement
                 currentFrame().contexts.push(context);
                 context = {statement: next.value, coro: next.value.run()};
+                token = undefined;
             }
 
             if (context === undefined) {
@@ -206,7 +214,7 @@ vm = function() {
                     }
                     stack.push(value);
                 },
-                toString: () => decl.name + '[...]'
+                toString: () => '[...]'
             };
         },
 
@@ -464,7 +472,12 @@ vm = function() {
                 },
                 run: function*() {
                     for (let i = 0; i < statements.length; i++) {
-                        yield statements[i];
+                        const token = yield statements[i];
+                        console.log(token);
+                        if (token !== undefined) {
+                            console.log("breaking sequence");
+                            return token;
+                        }
                     }
                 },
                 toString: () => 'sequence'
@@ -472,11 +485,22 @@ vm = function() {
         },
 
 
+        breakStatement: function() {
+            return {
+                makeView: function(indent) {
+                    return this.line = div(indentSpan(indent), keyword('break'));
+                },
+                run: function*() {
+                    return 1;
+                },
+                toString: () => `break`
+            };
+        },
+
         returnStatement: function(expression) {
             return {
                 makeView: function(indent) {
                     return this.line = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
-                    // return this.view;
                 },
                 run: function*() {
                     yield expression;
@@ -530,11 +554,13 @@ vm = function() {
                 run: function*() {
                     yield this.conditionStatement;
 
+                    let token;
                     if (stack.pop()) {
-                        yield ifStatements;
+                        token = yield ifStatements;
                     } else if (elseStatements) {
-                        yield elseStatements;
+                        token = yield elseStatements;
                     }
+                    return token;
                 },
                 toString: () => 'if (' + condition.toString() + ')'
             };
@@ -566,7 +592,8 @@ vm = function() {
                             );
                         },
                         run: function*() {
-                            yield condition;
+                            const token = yield condition;
+                            console.log(token);
                         }
                     };
                 },
@@ -574,7 +601,11 @@ vm = function() {
                     while (true) {
                         yield this.conditionStatement;
                         if (!stack.pop()) break;
-                        yield bodyStatement;
+                        const token = yield bodyStatement;
+                        console.log(token);
+                        if (token === 1) {
+                            break;
+                        }
                     }
                 },
                 toString: () => 'while ' + condition
