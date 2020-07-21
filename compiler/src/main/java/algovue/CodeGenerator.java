@@ -16,10 +16,12 @@ import algovue.codegen.tree.Assignment;
 import algovue.codegen.tree.BinaryExpression;
 import algovue.codegen.tree.Declarations;
 import algovue.codegen.tree.Expression;
+import algovue.codegen.tree.FunctionCall;
 import algovue.codegen.tree.FunctionDeclaration;
 import algovue.codegen.tree.Number;
 import algovue.codegen.tree.ReturnStatement;
 import algovue.codegen.tree.Statements;
+import algovue.codegen.tree.VarRead;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.tree.JCTree;
@@ -136,9 +138,24 @@ public class CodeGenerator {
             return generateFrom((JCTree.JCLiteral) e);
         } else if (e instanceof JCTree.JCBinary) {
             return generateFrom((JCTree.JCBinary) e);
+        } else if (e instanceof JCTree.JCIdent) {
+            return generateFrom((JCTree.JCIdent) e);
+        } else if (e instanceof JCTree.JCMethodInvocation) {
+            return generateFrom((JCTree.JCMethodInvocation) e);
         } else {
             throw new IllegalArgumentException(e.getClass().getName());
         }
+    }
+
+    private Expression generateFrom(JCTree.JCMethodInvocation e) {
+        return FunctionCall.builder()
+                .name(e.meth.toString())
+                .params(e.args.stream().map(this::generateFrom).collect(Collectors.toList()))
+                ;
+    }
+
+    private Expression generateFrom(JCTree.JCIdent e) {
+        return new VarRead(e.name.toString());
     }
 
     private Expression generateFrom(JCTree.JCLiteral e) {
