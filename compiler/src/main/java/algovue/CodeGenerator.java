@@ -13,11 +13,13 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import algovue.codegen.tree.ArrayElementRead;
+import algovue.codegen.tree.ArrayElementWrite;
 import algovue.codegen.tree.ArrayLiteral;
 import algovue.codegen.tree.Assignment;
 import algovue.codegen.tree.BinaryExpression;
 import algovue.codegen.tree.Declarations;
 import algovue.codegen.tree.Expression;
+import algovue.codegen.tree.ExpressionStatement;
 import algovue.codegen.tree.FunctionCall;
 import algovue.codegen.tree.FunctionDeclaration;
 import algovue.codegen.tree.Number;
@@ -128,11 +130,35 @@ public class CodeGenerator {
                 result.statement(generateFrom((JCTree.JCReturn) def));
             } else if (def instanceof JCTree.JCVariableDecl) {
                 result.statement(generateFrom((JCTree.JCVariableDecl) def));
+            } else if (def instanceof JCTree.JCExpressionStatement) {
+                result.statement(generateFrom((JCTree.JCExpressionStatement) def));
             } else {
                 throw new IllegalArgumentException(def.getClass().getName());
             }
         }
         return result;
+    }
+
+    private ExpressionStatement generateFrom(JCTree.JCExpressionStatement e) {
+        JCTree.JCAssign assign = (JCTree.JCAssign) e.expr;
+
+        JCTree.JCExpression lhs = assign.lhs;
+        Expression left;
+        if (lhs instanceof JCTree.JCArrayAccess) {
+            left = generateFrom((JCTree.JCArrayAccess) lhs, true);
+        } else {
+            throw new IllegalArgumentException(lhs.getClass().getName());
+        }
+
+        JCTree.JCExpression rhs = assign.rhs;
+        Expression right;
+        if (rhs instanceof JCTree.JCArrayAccess) {
+            right = generateFrom((JCTree.JCArrayAccess) rhs, false);
+        } else {
+            throw new IllegalArgumentException(rhs.getClass().getName());
+        }
+
+        return ExpressionStatement.builder().left(left).right(right);
     }
 
     private ReturnStatement generateFrom(JCTree.JCReturn e) {
@@ -151,7 +177,7 @@ public class CodeGenerator {
         } else if (e instanceof JCTree.JCNewArray) {
             return generateFrom((JCTree.JCNewArray) e);
         } else if (e instanceof JCTree.JCArrayAccess) {
-            return generateFrom((JCTree.JCArrayAccess) e);
+            return generateFrom((JCTree.JCArrayAccess) e, false);
         } else {
             throw new IllegalArgumentException(e.getClass().getName());
         }
@@ -164,8 +190,10 @@ public class CodeGenerator {
                 ;
     }
 
-    private Expression generateFrom(JCTree.JCArrayAccess e) {
-        return new ArrayElementRead(e.indexed.toString(), generateFrom(e.index));
+    private Expression generateFrom(JCTree.JCArrayAccess e, boolean write) {
+        return write
+                ? ArrayElementWrite.builder().name(e.indexed.toString()).index(generateFrom(e.index))
+                : new ArrayElementRead(e.indexed.toString(), generateFrom(e.index));
     }
 
     private Expression generateFrom(JCTree.JCNewArray e) {

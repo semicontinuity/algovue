@@ -4,6 +4,8 @@ test = function() {
         'gcd',
         [vm.variable('a')],
         vm.sequenceStatement([
+            vm.assignment(vm.varWrite('x'), vm.arrItem('a', vm.number(0))),
+            vm.assignment(vm.arrItemWrite('a', vm.number(1)), vm.arrItem('a', vm.number(0))),
             vm.returnStatement(vm.number(0))
         ])
     );
