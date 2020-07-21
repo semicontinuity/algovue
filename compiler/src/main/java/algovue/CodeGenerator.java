@@ -111,11 +111,6 @@ public class CodeGenerator {
             return;
         }
 
-        JCTree returnType = e.getReturnType();
-        if (returnType.getTag() != JCTree.Tag.TYPEIDENT) {
-            return;
-        }
-
         declarations.declaration(
                 FunctionDeclaration.builder()
                         .name(e.getName().toString())
