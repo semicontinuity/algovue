@@ -362,11 +362,20 @@ vm = function() {
          * Pushes current frame to the stacks and allocates the new frame.
          * @param decl   the reference to {@link #functionDeclaration} being called.
          * @param args   an Array of arguments (expressions)
+         * @param self   self object name, for method calls
          */
-        functionCall: function(decl, args) {
+        functionCall: function(decl, args, self) {
             return {
                 makeView: function() {
-                    return span(text(decl.name, 'id'), opParen(), this.argList(), clParen());
+                    if (self !== undefined) {
+                        return span(
+                            text(self, 'id'), text('.'), text(decl), opParen(), this.argList(), clParen()
+                        );
+                    } else {
+                        return span(
+                            text(decl.name, 'id'), opParen(), this.argList(), clParen()
+                        );
+                    }
                 },
                 argList: () => {
                     const view = span();
@@ -380,13 +389,22 @@ vm = function() {
                     return view;
                 },
                 run: function*() {
-                    const aNewFrame = newFrame();
-                    for (let i = 0; i < args.length; i++) {
-                        yield args[i];
-                        aNewFrame.variables.set(decl.args[i].name, stack.pop());
-                    }
+                    if (self !== undefined) {
+                        // primitive method calls; 1 argument only! only array.push(x)!
+                        yield args[0];
+                        const arg0 = stack.pop();
+                        const selfArg = readVar(self);
+                        selfArg[decl].call(selfArg, arg0);
+                        getOrEmptySet(dataAccessLog.arrayWrites, self).add(selfArg.length - 1); // it was 'push'
+                    } else {
+                        const aNewFrame = newFrame();
+                        for (let i = 0; i < args.length; i++) {
+                            yield args[i];
+                            aNewFrame.variables.set(decl.args[i].name, stack.pop());
+                        }
 
-                    yield decl.body;
+                        yield decl.body;
+                    }
                 },
                 toString: () => decl.name + '(...)'
             };
@@ -405,19 +423,27 @@ vm = function() {
         assignment: function(lvalue, rvalue) {
             return {
                 makeView: function(indent) {
-                    return this.line = div(
-                        indentSpan(indent),
-                        lvalue.makeView(),
-                        space(),
-                        opSign('='),
-                        space(),
-                        rvalue.makeView()
+                    return this.line = (lvalue === undefined
+                            ? div(
+                                indentSpan(indent),
+                                rvalue.makeView()
+                            ) : div(
+                                indentSpan(indent),
+                                lvalue.makeView(),
+                                space(),
+                                opSign('='),
+                                space(),
+                                rvalue.makeView()
+                            )
                     );
                 },
                 run: function*() {
                     yield rvalue;
-                    yield lvalue;
-                    // currentFrame().variables.set(lvalue.name, stack.pop());
+                    if (lvalue !== undefined) {
+                        yield lvalue;
+                    } else {
+                        stack.pop();
+                    }
                 },
                 toString: () => (lvalue ? (lvalue + ' = ') : '') + rvalue
             };

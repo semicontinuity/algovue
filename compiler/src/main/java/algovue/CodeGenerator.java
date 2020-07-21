@@ -169,9 +169,24 @@ public class CodeGenerator {
     }
 
     private ExpressionStatement generateFrom(JCTree.JCExpressionStatement e) {
-        JCTree.JCAssign assign = (JCTree.JCAssign) e.expr;
+        if (e.expr instanceof JCTree.JCAssign) {
+            return generateFromJCAssign((JCTree.JCAssign) e.expr);
+        } else if (e.expr instanceof JCTree.JCMethodInvocation) {
+            return generateFromJCMethodInvocation((JCTree.JCMethodInvocation) e.expr);
+        } else {
+            throw new IllegalArgumentException(e.expr.getClass().getName());
+        }
+    }
 
-        JCTree.JCExpression lhs = assign.lhs;
+    private ExpressionStatement generateFromJCMethodInvocation(JCTree.JCMethodInvocation e) {
+        return ExpressionStatement.builder().right(generateFrom(e));
+    }
+
+    private ExpressionStatement generateFromJCAssign(JCTree.JCAssign assign) {
+        return ExpressionStatement.builder().left(lvalue(assign.lhs)).right(generateFrom(assign.rhs));
+    }
+
+    private Expression lvalue(JCTree.JCExpression lhs) {
         Expression left;
         if (lhs instanceof JCTree.JCArrayAccess) {
             left = generateFrom((JCTree.JCArrayAccess) lhs, true);
@@ -180,19 +195,7 @@ public class CodeGenerator {
         } else {
             throw new IllegalArgumentException(lhs.getClass().getName());
         }
-
-        JCTree.JCExpression rhs = assign.rhs;
-        Expression right;
-//        if (rhs instanceof JCTree.JCArrayAccess) {
-//            right = generateFrom((JCTree.JCArrayAccess) rhs, false);
-//        } else if (rhs instanceof JCTree.JCIdent) {
-//            right = generateFrom((JCTree.JCIdent) rhs, false);
-//        } else {
-//            throw new IllegalArgumentException(rhs.getClass().getName());
-//        }
-        right = generateFrom(rhs);
-
-        return ExpressionStatement.builder().left(left).right(right);
+        return left;
     }
 
     private ReturnStatement generateFrom(JCTree.JCReturn e) {
@@ -212,16 +215,32 @@ public class CodeGenerator {
             return generateFrom((JCTree.JCNewArray) e);
         } else if (e instanceof JCTree.JCArrayAccess) {
             return generateFrom((JCTree.JCArrayAccess) e, false);
+        } else if (e instanceof JCTree.JCNewClass) {
+            return generateFrom((JCTree.JCNewClass) e);
         } else {
             throw new IllegalArgumentException(e.getClass().getName());
         }
     }
 
+    private Expression generateFrom(JCTree.JCNewClass e) {
+        return ArrayLiteral.builder();
+    }
+
     private Expression generateFrom(JCTree.JCMethodInvocation e) {
+        JCTree.JCExpression meth = e.meth;
+        String self = null;
+        String name;
+        if (meth instanceof JCTree.JCFieldAccess) {
+            self = ((JCTree.JCFieldAccess) meth).selected.toString();
+//            name = ((JCTree.JCFieldAccess) meth).name.toString();
+            name = "push";
+        } else {
+            name = meth.toString();
+        }
         return FunctionCall.builder()
-                .name(e.meth.toString())
-                .params(e.args.stream().map(this::generateFrom).collect(Collectors.toList()))
-                ;
+                .self(self)
+                .name(name)
+                .params(e.args.stream().map(this::generateFrom).collect(Collectors.toList()));
     }
 
     private Expression generateFrom(JCTree.JCArrayAccess e, boolean write) {

@@ -9,8 +9,8 @@ function dataRWStyle(read, write) {
 }
 
 function renderList(name, l, pointerNames, variables, dataAccessLog) {
+    console.log('Rendering', name);
     const reads = dataAccessLog.arrayReads.get(name);
-    console.log(reads);
     const writes = dataAccessLog.arrayWrites.get(name);
     console.log(writes);
 

@@ -20,11 +20,8 @@ public class ExpressionStatement extends Statement {
 
     @Override
     public CharSequence charSequence(int indent) {
-        return "vm.assignment("
-                + left.charSequence(0)
-                + ", "
-                + right.charSequence(0)
-                + ")";
+        return indent(new StringBuilder(), indent).append("vm.assignment(")
+                .append(left == null ? "undefined" : left.charSequence(0)).append(", ")
+                .append(right.charSequence(0)).append(")");
     }
-
 }
