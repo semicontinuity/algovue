@@ -12,6 +12,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import algovue.codegen.tree.ArrayLiteral;
 import algovue.codegen.tree.Assignment;
 import algovue.codegen.tree.BinaryExpression;
 import algovue.codegen.tree.Declarations;
@@ -142,6 +143,8 @@ public class CodeGenerator {
             return generateFrom((JCTree.JCIdent) e);
         } else if (e instanceof JCTree.JCMethodInvocation) {
             return generateFrom((JCTree.JCMethodInvocation) e);
+        } else if (e instanceof JCTree.JCNewArray) {
+            return generateFrom((JCTree.JCNewArray) e);
         } else {
             throw new IllegalArgumentException(e.getClass().getName());
         }
@@ -152,6 +155,10 @@ public class CodeGenerator {
                 .name(e.meth.toString())
                 .params(e.args.stream().map(this::generateFrom).collect(Collectors.toList()))
                 ;
+    }
+
+    private Expression generateFrom(JCTree.JCNewArray e) {
+        return ArrayLiteral.builder().params(e.elems.stream().map(this::generateFrom).collect(Collectors.toList()));
     }
 
     private Expression generateFrom(JCTree.JCIdent e) {
