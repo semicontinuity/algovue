@@ -1,29 +1,39 @@
 test = function() {
 
-    const reverse = vm.functionDeclaration(
-        'reverse',
+    const loop = vm.functionDeclaration(
+        'loop',
         [vm.variable('a'), vm.variable('length')],
         vm.sequenceStatement([
-            vm.assignment(vm.varWrite('head', 'a'), vm.number(0)),
-            vm.assignment(vm.varWrite('tail', 'a'), vm.expression(vm.minus(), vm.variable('length'), vm.number(1))),
+            vm.assignment(vm.varWrite('result'), vm.arrayLiteral([])),
+            vm.assignment(vm.varWrite('i'), vm.number(0)),
             vm.whileStatement(
-                vm.expression(vm.lt(), vm.variable('head'), vm.variable('tail')),
+                vm.number(1),
                 vm.sequenceStatement([
-                    vm.assignment(vm.varWrite('x'), vm.arrItem('a', vm.variable('head'))),
-                    vm.assignment(vm.arrItemWrite('a', vm.variable('head')), vm.arrItem('a', vm.variable('tail'))),
-                    vm.assignment(vm.arrItemWrite('a', vm.variable('tail')), vm.variable('x')),
-                    vm.assignment(vm.varWrite('head'), vm.expression(vm.plus(), vm.variable('head'), vm.number(1))),
-                    vm.assignment(vm.varWrite('tail'), vm.expression(vm.minus(), vm.variable('tail'), vm.number(1)))
+                    vm.ifStatement(
+                        vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')),
+                        vm.sequenceStatement([
+                            vm.breakStatement()
+                        ])
+                    ),
+                    vm.assignment(undefined, vm.functionCall('push', [vm.arrItem('a', vm.variable('i'))], 'result')),
+                    vm.ifStatement(
+                        vm.expression(vm.eq(), vm.variable('i'), vm.number(0)),
+                        vm.sequenceStatement([
+                            vm.assignment(vm.varWrite('i'), vm.number(2)),
+                            vm.continueStatement()
+                        ])
+                    ),
+                    vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1)))
                 ])
             ),
-            vm.returnStatement(vm.variable('a'))
+            vm.returnStatement(vm.variable('result'))
         ])
     );
 
-    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(reverse, [vm.arrayLiteral([vm.number(1), vm.number(2), vm.number(3), vm.number(4), vm.number(5)]), vm.number(5)]));
+    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(loop, [vm.arrayLiteral([vm.char('H'), vm.char('i')]), vm.number(2)]));
 
     return {
-        code: vm.codeBlocks([reverse, usage]),
+        code: vm.codeBlocks([loop, usage]),
         entry: usage
     };
 }();

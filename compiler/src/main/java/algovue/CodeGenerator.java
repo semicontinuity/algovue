@@ -18,6 +18,7 @@ import algovue.codegen.tree.ArrayLiteral;
 import algovue.codegen.tree.BinaryExpression;
 import algovue.codegen.tree.BreakStatement;
 import algovue.codegen.tree.Char;
+import algovue.codegen.tree.ContinueStatement;
 import algovue.codegen.tree.Declarations;
 import algovue.codegen.tree.Expression;
 import algovue.codegen.tree.ExpressionStatement;
@@ -156,6 +157,8 @@ public class CodeGenerator {
             return generateFrom((JCTree.JCReturn) def);
         } else if (def instanceof JCTree.JCBreak) {
             return generateFrom((JCTree.JCBreak) def);
+        } else if (def instanceof JCTree.JCContinue) {
+            return generateFrom((JCTree.JCContinue) def);
         } else if (def instanceof JCTree.JCVariableDecl) {
             return generateFrom((JCTree.JCVariableDecl) def);
         } else if (def instanceof JCTree.JCExpressionStatement) {
@@ -231,6 +234,10 @@ public class CodeGenerator {
 
     private BreakStatement generateFrom(JCTree.JCBreak e) {
         return BreakStatement.builder();
+    }
+
+    private ContinueStatement generateFrom(JCTree.JCContinue e) {
+        return ContinueStatement.builder();
     }
 
     private Expression generateFrom(JCTree.JCExpression e) {

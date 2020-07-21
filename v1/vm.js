@@ -293,7 +293,9 @@ vm = function() {
                     const leftValue = stack.pop();
                     yield rightSide;
                     const rightValue = stack.pop();
-                    stack.push(functor.apply(leftValue, rightValue));
+                    const r = functor.apply(leftValue, rightValue);
+                    console.log("PUSH " + r);
+                    stack.push(r);
                 },
                 toString: () => leftSide.toString() + ' ' + functor.toString() + ' ' + rightSide.toString()
             };
@@ -323,8 +325,8 @@ vm = function() {
 
         ge: () => ({
             makeView: () => opSign('>='),
-            apply: (a, b) => a > b,
-            toString: () => '>'
+            apply: (a, b) => a >= b,
+            toString: () => '>='
         }),
 
         lt: () => ({
@@ -335,7 +337,7 @@ vm = function() {
 
         le: () => ({
             makeView:  ()=> opSign('<='),
-            apply: (a, b) => a < b,
+            apply: (a, b) => a <= b,
             toString: () => '<='
         }),
 
@@ -497,6 +499,18 @@ vm = function() {
             };
         },
 
+        continueStatement: function() {
+            return {
+                makeView: function(indent) {
+                    return this.line = div(indentSpan(indent), keyword('continue'));
+                },
+                run: function*() {
+                    return -1;
+                },
+                toString: () => `continue`
+            };
+        },
+
         returnStatement: function(expression) {
             return {
                 makeView: function(indent) {
@@ -546,12 +560,15 @@ vm = function() {
                             );
                         },
                         run: function*() {
+                            console.log("EVAL " + condition.toString());
                             yield condition;
                         },
                         toString: () => condition.toString()
                     };
                 },
                 run: function*() {
+                    console.log("@ ifStatement.run ==============");
+                    console.log("yield " + this.conditionStatement);
                     yield this.conditionStatement;
 
                     let token;
