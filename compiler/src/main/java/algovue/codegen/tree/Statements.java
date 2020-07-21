@@ -2,6 +2,7 @@ package algovue.codegen.tree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Statements extends Statement {
 
@@ -20,9 +21,7 @@ public class Statements extends Statement {
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
         indent(b, indent).append("vm.sequenceStatement([\n");
-        for (Statement statement : statements) {
-            indent(b, indent + 1).append(statement.charSequence(0));
-        }
+        indent(b, indent + 1).append(statements.stream().map(s -> s.charSequence(0)).collect(Collectors.joining(",\n")));
         indent(b, indent).append("])");
         return b;
     }

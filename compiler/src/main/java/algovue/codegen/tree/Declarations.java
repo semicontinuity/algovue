@@ -2,6 +2,7 @@ package algovue.codegen.tree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Declarations {
 
@@ -14,6 +15,10 @@ public class Declarations {
     public Declarations declaration(Declaration d) {
         this.declarations.add(d);
         return this;
+    }
+
+    public List<String> names() {
+        return declarations.stream().map(d -> d.name).collect(Collectors.toList());
     }
 
     @Override

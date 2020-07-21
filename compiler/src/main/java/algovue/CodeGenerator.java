@@ -3,6 +3,7 @@ package algovue;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.tools.DiagnosticCollector;
@@ -11,6 +12,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import algovue.codegen.tree.Assignment;
 import algovue.codegen.tree.BinaryExpression;
 import algovue.codegen.tree.Declarations;
 import algovue.codegen.tree.Expression;
@@ -26,6 +28,7 @@ import com.sun.tools.javac.tree.JCTree;
 public class CodeGenerator {
 
     Declarations declarations = Declarations.builder();
+    Assignment usage;
 
 
     public static void main(String[] args) throws IOException {
@@ -46,9 +49,24 @@ public class CodeGenerator {
 
         CodeGenerator codeGenerator = new CodeGenerator();
         codeGenerator.generateFrom(task);
-        System.out.println(codeGenerator.declarations);
+        codeGenerator.printProgram();
     }
 
+    private void printProgram() {
+        System.out.println("test = function() {");
+        System.out.println();
+        System.out.println(declarations);
+        System.out.println("const usage = " + usage.charSequence(0) + ";");
+        System.out.println();
+        System.out.println("return {");
+
+        List<String> names = declarations.names();
+        names.add("usage");
+        System.out.println("    code: vm.codeBlocks([" + String.join(", ", names) + "]),");
+        System.out.println("    entry: usage");
+        System.out.println("};");
+        System.out.println("}();");
+    }
 
     private void generateFrom(JavacTask task) throws IOException {
         Iterable<? extends CompilationUnitTree> asts = task.parse();
@@ -71,8 +89,14 @@ public class CodeGenerator {
         for (JCTree def : e.defs) {
             if (def.getTag() == JCTree.Tag.METHODDEF) {
                 generateFrom((JCTree.JCMethodDecl) def);
+            } else if (def.getTag() == JCTree.Tag.VARDEF) {
+                usage = generateFrom((JCTree.JCVariableDecl) def);
             }
         }
+    }
+
+    private Assignment generateFrom(JCTree.JCVariableDecl e) {
+        return Assignment.builder().left(e.name.toString()).right(generateFrom(e.init));
     }
 
     private void generateFrom(JCTree.JCMethodDecl e) {
