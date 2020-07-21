@@ -1,6 +1,6 @@
 package algovue.codegen.tree;
 
-public class Assignment extends Expression {
+public class Assignment extends Statement {
     private String left;
     private Expression right;
 

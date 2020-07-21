@@ -21,7 +21,14 @@ public class Statements extends Statement {
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
         indent(b, indent).append("vm.sequenceStatement([\n");
-        indent(b, indent + 1).append(statements.stream().map(s -> s.charSequence(0)).collect(Collectors.joining(",\n")));
+
+        String subIndent = indent(new StringBuilder(), indent + 1).toString();
+        b.append(
+                statements.stream()
+                        .map(s -> subIndent + s.charSequence(0))
+                        .collect(Collectors.joining(",\n"))
+        );
+
         indent(b, indent).append("])");
         return b;
     }
