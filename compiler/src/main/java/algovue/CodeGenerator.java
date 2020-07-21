@@ -29,6 +29,7 @@ import algovue.codegen.tree.Statement;
 import algovue.codegen.tree.Statements;
 import algovue.codegen.tree.VarRead;
 import algovue.codegen.tree.VarWrite;
+import algovue.codegen.tree.WhileStatement;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.tree.JCTree;
@@ -138,6 +139,10 @@ public class CodeGenerator {
             return generateFrom((JCTree.JCExpressionStatement) def);
         } else if (def instanceof JCTree.JCIf) {
             return generateFrom((JCTree.JCIf) def);
+        } else if (def instanceof JCTree.JCWhileLoop) {
+            return generateFrom((JCTree.JCWhileLoop) def);
+        } else if (def instanceof JCTree.JCBlock) {
+            return generateFrom((JCTree.JCBlock) def);
         } else {
             throw new IllegalArgumentException(def.getClass().getName());
         }
@@ -145,7 +150,7 @@ public class CodeGenerator {
 
     private IfStatement generateFrom(JCTree.JCIf e) {
         IfStatement result = IfStatement.builder()
-                .expression(generateFrom(unparen(e)))
+                .expression(generateFrom(unparen(e.cond)))
                 .ifStatement(generateFrom(e.thenpart));
         if (e.elsepart != null) {
             result.elseStatement(generateFrom(e.elsepart));
@@ -153,8 +158,14 @@ public class CodeGenerator {
         return result;
     }
 
-    private JCTree.JCExpression unparen(JCTree.JCIf e) {
-        return ((JCTree.JCParens) e.cond).expr;
+    private WhileStatement generateFrom(JCTree.JCWhileLoop e) {
+        return WhileStatement.builder()
+                .expression(generateFrom(unparen(e.cond)))
+                .body(generateFrom(e.body));
+    }
+
+    private JCTree.JCExpression unparen(JCTree.JCExpression cond) {
+        return ((JCTree.JCParens) cond).expr;
     }
 
     private ExpressionStatement generateFrom(JCTree.JCExpressionStatement e) {
@@ -172,13 +183,14 @@ public class CodeGenerator {
 
         JCTree.JCExpression rhs = assign.rhs;
         Expression right;
-        if (rhs instanceof JCTree.JCArrayAccess) {
-            right = generateFrom((JCTree.JCArrayAccess) rhs, false);
-        } else if (rhs instanceof JCTree.JCIdent) {
-            right = generateFrom((JCTree.JCIdent) rhs, false);
-        } else {
-            throw new IllegalArgumentException(rhs.getClass().getName());
-        }
+//        if (rhs instanceof JCTree.JCArrayAccess) {
+//            right = generateFrom((JCTree.JCArrayAccess) rhs, false);
+//        } else if (rhs instanceof JCTree.JCIdent) {
+//            right = generateFrom((JCTree.JCIdent) rhs, false);
+//        } else {
+//            throw new IllegalArgumentException(rhs.getClass().getName());
+//        }
+        right = generateFrom(rhs);
 
         return ExpressionStatement.builder().left(left).right(right);
     }
