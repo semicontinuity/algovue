@@ -26,6 +26,7 @@ import algovue.codegen.tree.Number;
 import algovue.codegen.tree.ReturnStatement;
 import algovue.codegen.tree.Statements;
 import algovue.codegen.tree.VarRead;
+import algovue.codegen.tree.VarWrite;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.tree.JCTree;
@@ -146,6 +147,8 @@ public class CodeGenerator {
         Expression left;
         if (lhs instanceof JCTree.JCArrayAccess) {
             left = generateFrom((JCTree.JCArrayAccess) lhs, true);
+        } else if (lhs instanceof JCTree.JCIdent) {
+            left = generateFrom((JCTree.JCIdent) lhs, true);
         } else {
             throw new IllegalArgumentException(lhs.getClass().getName());
         }
@@ -154,6 +157,8 @@ public class CodeGenerator {
         Expression right;
         if (rhs instanceof JCTree.JCArrayAccess) {
             right = generateFrom((JCTree.JCArrayAccess) rhs, false);
+        } else if (rhs instanceof JCTree.JCIdent) {
+            right = generateFrom((JCTree.JCIdent) rhs, false);
         } else {
             throw new IllegalArgumentException(rhs.getClass().getName());
         }
@@ -171,7 +176,7 @@ public class CodeGenerator {
         } else if (e instanceof JCTree.JCBinary) {
             return generateFrom((JCTree.JCBinary) e);
         } else if (e instanceof JCTree.JCIdent) {
-            return generateFrom((JCTree.JCIdent) e);
+            return generateFrom((JCTree.JCIdent) e, false);
         } else if (e instanceof JCTree.JCMethodInvocation) {
             return generateFrom((JCTree.JCMethodInvocation) e);
         } else if (e instanceof JCTree.JCNewArray) {
@@ -200,8 +205,8 @@ public class CodeGenerator {
         return ArrayLiteral.builder().params(e.elems.stream().map(this::generateFrom).collect(Collectors.toList()));
     }
 
-    private Expression generateFrom(JCTree.JCIdent e) {
-        return new VarRead(e.name.toString());
+    private Expression generateFrom(JCTree.JCIdent e, boolean write) {
+        return write ? VarWrite.builder().name(e.name.toString()) : new VarRead(e.name.toString());
     }
 
     private Expression generateFrom(JCTree.JCLiteral e) {
