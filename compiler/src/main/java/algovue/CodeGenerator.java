@@ -15,7 +15,6 @@ import javax.tools.ToolProvider;
 import algovue.codegen.tree.ArrayElementRead;
 import algovue.codegen.tree.ArrayElementWrite;
 import algovue.codegen.tree.ArrayLiteral;
-import algovue.codegen.tree.Assignment;
 import algovue.codegen.tree.BinaryExpression;
 import algovue.codegen.tree.Declarations;
 import algovue.codegen.tree.Expression;
@@ -38,7 +37,7 @@ import com.sun.tools.javac.tree.JCTree;
 public class CodeGenerator {
 
     Declarations declarations = Declarations.builder();
-    Assignment usage;
+    Statement usage;
 
 
     public static void main(String[] args) throws IOException {
@@ -105,8 +104,10 @@ public class CodeGenerator {
         }
     }
 
-    private Assignment generateFrom(JCTree.JCVariableDecl e) {
-        return Assignment.builder().left(e.name.toString()).right(generateFrom(e.init));
+    private ExpressionStatement generateFrom(JCTree.JCVariableDecl e) {
+        return ExpressionStatement.builder()
+                .left(VarWrite.builder().name(e.name.toString()))
+                .right(generateFrom(e.init));
     }
 
     private void generateFrom(JCTree.JCMethodDecl e) {
@@ -183,7 +184,11 @@ public class CodeGenerator {
     }
 
     private ExpressionStatement generateFromJCAssign(JCTree.JCAssign assign) {
-        return ExpressionStatement.builder().left(lvalue(assign.lhs)).right(generateFrom(assign.rhs));
+        return generateAssignment(assign.lhs, assign.rhs);
+    }
+
+    private ExpressionStatement generateAssignment(JCTree.JCExpression lhs, JCTree.JCExpression rhs) {
+        return ExpressionStatement.builder().left(lvalue(lhs)).right(generateFrom(rhs));
     }
 
     private Expression lvalue(JCTree.JCExpression lhs) {

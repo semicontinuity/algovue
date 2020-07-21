@@ -9,10 +9,8 @@ function dataRWStyle(read, write) {
 }
 
 function renderList(name, l, pointerNames, variables, dataAccessLog) {
-    console.log('Rendering', name);
     const reads = dataAccessLog.arrayReads.get(name);
     const writes = dataAccessLog.arrayWrites.get(name);
-    console.log(writes);
 
     const t = table('listview');
     for (let i = 0; i < l.length; i++) {
@@ -42,7 +40,6 @@ function renderList(name, l, pointerNames, variables, dataAccessLog) {
         vValue.innerText = l[i];
         const rwStyle = dataRWStyle(reads !== undefined && reads.has(i), writes !== undefined && writes.has(i));
         if (rwStyle !== undefined) {
-            console.log(rwStyle);
             vValue.classList.add(rwStyle);
         }
 
