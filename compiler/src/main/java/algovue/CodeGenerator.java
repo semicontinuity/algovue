@@ -31,7 +31,10 @@ import algovue.codegen.tree.VarWrite;
 import algovue.codegen.tree.WhileStatement;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
+import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Pair;
 
 
 public class CodeGenerator {
@@ -105,9 +108,23 @@ public class CodeGenerator {
     }
 
     private ExpressionStatement generateFrom(JCTree.JCVariableDecl e) {
+        String targetArray = targetArray(e);
         return ExpressionStatement.builder()
-                .left(VarWrite.builder().name(e.name.toString()))
+                .left(VarWrite.builder().name(e.name.toString()).targetArray(targetArray))
                 .right(generateFrom(e.init));
+    }
+
+    private String targetArray(JCTree.JCVariableDecl e) {
+        for (JCTree.JCAnnotation annotation : e.mods.annotations) {
+            for (Pair<Symbol.MethodSymbol, Attribute> value : annotation.attribute.values) {
+                Attribute snd = value.snd;
+                for (Object o : (com.sun.tools.javac.util.List) snd.getValue()) {
+                    Attribute.Constant o1 = (Attribute.Constant) o;
+                    return ((String) o1.value);
+                }
+            }
+        }
+        return null;
     }
 
     private void generateFrom(JCTree.JCMethodDecl e) {
