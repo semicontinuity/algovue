@@ -62,7 +62,7 @@ function renderVariables(variables, relations, dataAccessLog) {
         const pointers = relations.get(name);
         if (Array.isArray(value) || (typeof(value)==='string' && value.length > 1)) {   // strings as arrays
             t.appendChild(tr(
-                td(text(name, 'variable')),
+                td(text(name, 'watch')),
                 td(renderList(name, value, pointers, variables, dataAccessLog))
             ));
         } else {
@@ -76,12 +76,12 @@ function renderVariables(variables, relations, dataAccessLog) {
             }
             
             if (renderThisVar) {
-                const view = text(value, 'number');
+                const view = text(value, 'value');
                 const rwStyle = dataRWStyle(dataAccessLog.varReads.has(name), dataAccessLog.varWrites.has(name));
                 if (rwStyle !== undefined) {
                     view.classList.add(rwStyle);
                 }
-                t.appendChild(tr(td(text(name, 'variable')), td(view)));
+                t.appendChild(tr(td(text(name, 'watch')), td(view)));
             }
         }
     }

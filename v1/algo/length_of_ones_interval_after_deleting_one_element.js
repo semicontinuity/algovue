@@ -4,8 +4,9 @@ test = function() {
         'maxOnes',
         [vm.variable('a'), vm.variable('length')],
         vm.sequenceStatement([
+            vm.lineComment('// given array of 0s and 1s, find maximal sub-interval of 1s after some element is deleted'),
             vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(false)),
-            vm.assignment(vm.varWrite('size'), vm.number(0)),
+            vm.assignment(vm.varWrite('curSize'), vm.number(0)),
             vm.assignment(vm.varWrite('prevSize'), vm.number(0)),
             vm.assignment(vm.varWrite('maxSize'), vm.number(0)),
             vm.lineComment(),
@@ -18,18 +19,20 @@ test = function() {
                     vm.ifStatement(
                         vm.expression(vm.eq(), vm.variable('value'), vm.number(1)),
                         vm.sequenceStatement([
-                            vm.assignment(vm.varWrite('size'), vm.expression(vm.plus(), vm.variable('size'), vm.number(1))),
+                            vm.lineComment('// current block of 1s grows'),
+                            vm.assignment(vm.varWrite('curSize'), vm.expression(vm.plus(), vm.variable('curSize'), vm.number(1))),
                             vm.ifStatement(
-                                vm.expression(vm.gt(), vm.expression(vm.plus(), vm.variable('size'), vm.variable('prevSize')), vm.variable('maxSize')),
+                                vm.expression(vm.gt(), vm.expression(vm.plus(), vm.variable('curSize'), vm.variable('prevSize')), vm.variable('maxSize')),
                                 vm.sequenceStatement([
-                                    vm.assignment(vm.varWrite('maxSize'), vm.expression(vm.plus(), vm.variable('size'), vm.variable('prevSize')))
+                                    vm.assignment(vm.varWrite('maxSize'), vm.expression(vm.plus(), vm.variable('curSize'), vm.variable('prevSize')))
                                 ])
                             )
                         ]),
                         vm.sequenceStatement([
+                            vm.lineComment('// 0 transforms current block to previous block, new current block starts '),
                             vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(true)),
-                            vm.assignment(vm.varWrite('prevSize'), vm.variable('size')),
-                            vm.assignment(vm.varWrite('size'), vm.number(0))
+                            vm.assignment(vm.varWrite('prevSize'), vm.variable('curSize')),
+                            vm.assignment(vm.varWrite('curSize'), vm.number(0))
                         ])
                     )
                 ])

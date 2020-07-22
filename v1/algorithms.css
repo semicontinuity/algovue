@@ -112,7 +112,6 @@ div.active {
 .listview-value {
     font-size: 1.44em;
     font-weight: bold;
-    color: darkred;
     border: solid 1px grey;
     padding-left: 1ex;
     padding-right: 1ex;
@@ -120,8 +119,14 @@ div.active {
 
 .pointer {
     font-weight: bold;
-    border: solid 1px grey;
+    border: solid 1px royalblue;
     padding-left: 1ex;
     padding-right: 1ex;
     margin: 1px;
+}
+
+.watch {
+}
+.value {
+    font-weight: bold;
 }
