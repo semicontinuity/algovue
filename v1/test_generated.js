@@ -9,6 +9,7 @@ test = function() {
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('length')),
                 vm.sequenceStatement([
+                    vm.lineComment('// Consume char 1 of pattern'),
                     vm.assignment(vm.varWrite('c1'), vm.arrItem('a', vm.varPostOp('i', true))),
                     vm.ifStatement(
                         vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c1'), vm.char(':'))),
@@ -18,6 +19,7 @@ test = function() {
                         ])
                     ),
                     vm.lineComment(),
+                    vm.lineComment('// Consume char 2 of pattern (after ":")'),
                     vm.assignment(vm.varWrite('c2'), vm.arrItem('a', vm.varPostOp('i', true))),
                     vm.ifStatement(
                         vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c2'), vm.char('-'))),
@@ -28,6 +30,7 @@ test = function() {
                         ])
                     ),
                     vm.lineComment(),
+                    vm.lineComment('// Consume char 3 of pattern (after ":-")'),
                     vm.assignment(vm.varWrite('c3'), vm.arrItem('a', vm.varPostOp('i', true))),
                     vm.ifStatement(
                         vm.expression(vm.and(), vm.expression(vm.ne(), vm.variable('c3'), vm.char(')')), vm.expression(vm.ne(), vm.variable('c3'), vm.char('('))),
@@ -39,6 +42,7 @@ test = function() {
                         ])
                     ),
                     vm.lineComment(),
+                    vm.lineComment('// Consume following char(s) of pattern'),
                     vm.whileStatement(
                         vm.number(1),
                         vm.sequenceStatement([

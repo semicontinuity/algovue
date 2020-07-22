@@ -118,13 +118,16 @@ public class CodeGenerator {
         if (name.startsWith("$")) {
             return new LineComment();
         }
-        String targetArray = targetArray(e);
+        if (name.startsWith("_")) {
+            return new LineComment("// " + firstAnnotationValue(e));
+        }
+        String targetArray = firstAnnotationValue(e);
         return ExpressionStatement.builder()
                 .left(VarWrite.builder().name(name).targetArray(targetArray))
                 .right(generateFrom(e.init));
     }
 
-    private String targetArray(JCTree.JCVariableDecl e) {
+    private String firstAnnotationValue(JCTree.JCVariableDecl e) {
         for (JCTree.JCAnnotation annotation : e.mods.annotations) {
             for (Pair<Symbol.MethodSymbol, Attribute> value : annotation.attribute.values) {
                 Attribute snd = value.snd;
