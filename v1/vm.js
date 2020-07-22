@@ -140,17 +140,12 @@ vm = function() {
                 // statement completed
                 // try to activate previous context
                 token = next.value;
-                console.log("@ step: done; token=" + token);
-
                 context = currentFrame().contexts.pop();
                 if (context === undefined) {    // reached end of function call
                     if (deleteFrame()) {
                         // successfully switched to previous frame; restore statement that was executing in that frame
                         context = currentFrame().contexts.pop();
                     }
-                } else {
-                    console.log("@ step: switched to ");
-                    console.log(context.statement.toString());
                 }
             } else {
                 // statement delegates to sub-statement: it yielded sub-statement
@@ -313,7 +308,6 @@ vm = function() {
                     yield rightSide;
                     const rightValue = stack.pop();
                     const r = functor.apply(leftValue, rightValue);
-                    console.log("PUSH " + r);
                     stack.push(r);
                 },
                 toString: () => leftSide.toString() + ' ' + functor.toString() + ' ' + rightSide.toString()
@@ -458,7 +452,6 @@ vm = function() {
         lineComment: function(txt) {
             return {
                 makeView: function(indent) {
-                    console.log(txt);
                     return div(
                         indentSpan(indent),
                         comment(txt === undefined ? '\u202f' : txt, txt === undefined ? 'no-comment' : 'comment')
@@ -521,9 +514,7 @@ vm = function() {
                 run: function*() {
                     for (let i = 0; i < statements.length; i++) {
                         const token = yield statements[i];
-                        console.log(token);
                         if (token !== undefined) {
-                            console.log("breaking sequence");
                             return token;
                         }
                     }
@@ -606,15 +597,12 @@ vm = function() {
                             );
                         },
                         run: function*() {
-                            console.log("EVAL " + condition.toString());
                             yield condition;
                         },
                         toString: () => condition.toString()
                     };
                 },
                 run: function*() {
-                    console.log("@ ifStatement.run ==============");
-                    console.log("yield " + this.conditionStatement);
                     yield this.conditionStatement;
 
                     let token;
@@ -656,7 +644,6 @@ vm = function() {
                         },
                         run: function*() {
                             const token = yield condition;
-                            console.log(token);
                         }
                     };
                 },
@@ -665,7 +652,6 @@ vm = function() {
                         yield this.conditionStatement;
                         if (!stack.pop()) break;
                         const token = yield bodyStatement;
-                        console.log(token);
                         if (token === 1) {
                             break;
                         }

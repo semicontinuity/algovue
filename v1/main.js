@@ -119,10 +119,9 @@ function main() {
 const l = window.location.search;
 const indexOfAmp = l.indexOf('&');
 const indexOfQm = l.indexOf('?');
-const index = indexOfAmp ? indexOfAmp : indexOfQm;
+const index = indexOfAmp !== -1 ? indexOfAmp : indexOfQm;
 if (index) {
     const algo = l.substr(index + 1);
-    console.log(algo);
     $('algo').onload = main;
     $('algo').src = '/algovue/v1/algo/' + algo + '.js';
 }
