@@ -89,7 +89,6 @@ function renderVariables(variables, relations, dataAccessLog) {
 }
 
 function main() {
-    console.log("main");
     $('algorithmView').appendChild(test.code.makeView(0));
 
     let line = vm.init(test.entry);
@@ -118,10 +117,15 @@ function main() {
 
 const l = window.location.search;
 const indexOfAmp = l.indexOf('&');
+console.log(indexOfAmp);
 const indexOfQm = l.indexOf('?');
+console.log(indexOfQm);
 const index = indexOfAmp !== -1 ? indexOfAmp : indexOfQm;
+console.log(index);
+
 if (index) {
     const algo = l.substr(index + 1);
+    console.log(algo);
     $('algo').onload = main;
     $('algo').src = '/algovue/v1/algo/' + algo + '.js';
 }
