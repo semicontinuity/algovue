@@ -43,11 +43,7 @@ function renderList(name, l, pointerNames, variables, dataAccessLog) {
             vValue.classList.add(rwStyle);
         }
 
-        t.appendChild(
-            tr(
-                vPointers, vIndex, vValue
-            )
-        );
+        t.appendChild(tr(vPointers, vIndex, vValue));
     }
     return t;
 }
@@ -93,6 +89,7 @@ function renderVariables(variables, relations, dataAccessLog) {
 }
 
 function main() {
+    console.log("main");
     $('algorithmView').appendChild(test.code.makeView(0));
 
     let line = vm.init(test.entry);
@@ -107,8 +104,6 @@ function main() {
                 break;
             }
         }
-        const dataAccessLog = vm.getDataAccessLog();
-
         // $('stackView').innerText = vm.stack().join();
         renderIn(
             $('variables'),
@@ -119,4 +114,15 @@ function main() {
             )
         );
     };
+}
+
+const l = window.location.search;
+const indexOfAmp = l.indexOf('&');
+const indexOfQm = l.indexOf('?');
+const index = indexOfAmp ? indexOfAmp : indexOfQm;
+if (index) {
+    const algo = l.substr(index + 1);
+    console.log(algo);
+    $('algo').onload = main;
+    $('algo').src = '/algovue/v1/algo/' + algo + '.js';
 }
