@@ -55,7 +55,24 @@ div.active {
 
 .variable {
     font-weight: bold;
-    /*text-decoration: underline;*/
+}
+
+.comment {
+    font-style: italic;
+    background: floralwhite;
+    color: dimgray;
+}
+
+.filler {
+    background: darkseagreen;
+    display: block;
+    border-bottom: 1px dotted blue;
+    overflow: auto;
+    position: relative;
+}
+
+.indent {
+    float: left;
 }
 
 /*****************************************/

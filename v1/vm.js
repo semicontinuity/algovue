@@ -49,11 +49,17 @@ vm = function() {
     }
 
     function indentSpan(size) {
-        var view = document.createElement('span');
+        const view = document.createElement('span');
+        view.className = 'indent';
         for (let i = 0; i < size * 4; i++) view.innerText += '\u00a0';
         return view;
     }
 
+    const comment = (innerText, className) => {
+        const view = e('div', className);
+        view.innerText = innerText;
+        return view;
+    };
     const space = () => text(' ');
     const keyword = innerText => text(innerText, 'keyword');
     const opSign = innerText => text(innerText);
@@ -448,6 +454,21 @@ vm = function() {
 
         // statements
         // ---------------------------------------------------------------------
+
+        lineComment: function(txt) {
+            return {
+                makeView: function(indent) {
+                    console.log(txt);
+                    return div(
+                        indentSpan(indent),
+                        comment(txt === undefined ? '\u202f' : txt, txt === undefined ? 'no-comment' : 'comment')
+                    );
+                },
+                run: function*() {
+                },
+                toString: () => `${txt}`
+            };
+        },
 
         /**
          * Assignment.

@@ -9,6 +9,8 @@ test = function() {
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('length')),
                 vm.sequenceStatement([
+                    vm.lineComment('// test'),
+                    vm.lineComment('// test'),
                     vm.assignment(vm.varWrite('c1'), vm.arrItem('a', vm.varPostOp('i', true))),
                     vm.ifStatement(
                         vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c1'), vm.char(':'))),
@@ -17,6 +19,7 @@ test = function() {
                             vm.continueStatement()
                         ])
                     ),
+                    vm.lineComment(),
                     vm.assignment(vm.varWrite('c2'), vm.arrItem('a', vm.varPostOp('i', true))),
                     vm.ifStatement(
                         vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c2'), vm.char('-'))),
