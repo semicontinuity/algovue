@@ -117,12 +117,8 @@ function main() {
 
 const l = window.location.search;
 const indexOfAmp = l.indexOf('&');
-console.log(indexOfAmp);
 const indexOfQm = l.indexOf('?');
-console.log(indexOfQm);
 const index = indexOfAmp !== -1 ? indexOfAmp : indexOfQm;
-console.log(index);
-
 if (index >= 0) {
     const algo = l.substr(index + 1);
     console.log(algo);
