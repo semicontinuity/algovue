@@ -68,7 +68,7 @@ test = function() {
         ])
     );
 
-    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(replaceSmiles, [vm.arrayLiteral([vm.char('H'), vm.char('i'), vm.char(':'), vm.char('-'), vm.char(')'), vm.char(')'), vm.char(' '), vm.char(':'), vm.char('-'), vm.char(')'), vm.char('_'), vm.char(':'), vm.char('-'), vm.char('('), vm.char('('), vm.char(' '), vm.char(':'), vm.char(')')]), vm.number(18)]));
+    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(replaceSmiles, [vm.string('Hi:-)) :-)_:-(( :-'), vm.number(18)]));
 
     return {
         code: vm.codeBlocks([replaceSmiles, usage]),

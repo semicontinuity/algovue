@@ -30,6 +30,7 @@ import algovue.codegen.tree.Number;
 import algovue.codegen.tree.ReturnStatement;
 import algovue.codegen.tree.Statement;
 import algovue.codegen.tree.Statements;
+import algovue.codegen.tree.StringLiteral;
 import algovue.codegen.tree.VarPostOp;
 import algovue.codegen.tree.VarRead;
 import algovue.codegen.tree.VarWrite;
@@ -281,8 +282,12 @@ public class CodeGenerator {
         String name;
         if (meth instanceof JCTree.JCFieldAccess) {
             self = ((JCTree.JCFieldAccess) meth).selected.toString();
-//            name = ((JCTree.JCFieldAccess) meth).name.toString();
-            name = "push";
+            name = ((JCTree.JCFieldAccess) meth).name.toString();
+            if (name.equals("append")) {
+                name = "push";
+            } else if (name.equals("charAt")) {
+                return new ArrayElementRead(self, generateFrom(e.args.last()));
+            }
         } else {
             name = meth.toString();
         }
@@ -320,11 +325,17 @@ public class CodeGenerator {
     }
 
     private Expression generateFrom(JCTree.JCLiteral e) {
-        Integer value = (Integer) e.value;
         if (e.typetag == TypeTag.CHAR) {
+            Integer value = (Integer) e.value;
             return new Char((char) (int) value);
-        } else {
+        } else if (e.typetag == TypeTag.INT || e.typetag == TypeTag.BOOLEAN) {
+            Integer value = (Integer) e.value;
             return new Number(value);
+        } else if (e.typetag == TypeTag.CLASS) {    // must be String
+            String value = (String) e.value;
+            return StringLiteral.builder().value(value);
+        } else {
+            throw new IllegalArgumentException(e.toString());
         }
     }
 

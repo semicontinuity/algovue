@@ -60,7 +60,7 @@ function renderVariables(variables, relations, dataAccessLog) {
         const name = v[0];
         const value = v[1];
         const pointers = relations.get(name);
-        if (Array.isArray(value)) {
+        if (Array.isArray(value) || (typeof(value)==='string' && value.length > 1)) {   // strings as arrays
             t.appendChild(tr(
                 td(text(name, 'variable')),
                 td(renderList(name, value, pointers, variables, dataAccessLog))
@@ -121,7 +121,6 @@ const indexOfQm = l.indexOf('?');
 const index = indexOfAmp !== -1 ? indexOfAmp : indexOfQm;
 if (index >= 0) {
     const algo = l.substr(index + 1);
-    console.log(algo);
     $('algo').onload = main;
     $('algo').src = '/algovue/v1/algo/' + algo + '.js';
 }

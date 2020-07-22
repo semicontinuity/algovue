@@ -181,6 +181,16 @@ vm = function() {
             };
         },
 
+        string: function (value) {
+            return {
+                makeView: function() { return span(text('"' + value + '"', 'string'));},
+                run: function* () {
+                    stack.push(value);
+                },
+                toString: () => value
+            };
+        },
+
         number: function (value) {
             return {
                 makeView: function() { return text(value, 'number');},

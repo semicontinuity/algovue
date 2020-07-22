@@ -1,11 +1,17 @@
 test = function() {
-    const code = vm.sequenceStatement([
-        vm.assignment(vm.varWrite('a'), vm.arrayLiteral([vm.number(1), vm.number(2)])),
-        // vm.assignment(vm.varWrite('b'), vm.arrItem('a', vm.number(0))),
-    ]);
+
+    const string = vm.functionDeclaration(
+        'string',
+        [vm.variable('s')],
+        vm.sequenceStatement([
+            vm.returnStatement(vm.arrItem('s', vm.number(2)))
+        ])
+    );
+
+    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(string, [vm.string('string')]));
 
     return {
-        code: code,
-        entry: code
+        code: vm.codeBlocks([string, usage]),
+        entry: usage
     };
 }();

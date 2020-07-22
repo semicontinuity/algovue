@@ -53,6 +53,11 @@ div.active {
     color: royalblue;
 }
 
+.string {
+    font-weight: bold;
+    color: dodgerblue;
+}
+
 .variable {
     font-weight: bold;
 }
