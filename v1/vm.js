@@ -233,6 +233,19 @@ vm = function() {
             };
         },
 
+        varPostOp: function(name, increment) {
+            return {
+                name: name,
+                makeView: function() { return span(text(name, 'variable'), opSign(increment ? "++" : "--")); },
+                run: function* () {
+                    const value = readVar(name);
+                    stack.push(value);
+                    writeVar(name, increment ? value + 1 : value - 1);
+                },
+                toString: () => name
+            };
+        },
+
         varWrite: function(name, targetArray) {
             return {
                 name: name,

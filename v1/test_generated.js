@@ -7,41 +7,32 @@ test = function() {
             vm.assignment(vm.varWrite('result'), vm.arrayLiteral([])),
             vm.assignment(vm.varWrite('i', 'a'), vm.number(0)),
             vm.whileStatement(
-                vm.number(1),
+                vm.expression(vm.lt(), vm.variable('i'), vm.variable('length')),
                 vm.sequenceStatement([
+                    vm.assignment(vm.varWrite('c1'), vm.arrItem('a', vm.varPostOp('i', true))),
                     vm.ifStatement(
-                        vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')),
+                        vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c1'), vm.char(':'))),
                         vm.sequenceStatement([
-                            vm.breakStatement()
-                        ])
-                    ),
-                    vm.assignment(vm.varWrite('c0'), vm.arrItem('a', vm.variable('i'))),
-                    vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1))),
-                    vm.ifStatement(
-                        vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c0'), vm.char(':'))),
-                        vm.sequenceStatement([
-                            vm.assignment(undefined, vm.functionCall('push', [vm.variable('c0')], 'result')),
-                            vm.continueStatement()
-                        ])
-                    ),
-                    vm.assignment(vm.varWrite('c1'), vm.arrItem('a', vm.variable('i'))),
-                    vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1))),
-                    vm.ifStatement(
-                        vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c1'), vm.char('-'))),
-                        vm.sequenceStatement([
-                            vm.assignment(undefined, vm.functionCall('push', [vm.char(':')], 'result')),
                             vm.assignment(undefined, vm.functionCall('push', [vm.variable('c1')], 'result')),
                             vm.continueStatement()
                         ])
                     ),
-                    vm.assignment(vm.varWrite('c2'), vm.arrItem('a', vm.variable('i'))),
-                    vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1))),
+                    vm.assignment(vm.varWrite('c2'), vm.arrItem('a', vm.varPostOp('i', true))),
                     vm.ifStatement(
-                        vm.expression(vm.and(), vm.expression(vm.ne(), vm.variable('c2'), vm.char(')')), vm.expression(vm.ne(), vm.variable('c2'), vm.char('('))),
+                        vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c2'), vm.char('-'))),
+                        vm.sequenceStatement([
+                            vm.assignment(undefined, vm.functionCall('push', [vm.char(':')], 'result')),
+                            vm.assignment(undefined, vm.functionCall('push', [vm.variable('c2')], 'result')),
+                            vm.continueStatement()
+                        ])
+                    ),
+                    vm.assignment(vm.varWrite('c3'), vm.arrItem('a', vm.varPostOp('i', true))),
+                    vm.ifStatement(
+                        vm.expression(vm.and(), vm.expression(vm.ne(), vm.variable('c3'), vm.char(')')), vm.expression(vm.ne(), vm.variable('c3'), vm.char('('))),
                         vm.sequenceStatement([
                             vm.assignment(undefined, vm.functionCall('push', [vm.char(':')], 'result')),
                             vm.assignment(undefined, vm.functionCall('push', [vm.char('-')], 'result')),
-                            vm.assignment(undefined, vm.functionCall('push', [vm.variable('c2')], 'result')),
+                            vm.assignment(undefined, vm.functionCall('push', [vm.variable('c3')], 'result')),
                             vm.continueStatement()
                         ])
                     ),
@@ -54,9 +45,9 @@ test = function() {
                                     vm.returnStatement(vm.variable('result'))
                                 ])
                             ),
-                            vm.assignment(vm.varWrite('c3'), vm.arrItem('a', vm.variable('i'))),
+                            vm.assignment(vm.varWrite('c'), vm.arrItem('a', vm.variable('i'))),
                             vm.ifStatement(
-                                vm.expression(vm.ne(), vm.variable('c3'), vm.variable('c2')),
+                                vm.expression(vm.ne(), vm.variable('c'), vm.variable('c3')),
                                 vm.sequenceStatement([
                                     vm.breakStatement()
                                 ])

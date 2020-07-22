@@ -45,6 +45,7 @@ div.active {
 .number {
     font-weight: bold;
     color: darkred;
+    white-space: pre;
 }
 
 .char {
