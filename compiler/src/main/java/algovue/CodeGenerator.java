@@ -25,6 +25,7 @@ import algovue.codegen.tree.ExpressionStatement;
 import algovue.codegen.tree.FunctionCall;
 import algovue.codegen.tree.FunctionDeclaration;
 import algovue.codegen.tree.IfStatement;
+import algovue.codegen.tree.LineComment;
 import algovue.codegen.tree.Number;
 import algovue.codegen.tree.ReturnStatement;
 import algovue.codegen.tree.Statement;
@@ -112,10 +113,14 @@ public class CodeGenerator {
         }
     }
 
-    private ExpressionStatement generateFrom(JCTree.JCVariableDecl e) {
+    private Statement generateFrom(JCTree.JCVariableDecl e) {
+        String name = e.name.toString();
+        if (name.startsWith("$")) {
+            return new LineComment();
+        }
         String targetArray = targetArray(e);
         return ExpressionStatement.builder()
-                .left(VarWrite.builder().name(e.name.toString()).targetArray(targetArray))
+                .left(VarWrite.builder().name(name).targetArray(targetArray))
                 .right(generateFrom(e.init));
     }
 
