@@ -16,6 +16,7 @@ import algovue.codegen.tree.ArrayElementRead;
 import algovue.codegen.tree.ArrayElementWrite;
 import algovue.codegen.tree.ArrayLiteral;
 import algovue.codegen.tree.BinaryExpression;
+import algovue.codegen.tree.Bool;
 import algovue.codegen.tree.BreakStatement;
 import algovue.codegen.tree.Char;
 import algovue.codegen.tree.ContinueStatement;
@@ -328,9 +329,12 @@ public class CodeGenerator {
         if (e.typetag == TypeTag.CHAR) {
             Integer value = (Integer) e.value;
             return new Char((char) (int) value);
-        } else if (e.typetag == TypeTag.INT || e.typetag == TypeTag.BOOLEAN) {
+        } else if (e.typetag == TypeTag.INT) {
             Integer value = (Integer) e.value;
             return new Number(value);
+        } else if (e.typetag == TypeTag.BOOLEAN) {
+            Integer value = (Integer) e.value;
+            return new Bool(value != 0);
         } else if (e.typetag == TypeTag.CLASS) {    // must be String
             String value = (String) e.value;
             return StringLiteral.builder().value(value);

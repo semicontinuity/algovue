@@ -201,6 +201,16 @@ vm = function() {
             };
         },
 
+        bool: function (value) {
+            return {
+                makeView: function() { return keyword(value);},
+                run: function* () {
+                    stack.push(value);
+                },
+                toString: () => value
+            };
+        },
+
         arrayLiteral: function(items) {
             return {
                 makeView: function() {
