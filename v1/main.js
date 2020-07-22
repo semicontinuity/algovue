@@ -123,7 +123,7 @@ console.log(indexOfQm);
 const index = indexOfAmp !== -1 ? indexOfAmp : indexOfQm;
 console.log(index);
 
-if (index) {
+if (index >= 0) {
     const algo = l.substr(index + 1);
     console.log(algo);
     $('algo').onload = main;
