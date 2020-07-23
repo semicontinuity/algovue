@@ -14,6 +14,11 @@ function highlightArrayPointer(name, i, arrayItemView, dataAccessLog) {
     if (writes !== undefined && writes.has(i)) arrayItemView.classList.add('data-w');
 }
 
+function displayValue(v) {
+    const isChar = typeof(v) === 'string';
+    return isChar ? text(v, 'char') : text(v, 'number');
+}
+
 function renderList(name, list, pointerNames, variables, dataAccessLog) {
     const t = table('listview');
     for (let i = 0; i < list.length; i++) {
@@ -39,7 +44,7 @@ function renderList(name, list, pointerNames, variables, dataAccessLog) {
         vIndex.innerText = i;
 
         const vValue = e('td', 'listview-value');
-        vValue.innerText = list[i].value;
+        vValue.appendChild(displayValue(list[i].value));
 
         highlightArrayPointer(name, i, vValue, dataAccessLog);
         t.appendChild(tr(vPointers, vIndex, vValue));
@@ -75,7 +80,7 @@ function renderVariables(variables, relations, dataAccessLog) {
             }
             
             if (renderThisVar) {
-                const view = text(value, 'value');
+                const view = displayValue(value);
                 highlightVar(name, view, dataAccessLog);
                 t.appendChild(tr(td(text(name, 'watch')), td(view)));
             }

@@ -103,32 +103,41 @@ vm = function() {
         }
     }
 
+    function wrappedValueFrom(wrappedValue, self) {
+        const aWrappedValue = {value: wrappedValue.value, self: self};
+        if (wrappedValue.self !== undefined) {
+            aWrappedValue.from = wrappedValue.self;
+        }
+        return aWrappedValue;
+    }
+
     function readVar(name) {
         dataAccessLog.varReads.add(name);
-        const value = currentFrame().variables.get(name);
+        const value = wrappedValueFrom(currentFrame().variables.get(name), {name: name});
         console.log("READ VAR " + name + " -> " + JSON.stringify(value));
         return value;
     }
 
     function writeVar(name, value) {
-        console.log("WRITE VAR " + name + " -> " + JSON.stringify(value));
         dataAccessLog.varWrites.add(name);
-        currentFrame().variables.set(name, value);
+        const wv = wrappedValueFrom(value, {name: name});
+        console.log("WRITE VAR " + name + " = " + JSON.stringify(value) + " -> " + JSON.stringify(wv));
+        currentFrame().variables.set(name, wv);
     }
 
     function readArrayElement(name, indexValue) {
         getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
         const wrapped = currentFrame().variables.get(name);
-        const result = wrapped.value[indexValue];
-        // const result = {value: wrapped.value[indexValue]};
+        const result = wrappedValueFrom(wrapped.value[indexValue], {name: name, index: indexValue});
         console.log("READ ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(result));
         return result;
     }
 
     function writeArrayElement(name, indexValue, value) {
-        console.log("WRITE ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(value));
         getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
-        (currentFrame().variables.get(name))[indexValue] = value;
+        const wv = wrappedValueFrom(value, {name: name, index: indexValue});
+        console.log("WRITE ARR ITEM " + name + " " + indexValue + " = " + JSON.stringify(value) + " -> " + JSON.stringify(wv));
+        (currentFrame().variables.get(name).value)[indexValue] = wv;
     }
 
     function pop() {
@@ -361,14 +370,14 @@ vm = function() {
                     );
                 },
                 run: function*() {
-                    console.log("EVAL " + this.toString());
+                    // console.log("EVAL " + this.toString());
                     yield leftSide;
                     const wrappedLeftValue = pop();
-                    console.log("EVAL " + this.toString() + " LEFT IS");
+                    // console.log("EVAL " + this.toString() + " LEFT IS");
                     console.log(wrappedLeftValue);
                     yield rightSide;
                     const wrappedRightValue = pop();
-                    console.log("EVAL " + this.toString() + " RIGHT IS");
+                    // console.log("EVAL " + this.toString() + " RIGHT IS");
                     console.log(wrappedRightValue);
                     const r = functor.apply(wrappedLeftValue.value, wrappedRightValue.value);
                     push({value: r});
@@ -550,7 +559,6 @@ vm = function() {
                     );
                 },
                 run: function*() {
-                    console.log("ASSIGNMENT");
                     yield rvalue;
                     if (lvalue !== undefined) {
                         yield lvalue;
