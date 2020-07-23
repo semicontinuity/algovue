@@ -21,6 +21,13 @@ function tr(...args) {
     return view;
 }
 
+function tdWithClass(clazz, ...args) {
+    const view = document.createElement('td');
+    view.className = clazz;
+    args.forEach(c => view.appendChild(c));
+    return view;
+}
+
 function td(...args) {
     const view = document.createElement('td');
     args.forEach(c => view.appendChild(c));

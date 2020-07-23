@@ -70,7 +70,7 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
         const vValue = e('td', 'listview-value');
         vValue.appendChild(displayValue(list[i].value));
 
-        const vExtra = e('td');
+        const vExtra = e('td', 'listview-extra');
         const varName = arrayItemIsVariable(list, i, variables, name);
         if (varName !== undefined) {
             const vView = text(varName, 'watch');
@@ -91,7 +91,7 @@ function renderLists(t, lists, variables, relations, dataAccessLog) {
         const name = v.self.name;
         const value = v.value;
         t.appendChild(tr(
-            td(text(name, 'watch')),
+            tdWithClass('name', text(name, 'watch')),
             td(renderList(name, value, relations.get(name), variables, dataAccessLog, attachedNames))
         ));
     }
@@ -120,7 +120,7 @@ function renderVariables(variables, relations, dataAccessLog) {
         const value = variables[v].value;
         const view = displayValue(value);
         highlightVar(name, view, dataAccessLog);
-        t.appendChild(tr(td(text(name, 'watch')), td(view)));
+        t.appendChild(tr(tdWithClass('name', text(name, 'watch')), td(view)));
     }
     return t;
 }

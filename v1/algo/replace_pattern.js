@@ -24,7 +24,7 @@ test = function() {
                     vm.ifStatement(
                         vm.expression(vm.or(), vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')), vm.expression(vm.ne(), vm.variable('c2'), vm.char('-'))),
                         vm.sequenceStatement([
-                            vm.assignment(undefined, vm.functionCall('push', [vm.char(':')], 'result')),
+                            vm.assignment(undefined, vm.functionCall('push', [vm.variable('c1')], 'result')),
                             vm.assignment(undefined, vm.functionCall('push', [vm.variable('c2')], 'result')),
                             vm.continueStatement()
                         ])
@@ -35,8 +35,8 @@ test = function() {
                     vm.ifStatement(
                         vm.expression(vm.and(), vm.expression(vm.ne(), vm.variable('c3'), vm.char(')')), vm.expression(vm.ne(), vm.variable('c3'), vm.char('('))),
                         vm.sequenceStatement([
-                            vm.assignment(undefined, vm.functionCall('push', [vm.char(':')], 'result')),
-                            vm.assignment(undefined, vm.functionCall('push', [vm.char('-')], 'result')),
+                            vm.assignment(undefined, vm.functionCall('push', [vm.variable('c1')], 'result')),
+                            vm.assignment(undefined, vm.functionCall('push', [vm.variable('c2')], 'result')),
                             vm.assignment(undefined, vm.functionCall('push', [vm.variable('c3')], 'result')),
                             vm.continueStatement()
                         ])
@@ -44,7 +44,7 @@ test = function() {
                     vm.lineComment(),
                     vm.lineComment('// Consume following char(s) of pattern'),
                     vm.whileStatement(
-                        vm.number(1),
+                        vm.bool(true),
                         vm.sequenceStatement([
                             vm.ifStatement(
                                 vm.expression(vm.ge(), vm.variable('i'), vm.variable('length')),
@@ -68,7 +68,7 @@ test = function() {
         ])
     );
 
-    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(replaceSmiles, [vm.string('Hi:-)) :-)_:-(( :-'), vm.number(18)]));
+    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(replaceSmiles, [vm.string('Hi:-)) :-)_:-(( :)'), vm.number(18)]));
 
     return {
         code: vm.codeBlocks([replaceSmiles, usage]),

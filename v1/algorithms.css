@@ -128,6 +128,9 @@ table.listview {
     padding-right: 1ex;
 }
 
+.listview-extra {
+}
+
 .pointer {
     font-weight: bold;
     border: solid 1px royalblue;
@@ -136,7 +139,8 @@ table.listview {
     margin: 1px;
 }
 
-.watch {
+.name {
+    width: 25%;
 }
 
 .value {
