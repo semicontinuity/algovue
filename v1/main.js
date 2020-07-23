@@ -2,16 +2,19 @@ function $(elementId) {
     return document.getElementById(elementId);
 }
 
-function dataRWStyle(read, write) {
-    if (read && write) return "data-rw";
-    if (read) return "data-r";
-    if (write) return "data-w";
+function highlightVar(name, view, dataAccessLog) {
+    if (dataAccessLog.varReads.has(name)) view.classList.add('data-r');
+    if (dataAccessLog.varWrites.has(name)) view.classList.add('data-w');
+}
+
+function highlightArrayPointer(name, i, arrayItemView, dataAccessLog) {
+    const reads = dataAccessLog.arrayReads.get(name);
+    if (reads !== undefined && reads.has(i)) arrayItemView.classList.add('data-r');
+    const writes = dataAccessLog.arrayWrites.get(name);
+    if (writes !== undefined && writes.has(i)) arrayItemView.classList.add('data-w');
 }
 
 function renderList(name, l, pointerNames, variables, dataAccessLog) {
-    const reads = dataAccessLog.arrayReads.get(name);
-    const writes = dataAccessLog.arrayWrites.get(name);
-
     const t = table('listview');
     for (let i = 0; i < l.length; i++) {
         const entryPointers = new Set();
@@ -26,8 +29,7 @@ function renderList(name, l, pointerNames, variables, dataAccessLog) {
         const vPointers = e('td', 'listview-pointers');
         for (let p of entryPointers) {
             const vPointer = e('span', 'pointer');
-            const rwStyle = dataRWStyle(dataAccessLog.varReads.has(p), dataAccessLog.varWrites.has(p));
-            vPointer.classList.add(rwStyle);
+            highlightVar(p, vPointer, dataAccessLog);
             vPointer.innerText = p;
             vPointers.appendChild(vPointer);
         }
@@ -38,11 +40,8 @@ function renderList(name, l, pointerNames, variables, dataAccessLog) {
 
         const vValue = e('td', 'listview-value');
         vValue.innerText = l[i];
-        const rwStyle = dataRWStyle(reads !== undefined && reads.has(i), writes !== undefined && writes.has(i));
-        if (rwStyle !== undefined) {
-            vValue.classList.add(rwStyle);
-        }
 
+        highlightArrayPointer(name, i, vValue, dataAccessLog);
         t.appendChild(tr(vPointers, vIndex, vValue));
     }
     return t;
@@ -77,10 +76,7 @@ function renderVariables(variables, relations, dataAccessLog) {
             
             if (renderThisVar) {
                 const view = text(value, 'value');
-                const rwStyle = dataRWStyle(dataAccessLog.varReads.has(name), dataAccessLog.varWrites.has(name));
-                if (rwStyle !== undefined) {
-                    view.classList.add(rwStyle);
-                }
+                highlightVar(name, view, dataAccessLog);
                 t.appendChild(tr(td(text(name, 'watch')), td(view)));
             }
         }
