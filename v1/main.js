@@ -14,13 +14,13 @@ function highlightArrayPointer(name, i, arrayItemView, dataAccessLog) {
     if (writes !== undefined && writes.has(i)) arrayItemView.classList.add('data-w');
 }
 
-function renderList(name, l, pointerNames, variables, dataAccessLog) {
+function renderList(name, list, pointerNames, variables, dataAccessLog) {
     const t = table('listview');
-    for (let i = 0; i < l.length; i++) {
+    for (let i = 0; i < list.length; i++) {
         const entryPointers = new Set();
         if (pointerNames !== undefined) {
             for (let p of pointerNames) {
-                const v = variables.get(p);
+                const v = variables.get(p).value;
                 // noinspection EqualityComparisonWithCoercionJS
                 if (v == i) entryPointers.add(p);
             }
@@ -39,7 +39,7 @@ function renderList(name, l, pointerNames, variables, dataAccessLog) {
         vIndex.innerText = i;
 
         const vValue = e('td', 'listview-value');
-        vValue.innerText = l[i];
+        vValue.innerText = list[i];
 
         highlightArrayPointer(name, i, vValue, dataAccessLog);
         t.appendChild(tr(vPointers, vIndex, vValue));
@@ -57,7 +57,7 @@ function renderVariables(variables, relations, dataAccessLog) {
     const t = table('variables');
     for (let v of variables) {
         const name = v[0];
-        const value = v[1];
+        const value = v[1].value;
         const pointers = relations.get(name);
         if (Array.isArray(value) || (typeof(value)==='string' && value.length > 1)) {   // strings as arrays
             t.appendChild(tr(

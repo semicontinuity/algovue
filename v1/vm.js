@@ -105,22 +105,39 @@ vm = function() {
 
     function readVar(name) {
         dataAccessLog.varReads.add(name);
-        return currentFrame().variables.get(name);
+        const value = currentFrame().variables.get(name);
+        console.log("READ VAR " + name + " -> " + JSON.stringify(value));
+        return value;
     }
 
     function writeVar(name, value) {
+        console.log("WRITE VAR " + name + " -> " + JSON.stringify(value));
         dataAccessLog.varWrites.add(name);
         currentFrame().variables.set(name, value);
     }
 
     function readArrayElement(name, indexValue) {
         getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
-        return currentFrame().variables.get(name)[indexValue];
+        const wrapped = currentFrame().variables.get(name);
+        const result = {value: wrapped.value[indexValue]};
+        console.log("READ ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(result));
+        return result;
     }
 
     function writeArrayElement(name, indexValue, value) {
+        console.log("WRITE ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(value));
         getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
-        (currentFrame().variables.get(name))[indexValue] = value;
+        (currentFrame().variables.get(name).value)[indexValue] = value.value;
+    }
+
+    function pop() {
+        // console.log("POP");
+        return stack.pop();
+    }
+
+    function push(value) {
+        // console.log("PUSH " + JSON.stringify(value));
+        stack.push(value);
     }
 
     return {
@@ -181,7 +198,7 @@ vm = function() {
             return {
                 makeView: function() { return span(text("'" + value + "'", 'char'));},
                 run: function* () {
-                    stack.push(value);
+                    push({value:value});
                 },
                 toString: () => value
             };
@@ -191,7 +208,7 @@ vm = function() {
             return {
                 makeView: function() { return span(text('"' + value + '"', 'string'));},
                 run: function* () {
-                    stack.push(value);
+                    push({value: value});
                 },
                 toString: () => value
             };
@@ -201,7 +218,7 @@ vm = function() {
             return {
                 makeView: function() { return text(value, 'number');},
                 run: function* () {
-                    stack.push(value);
+                    push({value: value});
                 },
                 toString: () => value
             };
@@ -211,7 +228,7 @@ vm = function() {
             return {
                 makeView: function() { return keyword(value);},
                 run: function* () {
-                    stack.push(value);
+                    push({value: value});
                 },
                 toString: () => value
             };
@@ -237,9 +254,9 @@ vm = function() {
                     const value = [];
                     for (let i = 0; i < items.length; i++) {
                         yield items[i];
-                        value.push(stack.pop());
+                        value.push(pop().value);
                     }
-                    stack.push(value);
+                    push({value: value});
                 },
                 toString: () => '[...]'
             };
@@ -250,7 +267,7 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    stack.push(readVar(name));
+                    push(readVar(name));
                     if (targetArray !== undefined) {
                         addRelation(targetArray, name);
                         addRelation(name, targetArray);
@@ -266,9 +283,12 @@ vm = function() {
                 name: name,
                 makeView: function() { return span(text(name, 'variable'), opSign(increment ? "++" : "--")); },
                 run: function* () {
+                    // console.log("varPostOp");
                     const value = readVar(name);
-                    stack.push(value);
-                    writeVar(name, increment ? value + 1 : value - 1);
+                    // console.log(value);
+                    // console.log("varPostOp PUSH " + JSON.stringify(value));
+                    push(value);
+                    writeVar(name, {value: increment ? value.value + 1 : value.value - 1});
                 },
                 toString: () => name
             };
@@ -280,8 +300,9 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    const value = stack.pop();
-                    writeVar(name, value);
+                    const v = pop();
+                    // console.log("varWrite POPPED " + JSON.stringify(v));
+                    writeVar(name, v);
                     if (targetArray !== undefined) {
                         addRelation(targetArray, name);
                         addRelation(name, targetArray);
@@ -300,8 +321,10 @@ vm = function() {
                 },
                 run: function* () {
                     yield index;
-                    const indexValue = stack.pop();
-                    stack.push(readArrayElement(name, indexValue));
+                    const wrappedIndexValue = pop();
+                    const value = readArrayElement(name, wrappedIndexValue.value);
+                    // console.log(value);
+                    push(value);
                 },
                 toString: () => name
             };
@@ -316,9 +339,9 @@ vm = function() {
                 },
                 run: function* () {
                     yield index;
-                    const indexValue = stack.pop();
-                    const value = stack.pop();
-                    writeArrayElement(name, indexValue, value);
+                    const wrappedIndexValue = pop();
+                    const value = pop();
+                    writeArrayElement(name, wrappedIndexValue.value, value);
                 },
                 toString: () => name
             };
@@ -333,12 +356,17 @@ vm = function() {
                     );
                 },
                 run: function*() {
+                    console.log("EVAL " + this.toString());
                     yield leftSide;
-                    const leftValue = stack.pop();
+                    const wrappedLeftValue = pop();
+                    console.log("EVAL " + this.toString() + " LEFT IS");
+                    console.log(wrappedLeftValue);
                     yield rightSide;
-                    const rightValue = stack.pop();
-                    const r = functor.apply(leftValue, rightValue);
-                    stack.push(r);
+                    const wrappedRightValue = pop();
+                    console.log("EVAL " + this.toString() + " RIGHT IS");
+                    console.log(wrappedRightValue);
+                    const r = functor.apply(wrappedLeftValue.value, wrappedRightValue.value);
+                    push({value: r});
                 },
                 toString: () => leftSide.toString() + ' ' + functor.toString() + ' ' + rightSide.toString()
             };
@@ -457,15 +485,15 @@ vm = function() {
                     if (self !== undefined) {
                         // primitive method calls; 1 argument only! only array.push(x)!
                         yield args[0];
-                        const arg0 = stack.pop();
-                        const selfArg = readVar(self);
-                        selfArg[decl].call(selfArg, arg0);
-                        getOrEmptySet(dataAccessLog.arrayWrites, self).add(selfArg.length - 1); // it was 'push'
+                        const wrappedArg0 = pop();
+                        const wrappedSelfArg = readVar(self);
+                        wrappedSelfArg.value[decl].call(wrappedSelfArg.value, wrappedArg0.value);
+                        getOrEmptySet(dataAccessLog.arrayWrites, self).add(wrappedSelfArg.length - 1); // it was 'push'
                     } else {
                         const aNewFrame = newFrame();
                         for (let i = 0; i < args.length; i++) {
                             yield args[i];
-                            aNewFrame.variables.set(decl.args[i].name, stack.pop());
+                            aNewFrame.variables.set(decl.args[i].name, pop());
                         }
 
                         yield decl.body;
@@ -517,11 +545,12 @@ vm = function() {
                     );
                 },
                 run: function*() {
+                    console.log("ASSIGNMENT");
                     yield rvalue;
                     if (lvalue !== undefined) {
                         yield lvalue;
                     } else {
-                        stack.pop();
+                        pop();
                     }
                 },
                 toString: () => (lvalue ? (lvalue + ' = ') : '') + rvalue
@@ -636,7 +665,8 @@ vm = function() {
                     yield this.conditionStatement;
 
                     let token;
-                    if (stack.pop()) {
+                    const wrappedConditionValue = pop();
+                    if (wrappedConditionValue.value) {
                         token = yield ifStatements;
                     } else if (elseStatements) {
                         token = yield elseStatements;
@@ -680,7 +710,8 @@ vm = function() {
                 run: function*() {
                     while (true) {
                         yield this.conditionStatement;
-                        if (!stack.pop()) break;
+                        const wrappedConditionValue = pop();
+                        if (!wrappedConditionValue.value) break;
                         const token = yield bodyStatement;
                         if (token === 1) {
                             break;
