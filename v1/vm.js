@@ -24,13 +24,11 @@ vm = function() {
     }
 
     function newFrame() {
-        const newFrame = {
+        return {
             contexts: [],
             variables: {},
             relations: new Map(),
         };
-        frames.push(newFrame);
-        return newFrame;
     }
 
     function deleteFrame() {
@@ -195,7 +193,7 @@ vm = function() {
         // vm control
         //----------------------------------------------------------------------
         init: function(aStatement) {
-            newFrame();
+            frames.push(newFrame());
             context = {
                 statement: aStatement,
                 coro: aStatement.run(),
@@ -337,10 +335,7 @@ vm = function() {
                 name: name,
                 makeView: function() { return span(text(name, 'variable'), opSign(increment ? "++" : "--")); },
                 run: function* () {
-                    // console.log("varPostOp");
                     const value = readVar(name);
-                    // console.log(value);
-                    // console.log("varPostOp PUSH " + JSON.stringify(value));
                     push(value);
                     writeVar(name, {value: increment ? value.value + 1 : value.value - 1});
                 },
@@ -355,7 +350,6 @@ vm = function() {
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     const v = pop();
-                    // console.log("varWrite POPPED " + JSON.stringify(v));
                     writeVar(name, v);
                     if (targetArray !== undefined) {
                         addRelation(targetArray, name);
@@ -377,7 +371,6 @@ vm = function() {
                     yield index;
                     const wrappedIndexValue = pop();
                     const value = readArrayElement(name, wrappedIndexValue.value);
-                    // console.log(value);
                     push(value);
                 },
                 toString: () => name
@@ -410,15 +403,10 @@ vm = function() {
                     );
                 },
                 run: function*() {
-                    // console.log("EVAL " + this.toString());
                     yield leftSide;
                     const wrappedLeftValue = pop();
-                    // console.log("EVAL " + this.toString() + " LEFT IS");
-                    console.log(wrappedLeftValue);
                     yield rightSide;
                     const wrappedRightValue = pop();
-                    // console.log("EVAL " + this.toString() + " RIGHT IS");
-                    console.log(wrappedRightValue);
                     const r = functor.apply(wrappedLeftValue.value, wrappedRightValue.value);
                     push({value: r});
                 },
@@ -552,6 +540,7 @@ vm = function() {
                             setV(aNewFrame.variables, argName, {value: argValue.value, self: {name: argName}});
                         }
 
+                        frames.push(aNewFrame);
                         yield decl.body;
                     }
                 },
@@ -627,13 +616,7 @@ vm = function() {
                 },
                 run: function*() {
                     this.variables = currentFrame().variables;
-                    // replaceVariables(this.variables);
-                    const blockVariables = Object.setPrototypeOf({}, this.variables);
-                    console.log("$$$$$$$$$$$$$$$$$");
-                    console.log(blockVariables);
-                    // blockVariables._current = {value: statements.toString()};
-                    // this.variables.set('_current', {value: statements.toString(), self: {name: '_current'}});
-                    replaceVariables(blockVariables);
+                    replaceVariables(Object.setPrototypeOf({}, this.variables));
 
                     let token;
                     for (let i = 0; i < statements.length; i++) {
