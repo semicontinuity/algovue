@@ -279,7 +279,7 @@ vm = function() {
                     const value = [];
                     for (let i = 0; i < items.length; i++) {
                         yield items[i];
-                        value.push(pop()/*.value*/);
+                        value.push(pop());
                     }
                     push({value: value});
                 },
@@ -511,9 +511,9 @@ vm = function() {
                         // primitive method calls; 1 argument only! only array.push(x)!
                         yield args[0];
                         const wrappedArg0 = pop();
-                        const wrappedSelfArg = readVar(self);
+                        const wrappedSelfArg = currentFrame().variables.get(self);
                         wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
-                        getOrEmptySet(dataAccessLog.arrayWrites, self).add(wrappedSelfArg.length - 1); // it was 'push'
+                        writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
                     } else {
                         const aNewFrame = newFrame();
                         for (let i = 0; i < args.length; i++) {
