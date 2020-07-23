@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -305,7 +306,16 @@ public class CodeGenerator {
     }
 
     private Expression generateFrom(JCTree.JCNewArray e) {
-        return ArrayLiteral.builder().params(e.elems.stream().map(this::generateFrom).collect(Collectors.toList()));
+        if (e.elems != null) {
+            return ArrayLiteral.builder().params(e.elems.stream().map(this::generateFrom).collect(Collectors.toList()));
+        } else {
+            JCTree.JCExpression sizeConst = e.dims.get(0);
+            JCTree.JCLiteral sizeLiteral = (JCTree.JCLiteral) sizeConst;
+            Integer size = (Integer) sizeLiteral.value;
+            return ArrayLiteral.builder().params(
+                    IntStream.range(0, size).mapToObj(i -> new Number(0)).collect(Collectors.toList())
+            );
+        }
     }
 
     private Expression generateVarRead(JCTree.JCIdent e) {
