@@ -1,4 +1,9 @@
 vm = function() {
+    const ARR_ITEM_READ = 'arrItem';
+    const ARR_ITEM_WRITE = 'arrItemWrite';
+    const VAR_READ = 'variable';
+    const VAR_WRITE = 'varWrite';
+
     const DEBUG = false;
 
     const stack = [];
@@ -22,7 +27,8 @@ vm = function() {
         const newFrame = {
             contexts: [],
             variables: new Map(),
-            relations: new Map()
+            relations: new Map(),
+            metadata: new Map(),
         };
         frames.push(newFrame);
         return newFrame;
@@ -256,6 +262,7 @@ vm = function() {
 
         varPostOp: function(name, increment) {
             return {
+                type: VAR_READ,
                 name: name,
                 makeView: function() { return span(text(name, 'variable'), opSign(increment ? "++" : "--")); },
                 run: function* () {
@@ -269,6 +276,7 @@ vm = function() {
 
         varWrite: function(name, targetArray) {
             return {
+                type: VAR_WRITE,
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
@@ -285,6 +293,7 @@ vm = function() {
 
         arrItem: function(name, index) {
             return {
+                type: ARR_ITEM_READ,
                 name: name,
                 makeView: function() {
                     return span(text(name, 'variable'), opBracket(), index.makeView(), clBracket());
@@ -300,6 +309,7 @@ vm = function() {
 
         arrItemWrite: function(name, index) {
             return {
+                type: ARR_ITEM_WRITE,
                 name: name,
                 makeView: function() {
                     return span(text(name, 'variable'), opBracket(), index.makeView(), clBracket());
