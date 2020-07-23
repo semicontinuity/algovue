@@ -19,15 +19,37 @@ function displayValue(v) {
     return isChar ? text(v, 'char') : text(v, 'number');
 }
 
-function renderList(name, list, pointerNames, variables, dataAccessLog) {
+function arrayItemIsVariable(list, i, variables, name) {
+    if (list[i].from !== undefined) {
+        for (let v of variables) {
+            const at = v[1].at;
+            if (at !== undefined && at.name === name && at.index == i) {
+                return  v[0];
+            }
+        }
+    }
+    if (list[i].at !== undefined) {
+        for (let v of variables) {
+            const from = v[1].from;
+            if (from !== undefined && from.name === name && from.index == i) {
+                return  v[0];
+            }
+        }
+    }
+}
+
+function renderList(name, list, listPointerNames, variables, dataAccessLog, attachedNamesSink) {
     const t = table('listview');
     for (let i = 0; i < list.length; i++) {
         const entryPointers = new Set();
-        if (pointerNames !== undefined) {
-            for (let p of pointerNames) {
+        if (listPointerNames !== undefined) {
+            for (let p of listPointerNames) {
                 const v = variables.get(p).value;
                 // noinspection EqualityComparisonWithCoercionJS
-                if (v == i) entryPointers.add(p);
+                if (v == i) {
+                    entryPointers.add(p);
+                    attachedNamesSink.add(p);
+                }
             }
         }
 
@@ -46,45 +68,56 @@ function renderList(name, list, pointerNames, variables, dataAccessLog) {
         const vValue = e('td', 'listview-value');
         vValue.appendChild(displayValue(list[i].value));
 
+        const vExtra = e('td');
+        const varName = arrayItemIsVariable(list, i, variables, name);
+        if (varName !== undefined) {
+            const vView = text(varName, 'watch');
+            highlightVar(varName, vView, dataAccessLog);
+            vExtra.appendChild(vView);
+            attachedNamesSink.add(varName);
+        }
+
         highlightArrayPointer(name, i, vValue, dataAccessLog);
-        t.appendChild(tr(vPointers, vIndex, vValue));
+        t.appendChild(tr(vPointers, vIndex, vValue, vExtra));
     }
     return t;
 }
 
-function firstItem(set) {
-    for (let i of set) {
-        return i
+function renderLists(t, lists, variables, relations, dataAccessLog) {
+    const attachedNames = new Set();
+    for (let v of lists) {
+        const name = v.self.name;
+        const value = v.value;
+        t.appendChild(tr(
+            td(text(name, 'watch')),
+            td(renderList(name, value, relations.get(name), variables, dataAccessLog, attachedNames))
+        ));
     }
+    return attachedNames;
 }
 
 function renderVariables(variables, relations, dataAccessLog) {
+    const used = new Set();
+    const lists = [];
+    for (let v of variables) {
+        const value = v[1].value;
+        if (Array.isArray(value) || (typeof(value) === 'string' && value.length > 1)) lists.push(v[1]);
+    }
+
     const t = table('variables');
+    const attachedNames = renderLists(t, lists, variables, relations, dataAccessLog);
+    lists.forEach(l => used.add(l.self.name));
+    attachedNames.forEach(n => used.add(n));
+    console.log(used);
+
     for (let v of variables) {
         const name = v[0];
+        if (used.has(name)) continue;
+
         const value = v[1].value;
-        const pointers = relations.get(name);
-        if (Array.isArray(value) || (typeof(value)==='string' && value.length > 1)) {   // strings as arrays
-            t.appendChild(tr(
-                td(text(name, 'watch')),
-                td(renderList(name, value, pointers, variables, dataAccessLog))
-            ));
-        } else {
-            let renderThisVar;
-            if (pointers === undefined) {
-                renderThisVar = true;
-            } else {
-                const arrayName = firstItem(pointers);
-                const array = variables.get(arrayName);
-                if (value < 0 || value >= array.length) renderThisVar = true;
-            }
-            
-            if (renderThisVar) {
-                const view = displayValue(value);
-                highlightVar(name, view, dataAccessLog);
-                t.appendChild(tr(td(text(name, 'watch')), td(view)));
-            }
-        }
+        const view = displayValue(value);
+        highlightVar(name, view, dataAccessLog);
+        t.appendChild(tr(td(text(name, 'watch')), td(view)));
     }
     return t;
 }

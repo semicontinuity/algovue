@@ -122,6 +122,12 @@ vm = function() {
         dataAccessLog.varWrites.add(name);
         const wv = wrappedValueFrom(value, {name: name});
         console.log("WRITE VAR " + name + " = " + JSON.stringify(value) + " -> " + JSON.stringify(wv));
+
+        if (value.self !== undefined && value.self.index !== undefined) {
+            // value comes from array element
+            (currentFrame().variables.get(value.self.name).value)[value.self.index].at = {name: name, index: value.self.index};
+        }
+
         currentFrame().variables.set(name, wv);
     }
 
@@ -136,6 +142,11 @@ vm = function() {
     function writeArrayElement(name, indexValue, value) {
         getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
         const wv = wrappedValueFrom(value, {name: name, index: indexValue});
+
+        if (value.self !== undefined && value.self.index === undefined) {
+            currentFrame().variables.get(value.self.name).at = {name: name, index: indexValue};
+        }
+
         console.log("WRITE ARR ITEM " + name + " " + indexValue + " = " + JSON.stringify(value) + " -> " + JSON.stringify(wv));
         (currentFrame().variables.get(name).value)[indexValue] = wv;
     }
@@ -507,7 +518,9 @@ vm = function() {
                         const aNewFrame = newFrame();
                         for (let i = 0; i < args.length; i++) {
                             yield args[i];
-                            aNewFrame.variables.set(decl.args[i].name, pop());
+                            const argValue = pop();
+                            const argName = decl.args[i].name;
+                            aNewFrame.variables.set(argName, {value: argValue.value, self: {name: argName}});
                         }
 
                         yield decl.body;

@@ -1,25 +1,19 @@
 body {
     margin: 0;
 }
-.info {
-    background: lightblue; padding: 2pt 4pt 2pt 4pt ; margin-top: 4pt; font-family: Verdana,serif; float: bottom;
+
+#variables {
+    width: 25%;
+    display: table-cell;
+    background: darkgray;
 }
 
-/* ********************************************** */
-#variables {
-    width: 16.6%; display: table-cell; background: darkgray;
-}
-table.variables {
-    width: 100%;
-    height: 100%;
-    font-family: monospace;
-    font-size: 1.44em;
-}
-table.variables tr {
-    background: lightgray;
-}
-table.variables td {
-    padding: 0 4pt;
+#info {
+    background: lightblue;
+    padding: 2pt 4pt 2pt 4pt;
+    margin-top: 4pt;
+    font-family: Verdana, serif;
+    float: bottom;
 }
 
 /* ********************************************** */
@@ -84,33 +78,50 @@ div.active {
 .data-r {
     background: lightgreen;
 }
+
 .data-w {
     background: mistyrose;
 }
+
 .data-r.data-w {
     background: lightgoldenrodyellow;
 }
 
 /*****************************************/
-.listview {
+table {
     font-family: monospace;
+}
+
+table.variables {
+    font-size: 1.44em;
+    width: 100%;
+    height: 100%;
+}
+
+table.variables tr {
+    background: lightgray;
+}
+
+table.variables td {
+    padding: 0 4pt;
+}
+
+table.listview {
+    font-size: 1em;
     border-collapse: collapse;
 }
 
 .listview-pointers {
-    font-size: 1.44em;
     text-align: right;
 }
 
 .listview-index {
-    font-size: 1.44em;
     color: lightslategray;
     padding-left: 1ex;
     padding-right: 1ex;
 }
 
 .listview-value {
-    font-size: 1.44em;
     font-weight: bold;
     border: solid 1px grey;
     padding-left: 1ex;
@@ -127,6 +138,7 @@ div.active {
 
 .watch {
 }
+
 .value {
     font-weight: bold;
 }
