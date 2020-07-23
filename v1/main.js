@@ -73,7 +73,7 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
         const vExtra = e('td', 'listview-extra');
         const varName = arrayItemIsVariable(list, i, variables, name);
         if (varName !== undefined) {
-            const vView = text(varName, 'watch');
+            const vView = text(varName, 'floating-var');
             highlightVar(varName, vView, dataAccessLog);
             vExtra.appendChild(vView);
             attachedNamesSink.add(varName);
