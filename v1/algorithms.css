@@ -75,14 +75,23 @@ div.active {
 }
 
 /*****************************************/
+td.data-r {
+    background: lightgreen;
+}
 .data-r {
     background: lightgreen;
 }
 
+td.data-w {
+    background: mistyrose;
+}
 .data-w {
     background: mistyrose;
 }
 
+td.data-r.data-w {
+    background: lightgoldenrodyellow;
+}
 .data-r.data-w {
     background: lightgoldenrodyellow;
 }
@@ -103,7 +112,6 @@ table.variables tr {
 }
 
 table.variables td {
-    padding: 0 4pt;
 }
 
 table.listview {
@@ -123,13 +131,21 @@ table.listview {
 }
 
 .listview-value {
+    padding: 0 4pt;
     font-weight: bold;
     border: solid 1px grey;
-    padding-left: 1ex;
-    padding-right: 1ex;
 }
-
-.listview-extra {
+.listview-floating-var {
+    background: #e0e0e0;
+}
+.listview-value-matched-var {
+    background: rgba(255, 255, 255, 0.3);
+}
+.listview-index-matched-pointer {
+    border: solid 1px gray;
+}
+.listview-value-matched-pointer {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .pointer {
@@ -140,11 +156,11 @@ table.listview {
     margin: 1px;
 }
 .floating-var {
+    display: block;
+    text-align: center;
     font-weight: bold;
-    border: solid 1px darkseagreen;
     padding-left: 1ex;
     padding-right: 1ex;
-    margin: 1px;
 }
 
 .name {

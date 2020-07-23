@@ -64,15 +64,20 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
         }
         if (entryPointers.size > 0) vPointers.appendChild(text('\u2192'));
 
+        const varName = arrayItemIsVariable(list, i, variables, name);
+
         const vIndex = e('td', 'listview-index');
+        if (entryPointers.size > 0) vIndex.classList.add('listview-index-matched-pointer');
         vIndex.innerText = i;
 
         const vValue = e('td', 'listview-value');
+        if (entryPointers.size > 0) vValue.classList.add('listview-value-matched-pointer');
+        if (varName !== undefined) vValue.classList.add('listview-value-matched-var');
         vValue.appendChild(displayValue(list[i].value));
 
-        const vExtra = e('td', 'listview-extra');
-        const varName = arrayItemIsVariable(list, i, variables, name);
+        const vExtra = e('td');
         if (varName !== undefined) {
+            // vExtra.classList.add('listview-floating-var');
             const vView = text(varName, 'floating-var');
             highlightVar(varName, vView, dataAccessLog);
             vExtra.appendChild(vView);

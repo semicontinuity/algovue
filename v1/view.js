@@ -15,6 +15,13 @@ function table(...clazz) {
     return element;
 }
 
+function trWithClass(clazz, ...args) {
+    const view = document.createElement('tr');
+    view.className = clazz;
+    args.forEach(c => { if (c !== undefined) view.appendChild(c) });
+    return view;
+}
+
 function tr(...args) {
     const view = document.createElement('tr');
     args.forEach(c => { if (c !== undefined) view.appendChild(c) });
