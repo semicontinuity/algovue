@@ -39,7 +39,7 @@ function renderList(name, list, pointerNames, variables, dataAccessLog) {
         vIndex.innerText = i;
 
         const vValue = e('td', 'listview-value');
-        vValue.innerText = list[i];
+        vValue.innerText = list[i].value;
 
         highlightArrayPointer(name, i, vValue, dataAccessLog);
         t.appendChild(tr(vPointers, vIndex, vValue));

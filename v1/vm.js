@@ -119,7 +119,8 @@ vm = function() {
     function readArrayElement(name, indexValue) {
         getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
         const wrapped = currentFrame().variables.get(name);
-        const result = {value: wrapped.value[indexValue]};
+        const result = wrapped.value[indexValue];
+        // const result = {value: wrapped.value[indexValue]};
         console.log("READ ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(result));
         return result;
     }
@@ -127,7 +128,7 @@ vm = function() {
     function writeArrayElement(name, indexValue, value) {
         console.log("WRITE ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(value));
         getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
-        (currentFrame().variables.get(name).value)[indexValue] = value.value;
+        (currentFrame().variables.get(name))[indexValue] = value;
     }
 
     function pop() {
@@ -208,7 +209,11 @@ vm = function() {
             return {
                 makeView: function() { return span(text('"' + value + '"', 'string'));},
                 run: function* () {
-                    push({value: value});
+                    const array = [];
+                    for (let c of value) {
+                        array.push({value: c});
+                    }
+                    push({value: array});
                 },
                 toString: () => value
             };
@@ -254,7 +259,7 @@ vm = function() {
                     const value = [];
                     for (let i = 0; i < items.length; i++) {
                         yield items[i];
-                        value.push(pop().value);
+                        value.push(pop()/*.value*/);
                     }
                     push({value: value});
                 },
@@ -487,7 +492,7 @@ vm = function() {
                         yield args[0];
                         const wrappedArg0 = pop();
                         const wrappedSelfArg = readVar(self);
-                        wrappedSelfArg.value[decl].call(wrappedSelfArg.value, wrappedArg0.value);
+                        wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
                         getOrEmptySet(dataAccessLog.arrayWrites, self).add(wrappedSelfArg.length - 1); // it was 'push'
                     } else {
                         const aNewFrame = newFrame();
