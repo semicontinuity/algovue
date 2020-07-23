@@ -26,9 +26,8 @@ vm = function() {
     function newFrame() {
         const newFrame = {
             contexts: [],
-            variables: new Map(),
+            variables: {},
             relations: new Map(),
-            metadata: new Map(),
         };
         frames.push(newFrame);
         return newFrame;
@@ -42,6 +41,10 @@ vm = function() {
 
     function currentFrame() {
         return frames[frames.length - 1];
+    }
+
+    function replaceVariables(altVariables) {
+        frames[frames.length - 1].variables = altVariables;
     }
 
 
@@ -103,6 +106,32 @@ vm = function() {
         }
     }
 
+    function getV(variables, name) {
+        // return variables.get(name);
+        return variables[name];
+    }
+
+    function setV(variables, name, value) {
+        const existing = variables[name];
+        if (existing === undefined) {
+            return variables[name] = value;
+        }
+
+        if (variables.hasOwnProperty(name)) {
+            return variables[name] = value;
+        } else {
+            setV(variables.__proto__, name, value);
+        }
+    }
+
+    function getVar(name) {
+        return getV(currentFrame().variables, name);
+    }
+
+    function setVar(name, value) {
+        return setV(currentFrame().variables, name, value);
+    }
+
     function wrappedValueFrom(wrappedValue, self) {
         const aWrappedValue = {value: wrappedValue.value, self: self};
         if (wrappedValue.self !== undefined) {
@@ -113,7 +142,7 @@ vm = function() {
 
     function readVar(name) {
         dataAccessLog.varReads.add(name);
-        const value = wrappedValueFrom(currentFrame().variables.get(name), {name: name});
+        const value = wrappedValueFrom(getVar(name), {name: name});
         console.log("READ VAR " + name + " -> " + JSON.stringify(value));
         return value;
     }
@@ -125,15 +154,15 @@ vm = function() {
 
         if (value.self !== undefined && value.self.index !== undefined) {
             // value comes from array element
-            (currentFrame().variables.get(value.self.name).value)[value.self.index].at = {name: name, index: value.self.index};
+            (getVar(value.self.name).value)[value.self.index].at = {name: name, index: value.self.index};
         }
 
-        currentFrame().variables.set(name, wv);
+        setVar(name, wv);
     }
 
     function readArrayElement(name, indexValue) {
         getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
-        const wrapped = currentFrame().variables.get(name);
+        const wrapped = getVar(name);
         const result = wrappedValueFrom(wrapped.value[indexValue], {name: name, index: indexValue});
         console.log("READ ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(result));
         return result;
@@ -144,11 +173,11 @@ vm = function() {
         const wv = wrappedValueFrom(value, {name: name, index: indexValue});
 
         if (value.self !== undefined && value.self.index === undefined) {
-            currentFrame().variables.get(value.self.name).at = {name: name, index: indexValue};
+            getVar(value.self.name).at = {name: name, index: indexValue};
         }
 
         console.log("WRITE ARR ITEM " + name + " " + indexValue + " = " + JSON.stringify(value) + " -> " + JSON.stringify(wv));
-        (currentFrame().variables.get(name).value)[indexValue] = wv;
+        (getVar(name).value)[indexValue] = wv;
     }
 
     function pop() {
@@ -511,7 +540,7 @@ vm = function() {
                         // primitive method calls; 1 argument only! only array.push(x)!
                         yield args[0];
                         const wrappedArg0 = pop();
-                        const wrappedSelfArg = currentFrame().variables.get(self);
+                        const wrappedSelfArg = getVar(self);
                         wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
                         writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
                     } else {
@@ -520,7 +549,7 @@ vm = function() {
                             yield args[i];
                             const argValue = pop();
                             const argName = decl.args[i].name;
-                            aNewFrame.variables.set(argName, {value: argValue.value, self: {name: argName}});
+                            setV(aNewFrame.variables, argName, {value: argValue.value, self: {name: argName}});
                         }
 
                         yield decl.body;
@@ -597,12 +626,25 @@ vm = function() {
                     return view;
                 },
                 run: function*() {
+                    this.variables = currentFrame().variables;
+                    // replaceVariables(this.variables);
+                    const blockVariables = Object.setPrototypeOf({}, this.variables);
+                    console.log("$$$$$$$$$$$$$$$$$");
+                    console.log(blockVariables);
+                    // blockVariables._current = {value: statements.toString()};
+                    // this.variables.set('_current', {value: statements.toString(), self: {name: '_current'}});
+                    replaceVariables(blockVariables);
+
+                    let token;
                     for (let i = 0; i < statements.length; i++) {
-                        const token = yield statements[i];
+                        token = yield statements[i];
                         if (token !== undefined) {
-                            return token;
+                            break
                         }
                     }
+
+                    replaceVariables(this.variables);
+                    return token;
                 },
                 toString: () => 'sequence'
             };

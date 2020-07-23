@@ -21,18 +21,19 @@ function displayValue(v) {
 
 function arrayItemIsVariable(list, i, variables, name) {
     if (list[i].from !== undefined) {
-        for (let v of variables) {
-            const at = v[1].at;
+        // for (let v of variables) {
+        for (let v in variables) {
+            const at = variables[v].at;
             if (at !== undefined && at.name === name && at.index == i) {
-                return  v[0];
+                return v;
             }
         }
     }
     if (list[i].at !== undefined) {
-        for (let v of variables) {
-            const from = v[1].from;
+        for (let v in variables) {
+            const from = variables[v].from;
             if (from !== undefined && from.name === name && from.index == i) {
-                return  v[0];
+                return v;
             }
         }
     }
@@ -44,7 +45,8 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
         const entryPointers = new Set();
         if (listPointerNames !== undefined) {
             for (let p of listPointerNames) {
-                const v = variables.get(p).value;
+                // const v = variables.get(p).value;
+                const v = variables[p].value;
                 // noinspection EqualityComparisonWithCoercionJS
                 if (v == i) {
                     entryPointers.add(p);
@@ -99,22 +101,23 @@ function renderLists(t, lists, variables, relations, dataAccessLog) {
 function renderVariables(variables, relations, dataAccessLog) {
     const used = new Set();
     const lists = [];
-    for (let v of variables) {
-        const value = v[1].value;
-        if (Array.isArray(value) || (typeof(value) === 'string' && value.length > 1)) lists.push(v[1]);
+    // for (let v of variables) {
+    for (let v in variables) {
+        const value = variables[v].value;
+        if (Array.isArray(value) || (typeof(value) === 'string' && value.length > 1)) lists.push(variables[v]);
     }
 
     const t = table('variables');
     const attachedNames = renderLists(t, lists, variables, relations, dataAccessLog);
     lists.forEach(l => used.add(l.self.name));
     attachedNames.forEach(n => used.add(n));
-    console.log(used);
 
-    for (let v of variables) {
-        const name = v[0];
+    // for (let v of variables) {
+    for (let v in variables) {
+        const name = v;
         if (used.has(name)) continue;
 
-        const value = v[1].value;
+        const value = variables[v].value;
         const view = displayValue(value);
         highlightVar(name, view, dataAccessLog);
         t.appendChild(tr(td(text(name, 'watch')), td(view)));
