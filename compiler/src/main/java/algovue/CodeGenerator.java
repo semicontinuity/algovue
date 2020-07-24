@@ -123,16 +123,16 @@ public class CodeGenerator {
             return new LineComment();
         }
         if (name.startsWith("_")) {
-            return new LineComment("// " + firstAnnotationValue(e));
+            return new LineComment("// " + firstAnnotationValue(e.mods));
         }
-        String targetArray = firstAnnotationValue(e);
+        String targetArray = firstAnnotationValue(e.mods);
         return ExpressionStatement.builder()
                 .left(VarWrite.builder().name(name).targetArray(targetArray))
                 .right(generateFrom(e.init));
     }
 
-    private String firstAnnotationValue(JCTree.JCVariableDecl e) {
-        for (JCTree.JCAnnotation annotation : e.mods.annotations) {
+    private String firstAnnotationValue(JCTree.JCModifiers mods) {
+        for (JCTree.JCAnnotation annotation : mods.annotations) {
             for (Pair<Symbol.MethodSymbol, Attribute> value : annotation.attribute.values) {
                 Attribute snd = value.snd;
                 for (Object o : (com.sun.tools.javac.util.List) snd.getValue()) {
@@ -151,6 +151,7 @@ public class CodeGenerator {
 
         declarations.declaration(
                 FunctionDeclaration.builder()
+                        .comment("// " + firstAnnotationValue(e.mods))
                         .name(e.getName().toString())
                         .params(e.getParameters().stream().map(p -> p.name.toString()).collect(Collectors.toList()))
                         .body(generateFrom(e.body))

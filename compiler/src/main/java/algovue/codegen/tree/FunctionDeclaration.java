@@ -7,9 +7,15 @@ import java.util.stream.Collectors;
 public class FunctionDeclaration extends Declaration {
     private List<String> params = new ArrayList<>();
     private Statement body;
+    private String comment;
 
     public static FunctionDeclaration builder() {
         return new FunctionDeclaration();
+    }
+
+    public FunctionDeclaration comment(String comment) {
+        this.comment = comment;
+        return this;
     }
 
     public FunctionDeclaration name(String name) {
@@ -37,7 +43,12 @@ public class FunctionDeclaration extends Declaration {
                 .append('[')
                 .append(params.stream().map(p -> "vm.variable('" + p + "')").collect(Collectors.joining(", ")))
                 .append("],\n");
-        b.append(body.charSequence(indent)).append('\n');
+        b.append(body.charSequence(indent));
+        if (comment != null) {
+            b.append(",\n");
+            indent(b, indent).append("'").append(comment).append("'");
+        }
+        b.append("\n");
         b.append(")");
         return b;
     }
