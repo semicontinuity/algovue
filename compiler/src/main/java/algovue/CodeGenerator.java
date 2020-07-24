@@ -122,7 +122,8 @@ public class CodeGenerator {
 
     private Statement generateFrom(JCTree.JCVariableDecl e) {
         String name = e.name.toString();
-        String targetArray = generatedAnnotationComment(e.mods);
+        List<String> relations = annotationValues(e.mods).getKey();
+        String targetArray = relations.size() > 0 ? relations.get(0) : null;
         return ExpressionStatement.builder()
                 .left(VarWrite.builder().name(name).targetArray(targetArray))
                 .right(generateFrom(e.init));
