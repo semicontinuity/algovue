@@ -636,6 +636,7 @@ vm = function() {
                     for (let i = 0; i < statements.length; i++) {
                         token = yield statements[i];
                         if (token !== undefined) {
+                            console.log("GROUP: TOKEN **********************");
                             break
                         }
                     }

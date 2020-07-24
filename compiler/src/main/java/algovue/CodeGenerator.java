@@ -27,6 +27,7 @@ import algovue.codegen.tree.Expression;
 import algovue.codegen.tree.ExpressionStatement;
 import algovue.codegen.tree.FunctionCall;
 import algovue.codegen.tree.FunctionDeclaration;
+import algovue.codegen.tree.Group;
 import algovue.codegen.tree.IfStatement;
 import algovue.codegen.tree.LineComment;
 import algovue.codegen.tree.Number;
@@ -154,9 +155,24 @@ public class CodeGenerator {
 
     private Statements generateFrom(JCTree.JCBlock e) {
         Statements result = Statements.builder();
+        Group group = null;
         for (JCTree def : e.stats) {
             Statement statement = generateFrom((JCTree.JCStatement) def);
-            result.statement(statement);
+            if (statement == null) {
+                result.statement(group);
+                group = null;
+            } else if (statement instanceof Group) {
+                group = (Group) statement;
+            } else {
+                if (group != null)
+                    group.statement(statement);
+                else
+                    result.statement(statement);
+            }
+        }
+        if (group != null) {
+            // unterminated group
+            result.statement(group);
         }
         return result;
     }
@@ -165,9 +181,12 @@ public class CodeGenerator {
         if (def instanceof JCTree.JCVariableDecl) {
             JCTree.JCVariableDecl e = (JCTree.JCVariableDecl) def;
             String name = e.name.toString();
+            String ann = firstAnnotationValue(e.mods);
+            if (name.startsWith("$")) {
+                return ann != null ? Group.builder().header(ann).inactiveColor("wheat").activeColor("red") : null;
+            }
             if (name.startsWith("_")) {
-                String annotationValue = firstAnnotationValue(e.mods);
-                return new LineComment(annotationValue != null ? "// " + annotationValue: null);
+                return new LineComment(ann != null ? "// " + ann: null);
             }
             return generateFrom(e);
         } else if (def instanceof JCTree.JCReturn) {
