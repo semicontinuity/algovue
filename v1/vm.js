@@ -1,4 +1,6 @@
 vm = function() {
+    const TOKEN_BREAK = 1;
+
     const ARR_ITEM_READ = 'arrItem';
     const ARR_ITEM_WRITE = 'arrItemWrite';
     const VAR_READ = 'variable';
@@ -754,22 +756,65 @@ vm = function() {
                             );
                         },
                         run: function*() {
-                            const token = yield condition;
+                            yield condition;
                         }
                     };
                 },
                 run: function*() {
                     while (true) {
                         yield this.conditionStatement;
-                        const wrappedConditionValue = pop();
-                        if (!wrappedConditionValue.value) break;
+                        if (!pop().value) break;
                         const token = yield bodyStatement;
-                        if (token === 1) {
+                        if (token === TOKEN_BREAK) {
                             break;
                         }
                     }
                 },
                 toString: () => 'while ' + condition
+            };
+        },
+
+        doWhileStatement: function(condition, bodyStatement) {
+            return {
+                makeView: function(indent) {
+                    this.conditionStatement = this.makeConditionStatement();
+                    return div(
+                        div(indentSpan(indent), keyword('do'), space(), opBrace()),
+                        bodyStatement.makeView(indent + 1),
+                        this.conditionStatement.makeView(indent)
+                    );
+                },
+                makeConditionStatement: function() {
+                    return {
+                        makeView: function (indent) {
+                            return this.line = div(
+                                indentSpan(indent),
+                                clBrace(),
+                                space(),
+                                keyword('while'),
+                                space(),
+                                opParen(),
+                                condition.makeView(),
+                                clParen()
+                            );
+                        },
+                        run: function*() {
+                            yield condition;
+                        }
+                    };
+                },
+                run: function*() {
+                    while (true) {
+                        const token = yield bodyStatement;
+                        if (token === TOKEN_BREAK) {
+                            break;
+                        }
+
+                        yield this.conditionStatement;
+                        if (!pop().value) break;
+                    }
+                },
+                toString: () => 'do while ' + condition
             };
         },
 

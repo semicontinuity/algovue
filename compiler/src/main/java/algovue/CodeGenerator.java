@@ -22,6 +22,7 @@ import algovue.codegen.tree.BreakStatement;
 import algovue.codegen.tree.Char;
 import algovue.codegen.tree.ContinueStatement;
 import algovue.codegen.tree.Declarations;
+import algovue.codegen.tree.DoWhileStatement;
 import algovue.codegen.tree.Expression;
 import algovue.codegen.tree.ExpressionStatement;
 import algovue.codegen.tree.FunctionCall;
@@ -179,6 +180,8 @@ public class CodeGenerator {
             return generateFrom((JCTree.JCIf) def);
         } else if (def instanceof JCTree.JCWhileLoop) {
             return generateFrom((JCTree.JCWhileLoop) def);
+        } else if (def instanceof JCTree.JCDoWhileLoop) {
+            return generateFrom((JCTree.JCDoWhileLoop) def);
         } else if (def instanceof JCTree.JCBlock) {
             return generateFrom((JCTree.JCBlock) def);
         } else {
@@ -198,6 +201,12 @@ public class CodeGenerator {
 
     private WhileStatement generateFrom(JCTree.JCWhileLoop e) {
         return WhileStatement.builder()
+                .expression(generateFrom(unparen(e.cond)))
+                .body(generateFrom(e.body));
+    }
+
+    private DoWhileStatement generateFrom(JCTree.JCDoWhileLoop e) {
+        return DoWhileStatement.builder()
                 .expression(generateFrom(unparen(e.cond)))
                 .body(generateFrom(e.body));
     }
