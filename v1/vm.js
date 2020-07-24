@@ -618,6 +618,33 @@ vm = function() {
             };
         },
 
+        group: function(header, inactiveColor, activeColor, statements) {
+            return {
+                makeView: function(indent) {
+                    return this.view = this.populateView(div(), indent);
+                },
+                populateView: function(view, indent) {
+                    view.style='background-color:' + inactiveColor;
+                    for (let i = 0; i < statements.length; i++) {
+                        view.appendChild(statements[i].makeView(indent));
+                    }
+                    return view;
+                },
+                run: function*() {
+                    this.view.style='background-color:' + activeColor;
+                    let token;
+                    for (let i = 0; i < statements.length; i++) {
+                        token = yield statements[i];
+                        if (token !== undefined) {
+                            break
+                        }
+                    }
+                    this.view.style='background-color:' + inactiveColor;
+                    return token;
+                },
+                toString: () => 'group'
+            };
+        },
 
         /* should normally contain at least one statement */
         sequenceStatement: function(statements) {
