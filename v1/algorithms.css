@@ -10,8 +10,8 @@ body {
 
 #info {
     background: lightblue;
-    padding: 2pt 4pt 2pt 4pt;
-    margin-top: 4pt;
+    /*padding: 2pt 4pt 2pt 4pt;*/
+    /*margin-top: 4pt;*/
     font-family: Verdana, serif;
     float: bottom;
 }
@@ -66,7 +66,7 @@ div.active {
 
 .comment {
     font-style: italic;
-    background: aliceblue;
+    background: #f0f0f0;
     color: dimgray;
 }
 
@@ -84,24 +84,27 @@ div.active {
 
 /*****************************************/
 td.data-r {
-    background: lightgreen;
+    background: white;
+    /*background: lightgreen;*/
 }
 .data-r {
-    background: lightgreen;
+    background: white;
 }
 
 td.data-w {
-    background: mistyrose;
+    background: yellow;
+    /*background: mistyrose;*/
 }
 .data-w {
-    background: mistyrose;
+    background: yellow;
 }
 
 td.data-r.data-w {
-    background: lightgoldenrodyellow;
+    background: gold;
+    /*background: lightgoldenrodyellow;*/
 }
 .data-r.data-w {
-    background: lightgoldenrodyellow;
+    background: gold;
 }
 
 /*****************************************/

@@ -2,6 +2,7 @@ package algovue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -127,16 +128,22 @@ public class CodeGenerator {
     }
 
     private String firstAnnotationValue(JCTree.JCModifiers mods) {
+        ArrayList<String> values = annotationValues(mods);
+        return values == null || values.size() == 0 ? null : values.get(0);
+    }
+
+    private ArrayList<String> annotationValues(JCTree.JCModifiers mods) {
+        ArrayList<String> result = new ArrayList<>();
         for (JCTree.JCAnnotation annotation : mods.annotations) {
             for (Pair<Symbol.MethodSymbol, Attribute> value : annotation.attribute.values) {
                 Attribute snd = value.snd;
                 for (Object o : (com.sun.tools.javac.util.List) snd.getValue()) {
                     Attribute.Constant o1 = (Attribute.Constant) o;
-                    return ((String) o1.value);
+                    result.add((String) o1.value);
                 }
             }
         }
-        return null;
+        return result;
     }
 
     private void generateFrom(JCTree.JCMethodDecl e) {
@@ -181,12 +188,13 @@ public class CodeGenerator {
         if (def instanceof JCTree.JCVariableDecl) {
             JCTree.JCVariableDecl e = (JCTree.JCVariableDecl) def;
             String name = e.name.toString();
-            String ann = firstAnnotationValue(e.mods);
+            ArrayList<String> anns = annotationValues(e.mods);
             if (name.startsWith("$")) {
-                return ann != null ? Group.builder().header(ann).inactiveColor("wheat").activeColor("red") : null;
+                if (anns.size() <= 0) { return null; }
+                return Group.builder().header(anns.get(0)).inactiveColor(anns.get(1)).activeColor(anns.get(2));
             }
             if (name.startsWith("_")) {
-                return new LineComment(ann != null ? "// " + ann: null);
+                return new LineComment(anns.size() > 0 ? "// " + anns.get(0): null);
             }
             return generateFrom(e);
         } else if (def instanceof JCTree.JCReturn) {

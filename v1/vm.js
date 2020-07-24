@@ -207,6 +207,16 @@ vm = function() {
         stack.push(value);
     }
 
+    function* execute(statements) {
+        let token;
+        for (let i = 0; i < statements.length; i++) {
+            token = yield statements[i];
+            if (token !== undefined) {
+                return token;   // any token (break, continue, return) terminates sequence of statements
+            }
+        }
+    }
+
     return {
 
         // vm control
@@ -634,13 +644,7 @@ vm = function() {
                 },
                 run: function*() {
                     this.view.style='background-color:' + activeColor;
-                    let token;
-                    for (let i = 0; i < statements.length; i++) {
-                        token = yield statements[i];
-                        if (token !== undefined) {
-                            break
-                        }
-                    }
+                    let token = yield* execute(statements);
                     this.view.style='background-color:' + inactiveColor;
                     return token;
                 },
@@ -663,15 +667,7 @@ vm = function() {
                 run: function*() {
                     this.variables = currentFrame().variables;
                     replaceVariables(Object.setPrototypeOf({}, this.variables));
-
-                    let token;
-                    for (let i = 0; i < statements.length; i++) {
-                        token = yield statements[i];
-                        if (token !== undefined) {
-                            break
-                        }
-                    }
-
+                    let token = yield* execute(statements);
                     replaceVariables(this.variables);
                     return token;
                 },
