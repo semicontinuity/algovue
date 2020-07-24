@@ -1,5 +1,7 @@
 vm = function() {
-    const TOKEN_BREAK = 1;
+    const TOKEN_CONTINUE = 0;
+    const TOKEN_BREAK = -1;
+    const TOKEN_RETURN = -2;
 
     const ARR_ITEM_READ = 'arrItem';
     const ARR_ITEM_WRITE = 'arrItemWrite';
@@ -636,7 +638,6 @@ vm = function() {
                     for (let i = 0; i < statements.length; i++) {
                         token = yield statements[i];
                         if (token !== undefined) {
-                            console.log("GROUP: TOKEN **********************");
                             break
                         }
                     }
@@ -685,7 +686,7 @@ vm = function() {
                     return this.line = div(indentSpan(indent), keyword('break'));
                 },
                 run: function*() {
-                    return 1;
+                    return TOKEN_BREAK;
                 },
                 toString: () => `break`
             };
@@ -697,7 +698,7 @@ vm = function() {
                     return this.line = div(indentSpan(indent), keyword('continue'));
                 },
                 run: function*() {
-                    return -1;
+                    return TOKEN_CONTINUE;
                 },
                 toString: () => `continue`
             };
@@ -708,9 +709,9 @@ vm = function() {
                 makeView: function(indent) {
                     return this.line = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
                 },
-                run: function*() {
+                run: function*(token) {
                     yield expression;
-                    deleteFrame();
+                    return TOKEN_RETURN;
                 },
                 toString: () => `return ${expression}`
             };
@@ -808,9 +809,12 @@ vm = function() {
                         yield this.conditionStatement;
                         if (!pop().value) break;
                         const token = yield bodyStatement;
-                        if (token === TOKEN_BREAK) {
+                        if (token <= TOKEN_BREAK) {
                             break;
                         }
+                    }
+                    if (token === TOKEN_RETURN) {
+                        return TOKEN_RETURN;
                     }
                 },
                 toString: () => 'while ' + condition
@@ -849,12 +853,15 @@ vm = function() {
                 run: function*() {
                     while (true) {
                         const token = yield bodyStatement;
-                        if (token === TOKEN_BREAK) {
+                        if (token <= TOKEN_BREAK) {
                             break;
                         }
 
                         yield this.conditionStatement;
                         if (!pop().value) break;
+                    }
+                    if (token === TOKEN_RETURN) {
+                        return TOKEN_RETURN;
                     }
                 },
                 toString: () => 'do while ' + condition
