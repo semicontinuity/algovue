@@ -158,10 +158,9 @@ public class CodeGenerator {
             return;
         }
 
-        String text = generatedAnnotationComment(e.mods);
         declarations.declaration(
                 FunctionDeclaration.builder()
-                        .comment(commentText(text))
+                        .comment(commentText(annotationValues(e.mods)))
                         .name(e.getName().toString())
                         .params(e.getParameters().stream().map(p -> p.name.toString()).collect(Collectors.toList()))
                         .body(generateFrom(e.body))
@@ -199,15 +198,15 @@ public class CodeGenerator {
             AbstractMap.SimpleEntry<List<String>, String> anns = annotationValues(e.mods);
 
             if (name.startsWith("$")) {
-                if (anns.getKey().size() == 0) { return null; }
+//                if (anns.getKey().size() == 0) { return null; }
                 return Group.builder()
-                        .header(commentText(anns.getValue()))
-                        .inactiveColor(anns.getKey().get(0))
-                        .activeColor(anns.getKey().get(1));
+                        .header(commentText(anns))
+                        .inactiveColor(anns.getValue() != null && anns.getKey().size() > 0 ? anns.getKey().get(0) : null)
+                        .activeColor(anns.getValue() != null && anns.getKey().size() > 1 ? anns.getKey().get(1) : null);
             }
 
             if (name.startsWith("_")) {
-                return new LineComment(commentText(anns.getValue()));
+                return new LineComment(commentText(anns));
             }
             return generateFrom(e);
         } else if (def instanceof JCTree.JCReturn) {
@@ -413,7 +412,17 @@ public class CodeGenerator {
                 .right(generateFrom(e.rhs));
     }
 
-    private static String commentText(String ann) {
-        return ann == null ? null : "// " + ann;
+    private static String commentText(AbstractMap.SimpleEntry<List<String>, String> generatedAnn) {
+        String text = null;
+        if (generatedAnn != null) {
+            if (generatedAnn.getValue() != null) {
+                text = generatedAnn.getValue();
+            } else {
+                if (generatedAnn.getKey().size() > 0) {
+                    text = generatedAnn.getKey().get(0);
+                }
+            }
+        }
+        return text == null ? null : "// " + text;
     }
 }
