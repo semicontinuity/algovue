@@ -3,9 +3,12 @@ function renderIn(container, content) {
     container.appendChild(content);
 }
 
-function e(tag, ...clazz) {
+function e(tag, ...classOrChild) {
     const element = document.createElement(tag);
-    if (clazz.length !== 0) element.classList.add(clazz);
+    classOrChild.forEach(c => {
+        if (c === undefined) return;
+        if (typeof (c) === 'string') element.classList.add(c); else element.appendChild(c);
+    });
     return element;
 }
 
@@ -49,7 +52,7 @@ function span(...args) {
 
 function div(...args) {
     const view = document.createElement('div');
-    args.forEach(c => view.appendChild(c));
+    args.forEach(c => { if (c !== undefined) view.appendChild(c);});
     return view;
 }
 

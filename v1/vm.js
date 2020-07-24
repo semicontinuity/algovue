@@ -64,11 +64,6 @@ vm = function() {
         return view;
     }
 
-    const comment = (innerText, className) => {
-        const view = e('div', className);
-        view.innerText = innerText;
-        return view;
-    };
     const space = () => text(' ');
     const keyword = innerText => text(innerText, 'keyword');
     const opSign = innerText => text(innerText);
@@ -79,6 +74,19 @@ vm = function() {
     const opBrace = () => text('{');
     const clBrace = () => text('}');
     const comma = () => text(',');
+
+    const comment = (innerText, className) => {
+        const view = e('div', className);
+        view.innerText = innerText;
+        return view;
+    };
+    const commentedBlock = (txt, contents) => {
+        if (txt === undefined) return contents;
+        return e('div',
+            comment(txt, 'comment'),
+            contents,
+        );
+    };
 
 
     const highlight = s => {if (s) s.classList.add("active");};
@@ -821,13 +829,13 @@ vm = function() {
         // declarations
         // ---------------------------------------------------------------------
 
-        functionDeclaration: function(name, args, /* assume sequence */body) {
+        functionDeclaration: function(name, args, /* assume sequence */body, commentText) {
             return {
                 name: name,
                 args: args,
                 body: body,
                 makeView: function(indent) {
-                    return div(this.firstLine(), body.makeView(indent + 1), div(clBrace()));
+                    return commentedBlock(commentText, div(this.firstLine(), body.makeView(indent + 1), div(clBrace())));
                 },
                 firstLine: function() {
                     return div(
