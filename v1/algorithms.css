@@ -10,8 +10,7 @@ body {
 
 #info {
     background: lightblue;
-    /*padding: 2pt 4pt 2pt 4pt;*/
-    /*margin-top: 4pt;*/
+    padding: 0 2pt;
     font-family: Verdana, serif;
     float: bottom;
 }
@@ -65,6 +64,10 @@ div.active {
 }
 
 .comment {
+    font-style: italic;
+    color: dimgray;
+}
+.line-comment {
     font-style: italic;
     background: #f0f0f0;
     color: dimgray;

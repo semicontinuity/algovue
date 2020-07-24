@@ -82,17 +82,16 @@ vm = function() {
         view.innerText = innerText;
         return view;
     };
-    const toggleLine = (txt) => {
-        const view = comment(txt, 'comment');
+    const toggleLine = (view) => {
         view.onclick = e => {
             toggleClass(e.target.parentElement, 'collapsed');
         };
         return view;
     };
     const commentedBlock = (txt, contents) => {
-        if (txt === undefined) return contents;
+        if (!txt) return contents;
         return e('div', 'block',
-            toggleLine(txt),
+            toggleLine(comment(txt, 'line-comment')),
             e('div', 'block-body', contents)
         );
     };
@@ -586,7 +585,7 @@ vm = function() {
                 makeView: function(indent) {
                     return div(
                         indentSpan(indent),
-                        comment(txt === undefined ? '\u202f' : txt, txt === undefined ? 'no-comment' : 'comment')
+                        comment(txt === undefined ? '\u202f' : txt, txt === undefined ? 'no-comment' : 'line-comment')
                     );
                 },
                 run: function*() {
@@ -630,22 +629,28 @@ vm = function() {
             };
         },
 
-        group: function(header, inactiveColor, activeColor, statements) {
+        group: function(txt, inactiveColor, activeColor, statements) {
             return {
                 makeView: function(indent) {
-                    return this.view = this.populateView(div(), indent);
+                    return this.view = this.inactivate(
+                        div(
+                            txt && div(indentSpan(indent), e('div', 'comment', text(txt))),
+                            this.populateView(div(), indent)
+                        )
+                    );
                 },
+                inactivate: view => (view.style = 'background-color:' + inactiveColor) && view,
+                activate: view => (view.style = 'background-color:' + activeColor) && view,
                 populateView: function(view, indent) {
-                    view.style='background-color:' + inactiveColor;
                     for (let i = 0; i < statements.length; i++) {
                         view.appendChild(statements[i].makeView(indent));
                     }
                     return view;
                 },
                 run: function*() {
-                    this.view.style='background-color:' + activeColor;
+                    this.activate(this.view);
                     let token = yield* execute(statements);
-                    this.view.style='background-color:' + inactiveColor;
+                    this.inactivate(this.view);
                     return token;
                 },
                 toString: () => 'group'
@@ -873,7 +878,9 @@ vm = function() {
                 args: args,
                 body: body,
                 makeView: function(indent) {
-                    return commentedBlock(commentText, div(this.firstLine(), body.makeView(indent + 1), div(clBrace())));
+                    return commentedBlock(
+                        commentText, div(this.firstLine(), body.makeView(indent + 1), div(clBrace()))
+                    );
                 },
                 firstLine: function() {
                     return div(

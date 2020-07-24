@@ -2,6 +2,7 @@ package algovue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -121,29 +122,34 @@ public class CodeGenerator {
 
     private Statement generateFrom(JCTree.JCVariableDecl e) {
         String name = e.name.toString();
-        String targetArray = firstAnnotationValue(e.mods);
+        String targetArray = generatedAnnotationComment(e.mods);
         return ExpressionStatement.builder()
                 .left(VarWrite.builder().name(name).targetArray(targetArray))
                 .right(generateFrom(e.init));
     }
 
-    private String firstAnnotationValue(JCTree.JCModifiers mods) {
-        ArrayList<String> values = annotationValues(mods);
-        return values == null || values.size() == 0 ? null : values.get(0);
+    private String generatedAnnotationComment(JCTree.JCModifiers mods) {
+        return annotationValues(mods).getValue();
     }
 
-    private ArrayList<String> annotationValues(JCTree.JCModifiers mods) {
+    // assume @Generated
+    private AbstractMap.SimpleEntry<List<String>, String> annotationValues(JCTree.JCModifiers mods) {
+        String s = null;
         ArrayList<String> result = new ArrayList<>();
         for (JCTree.JCAnnotation annotation : mods.annotations) {
             for (Pair<Symbol.MethodSymbol, Attribute> value : annotation.attribute.values) {
                 Attribute snd = value.snd;
-                for (Object o : (com.sun.tools.javac.util.List) snd.getValue()) {
-                    Attribute.Constant o1 = (Attribute.Constant) o;
-                    result.add((String) o1.value);
+                if (snd.type.getTag() == TypeTag.ARRAY) {
+                    for (Object o : (com.sun.tools.javac.util.List) snd.getValue()) {
+                        Attribute.Constant o1 = (Attribute.Constant) o;
+                        result.add((String) o1.value);
+                    }
+                } else {
+                    s = (String) snd.getValue();
                 }
             }
         }
-        return result;
+        return new AbstractMap.SimpleEntry<>(result, s);
     }
 
     private void generateFrom(JCTree.JCMethodDecl e) {
@@ -151,9 +157,10 @@ public class CodeGenerator {
             return;
         }
 
+        String text = generatedAnnotationComment(e.mods);
         declarations.declaration(
                 FunctionDeclaration.builder()
-                        .comment("// " + firstAnnotationValue(e.mods))
+                        .comment(commentText(text))
                         .name(e.getName().toString())
                         .params(e.getParameters().stream().map(p -> p.name.toString()).collect(Collectors.toList()))
                         .body(generateFrom(e.body))
@@ -188,13 +195,18 @@ public class CodeGenerator {
         if (def instanceof JCTree.JCVariableDecl) {
             JCTree.JCVariableDecl e = (JCTree.JCVariableDecl) def;
             String name = e.name.toString();
-            ArrayList<String> anns = annotationValues(e.mods);
+            AbstractMap.SimpleEntry<List<String>, String> anns = annotationValues(e.mods);
+
             if (name.startsWith("$")) {
-                if (anns.size() <= 0) { return null; }
-                return Group.builder().header(anns.get(0)).inactiveColor(anns.get(1)).activeColor(anns.get(2));
+                if (anns.getKey().size() == 0) { return null; }
+                return Group.builder()
+                        .header(commentText(anns.getValue()))
+                        .inactiveColor(anns.getKey().get(0))
+                        .activeColor(anns.getKey().get(1));
             }
+
             if (name.startsWith("_")) {
-                return new LineComment(anns.size() > 0 ? "// " + anns.get(0): null);
+                return new LineComment(commentText(anns.getValue()));
             }
             return generateFrom(e);
         } else if (def instanceof JCTree.JCReturn) {
@@ -398,5 +410,9 @@ public class CodeGenerator {
                 .functor(e.getTag().toString().toLowerCase())
                 .left(generateFrom(e.lhs))
                 .right(generateFrom(e.rhs));
+    }
+
+    private static String commentText(String ann) {
+        return ann == null ? null : "// " + ann;
     }
 }

@@ -1,12 +1,9 @@
 test = function() {
 
-    let computeLPSArray;
-    let kmp;
-    computeLPSArray = vm.functionDeclaration(
+    const computeLPSArray = vm.functionDeclaration(
         'computeLPSArray',
         [vm.variable('pat'), vm.variable('M'), vm.variable('lps')],
         vm.sequenceStatement([
-            vm.lineComment('// Preprocess the pattern (calculate lps[] array)'),
             vm.assignment(vm.varWrite('len'), vm.number(0)),
             vm.assignment(vm.varWrite('i', 'pat'), vm.number(1)),
             vm.assignment(vm.arrItemWrite('lps', vm.number(0)), vm.number(0)),
@@ -36,9 +33,10 @@ test = function() {
                     )
                 ])
             )
-        ])
+        ]),
+        '// Preprocess the pattern (calculate lps[] array)'
     );
-    kmp = vm.functionDeclaration(
+    const kmp = vm.functionDeclaration(
         'kmp',
         [vm.variable('txt'), vm.variable('N'), vm.variable('pat'), vm.variable('M'), vm.variable('lps')],
         vm.sequenceStatement([
@@ -56,34 +54,37 @@ test = function() {
                     vm.ifStatement(
                         vm.expression(vm.eq(), vm.arrItem('pat', vm.variable('j')), vm.arrItem('txt', vm.variable('i'))),
                         vm.sequenceStatement([
-                            vm.lineComment('// Match at position j'),
-                            vm.assignment(vm.varWrite('j'), vm.expression(vm.plus(), vm.variable('j'), vm.number(1))),
-                            vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1))),
-                            vm.ifStatement(
-                                vm.expression(vm.eq(), vm.variable('j'), vm.variable('M')),
-                                vm.sequenceStatement([
-                                    vm.returnStatement(vm.expression(vm.minus(), vm.variable('i'), vm.variable('j')))
+                            vm.group('Match at position j','#F0FFF0', 'D0FFD0',
+                                [                            vm.assignment(undefined, vm.varPostOp('j', true)),
+                                    vm.assignment(undefined, vm.varPostOp('i', true)),
+                                    vm.ifStatement(
+                                        vm.expression(vm.eq(), vm.variable('j'), vm.variable('M')),
+                                        vm.sequenceStatement([
+                                            vm.returnStatement(vm.expression(vm.minus(), vm.variable('i'), vm.variable('j')))
+                                        ])
+                                    )
                                 ])
-                            )
                         ]),
                         vm.sequenceStatement([
-                            vm.lineComment('// Mismatch at position j'),
-                            vm.ifStatement(
-                                vm.expression(vm.le(), vm.variable('j'), vm.number(0)),
-                                vm.sequenceStatement([
-                                    vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1)))
-                                ]),
-                                vm.sequenceStatement([
-                                    vm.assignment(vm.varWrite('j'), vm.arrItem('lps', vm.expression(vm.minus(), vm.variable('j'), vm.number(1))))
+                            vm.group('Mismatch at position j','FFF0F0', 'FFD0D0',
+                                [                            vm.ifStatement(
+                                    vm.expression(vm.le(), vm.variable('j'), vm.number(0)),
+                                    vm.sequenceStatement([
+                                        vm.assignment(undefined, vm.varPostOp('i', true))
+                                    ]),
+                                    vm.sequenceStatement([
+                                        vm.assignment(vm.varWrite('j'), vm.arrItem('lps', vm.expression(vm.minus(), vm.variable('j'), vm.number(1))))
+                                    ])
+                                )
                                 ])
-                            )
                         ])
                     )
                 ])
             ),
             vm.lineComment(),
             vm.returnStatement(vm.number(-1))
-        ])
+        ]),
+        '// Knuth-Morris-Pratt algorithm'
     );
 
     const usage = vm.assignment(vm.varWrite('index'), vm.functionCall(kmp, [vm.string('ABABDABACDABABCABAB'), vm.number(19), vm.string('ABABCABAB'), vm.number(9), vm.arrayLiteral([vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0)])]));
