@@ -221,6 +221,8 @@ public class CodeGenerator {
             return generateFromJCAssign((JCTree.JCAssign) e.expr);
         } else if (e.expr instanceof JCTree.JCMethodInvocation) {
             return generateFromJCMethodInvocation((JCTree.JCMethodInvocation) e.expr);
+        } else if (e.expr instanceof JCTree.JCUnary) {
+            return ExpressionStatement.builder().right(generateFrom((JCTree.JCUnary) e.expr));
         } else {
             throw new IllegalArgumentException(e.expr.getClass().getName());
         }
