@@ -1,3 +1,12 @@
+function toggleClass(element, className) {
+    const classes = element.classList;
+    if (classes.contains(className)) {
+        classes.remove(className);
+    } else {
+        classes.add(className);
+    }
+}
+
 function renderIn(container, content) {
     container.innerText = '';
     container.appendChild(content);

@@ -17,6 +17,14 @@ body {
 }
 
 /* ********************************************** */
+.block.collapsed div.comment {
+    color: white;
+    background-color: darkgray;
+}
+.block.collapsed div.block-body {
+    display: none;
+}
+
 div.code {
     vertical-align: top;
     font-family: monospace;

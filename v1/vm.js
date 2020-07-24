@@ -80,11 +80,18 @@ vm = function() {
         view.innerText = innerText;
         return view;
     };
+    const toggleLine = (txt) => {
+        const view = comment(txt, 'comment');
+        view.onclick = e => {
+            toggleClass(e.target.parentElement, 'collapsed');
+        };
+        return view;
+    };
     const commentedBlock = (txt, contents) => {
         if (txt === undefined) return contents;
-        return e('div',
-            comment(txt, 'comment'),
-            contents,
+        return e('div', 'block',
+            toggleLine(txt),
+            e('div', 'block-body', contents)
         );
     };
 
