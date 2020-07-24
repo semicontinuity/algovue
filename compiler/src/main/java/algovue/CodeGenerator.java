@@ -122,16 +122,14 @@ public class CodeGenerator {
 
     private Statement generateFrom(JCTree.JCVariableDecl e) {
         String name = e.name.toString();
-        List<String> relations = annotationValues(e.mods).getKey();
-        String targetArray = relations.size() > 0 ? relations.get(0) : null;
+        AbstractMap.SimpleEntry<List<String>, String> anns = annotationValues(e.mods);
+        List<String> relations = anns != null ? anns.getKey() : null;
+        String targetArray = relations != null && relations.size() > 0 ? relations.get(0) : null;
         return ExpressionStatement.builder()
                 .left(VarWrite.builder().name(name).targetArray(targetArray))
                 .right(generateFrom(e.init));
     }
 
-    private String generatedAnnotationComment(JCTree.JCModifiers mods) {
-        return annotationValues(mods).getValue();
-    }
 
     // assume @Generated
     private AbstractMap.SimpleEntry<List<String>, String> annotationValues(JCTree.JCModifiers mods) {
@@ -150,7 +148,7 @@ public class CodeGenerator {
                 }
             }
         }
-        return new AbstractMap.SimpleEntry<>(result, s);
+        return s == null && result.isEmpty() ? null : new AbstractMap.SimpleEntry<>(result, s);
     }
 
     private void generateFrom(JCTree.JCMethodDecl e) {
@@ -198,17 +196,18 @@ public class CodeGenerator {
             AbstractMap.SimpleEntry<List<String>, String> anns = annotationValues(e.mods);
 
             if (name.startsWith("$")) {
-//                if (anns.getKey().size() == 0) { return null; }
-                return Group.builder()
+                if (anns == null)   // $-var without annotation: group terminator
+                    return null;
+                else
+                    return Group.builder()
                         .header(commentText(anns))
-                        .inactiveColor(anns.getValue() != null && anns.getKey().size() > 0 ? anns.getKey().get(0) : null)
-                        .activeColor(anns.getValue() != null && anns.getKey().size() > 1 ? anns.getKey().get(1) : null);
-            }
-
-            if (name.startsWith("_")) {
+                        .inactiveColor(anns.getKey().size() > 0 ? anns.getKey().get(0) : null)
+                        .activeColor(anns.getKey().size() > 1 ? anns.getKey().get(1) : null);
+            } else if (name.startsWith("_")) {
                 return new LineComment(commentText(anns));
+            } else {
+                return generateFrom(e);
             }
-            return generateFrom(e);
         } else if (def instanceof JCTree.JCReturn) {
             return generateFrom((JCTree.JCReturn) def);
         } else if (def instanceof JCTree.JCBreak) {
@@ -418,7 +417,7 @@ public class CodeGenerator {
             if (generatedAnn.getValue() != null) {
                 text = generatedAnn.getValue();
             } else {
-                if (generatedAnn.getKey().size() > 0) {
+                if (generatedAnn.getKey().size() == 1) {
                     text = generatedAnn.getKey().get(0);
                 }
             }

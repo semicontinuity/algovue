@@ -36,12 +36,12 @@ test = function() {
                             )
                         ]),
                     vm.lineComment(),
-                    vm.group('// Consume char 3 of pattern','#F0F0FF', 'D0D0FF',
+                    vm.group('// Consume char 3 of pattern','#F0F8FF', 'A0D0FF',
                         [                    vm.assignment(vm.varWrite('c3'), vm.arrItem('a', vm.varPostOp('i', true))),
                             vm.ifStatement(
                                 vm.expression(vm.and(), vm.expression(vm.ne(), vm.variable('c3'), vm.char(')')), vm.expression(vm.ne(), vm.variable('c3'), vm.char('('))),
                                 vm.sequenceStatement([
-                                    vm.group(undefined,'#F0F0FF', 'FFD0D0',
+                                    vm.group(undefined,'#F0F8FF', 'FFD0D0',
                                         [                                vm.assignment(undefined, vm.functionCall('push', [vm.variable('c1')], 'result')),
                                             vm.assignment(undefined, vm.functionCall('push', [vm.variable('c2')], 'result')),
                                             vm.assignment(undefined, vm.functionCall('push', [vm.variable('c3')], 'result')),

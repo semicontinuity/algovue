@@ -34,10 +34,10 @@ public class DeleteSmiles {
             int $2$;
             int _2;
 
-            @Generated(comments = "Consume char 3 of pattern", value = {"#F0F0FF", "D0D0FF"}) int $3;
+            @Generated(comments = "Consume char 3 of pattern", value = {"#F0F8FF", "A0D0FF"}) int $3;
             char c3 = a.charAt(i++);
             if (c3 != ')' && c3 != '(') {
-                @Generated(value = {"#F0F0FF", "FFD0D0"}) int $m;
+                @Generated(value = {"#F0F8FF", "FFD0D0"}) int $m;
                 result.append(c1);
                 result.append(c2);
                 result.append(c3);
