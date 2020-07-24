@@ -119,12 +119,6 @@ public class CodeGenerator {
 
     private Statement generateFrom(JCTree.JCVariableDecl e) {
         String name = e.name.toString();
-        if (name.startsWith("$")) {
-            return new LineComment();
-        }
-        if (name.startsWith("_")) {
-            return new LineComment("// " + firstAnnotationValue(e.mods));
-        }
         String targetArray = firstAnnotationValue(e.mods);
         return ExpressionStatement.builder()
                 .left(VarWrite.builder().name(name).targetArray(targetArray))
@@ -161,20 +155,27 @@ public class CodeGenerator {
     private Statements generateFrom(JCTree.JCBlock e) {
         Statements result = Statements.builder();
         for (JCTree def : e.stats) {
-            result.statement(generateFrom((JCTree.JCStatement) def));
+            Statement statement = generateFrom((JCTree.JCStatement) def);
+            result.statement(statement);
         }
         return result;
     }
 
     private Statement generateFrom(JCTree.JCStatement def) {
-        if (def instanceof JCTree.JCReturn) {
+        if (def instanceof JCTree.JCVariableDecl) {
+            JCTree.JCVariableDecl e = (JCTree.JCVariableDecl) def;
+            String name = e.name.toString();
+            if (name.startsWith("_")) {
+                String annotationValue = firstAnnotationValue(e.mods);
+                return new LineComment(annotationValue != null ? "// " + annotationValue: null);
+            }
+            return generateFrom(e);
+        } else if (def instanceof JCTree.JCReturn) {
             return generateFrom((JCTree.JCReturn) def);
         } else if (def instanceof JCTree.JCBreak) {
             return generateFrom((JCTree.JCBreak) def);
         } else if (def instanceof JCTree.JCContinue) {
             return generateFrom((JCTree.JCContinue) def);
-        } else if (def instanceof JCTree.JCVariableDecl) {
-            return generateFrom((JCTree.JCVariableDecl) def);
         } else if (def instanceof JCTree.JCExpressionStatement) {
             return generateFrom((JCTree.JCExpressionStatement) def);
         } else if (def instanceof JCTree.JCIf) {

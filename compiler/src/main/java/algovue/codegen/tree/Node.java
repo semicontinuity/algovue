@@ -10,4 +10,8 @@ public interface Node {
         }
         return b;
     }
+
+    default String jsString(String s) {
+        return s != null ? "'" + s + "'" : "undefined";
+    }
 }
