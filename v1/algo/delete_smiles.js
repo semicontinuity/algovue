@@ -5,7 +5,7 @@ test = function() {
         [vm.variable('a'), vm.variable('length')],
         vm.sequenceStatement([
             vm.assignment(vm.varWrite('result'), vm.arrayLiteral([])),
-            vm.assignment(vm.varWrite('i', 'a'), vm.number(0)),
+            vm.assignment(vm.varWrite('i', ['a']), vm.number(0)),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('length')),
                 vm.sequenceStatement([
