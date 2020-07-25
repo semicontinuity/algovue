@@ -39,7 +39,33 @@ function arrayItemIsVariable(list, i, variables, name) {
     }
 }
 
-function renderList(name, list, listPointerNames, variables, dataAccessLog, attachedNamesSink) {
+// optimize?
+function pointersHighlighted(name, list, listPointerNames, variables, dataAccessLog, highlightedPointersSink) {
+    for (let i = 0; i < list.length; i++) {
+        const entryPointers = new Set();
+        if (listPointerNames !== undefined) {
+            for (let p of listPointerNames) {
+                // const v = variables.get(p).value;
+                const v = variables[p].value;
+                // noinspection EqualityComparisonWithCoercionJS
+                if (v == i) {
+                    entryPointers.add(p);
+                }
+            }
+        }
+
+        for (let p of entryPointers) {
+            const arrItemRead = dataAccessLog.arrayReads.has(name) && dataAccessLog.arrayReads.get(name).has(i);
+            const arrItemWrit = dataAccessLog.arrayWrites.has(name) && dataAccessLog.arrayWrites.get(name).has(i);
+            const pRead = dataAccessLog.varReads.has(p);
+            if ((arrItemRead && pRead) || (arrItemWrit && pRead)) {
+                highlightedPointersSink.add(p);
+            }
+        }
+    }
+}
+
+function renderList(name, list, listPointerNames, variables, dataAccessLog, attachedNamesSink, highlightedPointers) {
     const t = table('listview');
     for (let i = 0; i < list.length; i++) {
         const entryPointers = new Set();
@@ -58,7 +84,14 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
         const vPointers = e('td', 'listview-pointers');
         for (let p of entryPointers) {
             const vPointer = e('span', 'pointer');
-            highlightVar(p, vPointer, dataAccessLog);
+
+            const arrItemRead = dataAccessLog.arrayReads.has(name) && dataAccessLog.arrayReads.get(name).has(i);
+            const arrItemWrit = dataAccessLog.arrayWrites.has(name) && dataAccessLog.arrayWrites.get(name).has(i);
+            const pRead = dataAccessLog.varReads.has(p);
+            const pWrit = dataAccessLog.varWrites.has(p);
+            if ((arrItemRead && pRead) || (arrItemWrit && pRead) || (!highlightedPointers.has(p) && (pRead || pWrit))) {
+                highlightVar(p, vPointer, dataAccessLog);
+            }
             vPointer.innerText = p;
             vPointers.appendChild(vPointer);
         }
@@ -77,7 +110,6 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
 
         const vExtra = e('td');
         if (varName !== undefined) {
-            // vExtra.classList.add('listview-floating-var');
             const vView = text(varName, 'floating-var');
             highlightVar(varName, vView, dataAccessLog);
             vExtra.appendChild(vView);
@@ -91,13 +123,20 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
 }
 
 function renderLists(t, lists, variables, relations, dataAccessLog) {
+    const highlightedPointers = new Set();
+    for (let v of lists) {
+        const name = v.self.name;
+        const value = v.value;
+        pointersHighlighted(name, value, relations.get(name), variables, dataAccessLog, highlightedPointers)
+    }
+
     const attachedNames = new Set();
     for (let v of lists) {
         const name = v.self.name;
         const value = v.value;
         t.appendChild(tr(
             tdWithClass('name', text(name, 'watch')),
-            td(renderList(name, value, relations.get(name), variables, dataAccessLog, attachedNames))
+            td(renderList(name, value, relations.get(name), variables, dataAccessLog, attachedNames, highlightedPointers))
         ));
     }
     return attachedNames;
