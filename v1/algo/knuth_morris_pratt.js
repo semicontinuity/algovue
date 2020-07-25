@@ -15,8 +15,8 @@ test = function() {
                         vm.expression(vm.eq(), vm.arrItem('pat', vm.variable('i')), vm.arrItem('pat', vm.variable('j'))),
                         vm.sequenceStatement([
                             vm.group('// Match at position i','#F0FFF0', 'D0FFD0',
-                                [                            vm.assignment(undefined, vm.varPostOp('j', true)),
-                                    vm.assignment(vm.arrItemWrite('lps', vm.variable('i')), vm.variable('j')),
+                                [                            vm.assignment(vm.arrItemWrite('lps', vm.variable('i')), vm.expression(vm.plus(), vm.variable('j'), vm.number(1))),
+                                    vm.assignment(undefined, vm.varPostOp('j', true)),
                                     vm.assignment(undefined, vm.varPostOp('i', true))
                                 ])
                         ]),
@@ -64,7 +64,7 @@ test = function() {
                     vm.ifStatement(
                         vm.expression(vm.eq(), vm.arrItem('txt', vm.variable('i')), vm.arrItem('pat', vm.variable('j'))),
                         vm.sequenceStatement([
-                            vm.group('// Match at position j','#F0FFF0', 'D0FFD0',
+                            vm.group('// Match at position i','#F0FFF0', 'D0FFD0',
                                 [                            vm.assignment(undefined, vm.varPostOp('j', true)),
                                     vm.assignment(undefined, vm.varPostOp('i', true)),
                                     vm.ifStatement(
@@ -76,7 +76,7 @@ test = function() {
                                 ])
                         ]),
                         vm.sequenceStatement([
-                            vm.group('// Mismatch at position j','FFFAFA', 'FFF0F0',
+                            vm.group('// Mismatch at position i','FFFAFA', 'FFF0F0',
                                 [                            vm.ifStatement(
                                     vm.expression(vm.eq(), vm.variable('j'), vm.number(0)),
                                     vm.sequenceStatement([

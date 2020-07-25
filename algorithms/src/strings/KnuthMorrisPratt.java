@@ -18,8 +18,8 @@ public class KnuthMorrisPratt {
         while (i < M) {
             if (pat.charAt(i) == pat.charAt(j)) {
                 @Generated(comments = "Match at position i", value = {"#F0FFF0", "D0FFD0"}) int $a;
+                lps[i] = j + 1;
                 j++;
-                lps[i] = j;
                 i++;
             } else {
                 @Generated(comments = "Mismatch at position i", value = {"FFFAFA", "FFF0F0"}) int $b;
@@ -52,14 +52,14 @@ public class KnuthMorrisPratt {
         int _1;
         while (i < N) {
             if (txt.charAt(i) == pat.charAt(j)) {
-                @Generated(comments = "Match at position j", value = {"#F0FFF0", "D0FFD0"}) int $a;
+                @Generated(comments = "Match at position i", value = {"#F0FFF0", "D0FFD0"}) int $a;
                 j++;
                 i++;
                 if (j == M) {
                     return i - j;
                 }
             } else {
-                @Generated(comments = "Mismatch at position j", value = {"FFFAFA", "FFF0F0"}) int $b;
+                @Generated(comments = "Mismatch at position i", value = {"FFFAFA", "FFF0F0"}) int $b;
                 if (j == 0) {
                     @Generated(value = {"#F4F0FF", "E0D0FF"}) int $b0;
                     i++;  // Mismatch right at the first character: restart matching from the next one
