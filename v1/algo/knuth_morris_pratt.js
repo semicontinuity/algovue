@@ -5,7 +5,7 @@ test = function() {
         [vm.variable('pat'), vm.variable('M'), vm.variable('lps')],
         vm.sequenceStatement([
             vm.assignment(vm.arrItemWrite('lps', vm.number(0)), vm.number(0)),
-            vm.assignment(vm.varWrite('j', ['pat']), vm.number(0)),
+            vm.assignment(vm.varWrite('j', ['pat', 'lps']), vm.number(0)),
             vm.assignment(vm.varWrite('i', ['pat', 'lps']), vm.number(1)),
             vm.lineComment(),
             vm.whileStatement(
@@ -42,7 +42,7 @@ test = function() {
                     )
                 ])
             ),
-            vm.lineComment('// Note, this is exacly like KMP, only it fills lps as it runs')
+            vm.lineComment('// Note, this is exacly like KMP, only it compares pattern with itself and fills lps as it runs')
         ]),
         '// Preprocess the pattern (calculate lps[] array)'
     );
@@ -55,7 +55,7 @@ test = function() {
                 vm.returnStatement(vm.number(-1))
             ),
             vm.assignment(undefined, vm.functionCall(computeLPSArray, [vm.variable('pat'), vm.variable('M'), vm.variable('lps')])),
-            vm.assignment(vm.varWrite('j', ['pat']), vm.number(0)),
+            vm.assignment(vm.varWrite('j', ['pat', 'lps']), vm.number(0)),
             vm.assignment(vm.varWrite('i', ['txt']), vm.number(0)),
             vm.lineComment(),
             vm.whileStatement(

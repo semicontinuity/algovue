@@ -9,7 +9,7 @@ public class KnuthMorrisPratt {
         lps[0] = 0; // lps[0] is always 0
 
         // length of the previous longest prefix suffix
-        @Generated(value = {"pat"})
+        @Generated(value = {"pat", "lps"})
         int j = 0;
         @Generated(value = {"pat", "lps"}) int i = 1;
         int _0;
@@ -46,7 +46,7 @@ public class KnuthMorrisPratt {
     private int kmp(String txt, int N, String pat, int M, int[] lps) {
         if (M <= 0) return -1;
         computeLPSArray(pat, M, lps);
-        @Generated("pat") int j = 0;
+        @Generated({"pat", "lps"}) int j = 0;
         @Generated("txt") int i = 0;
 
         int _1;
