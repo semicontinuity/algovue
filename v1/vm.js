@@ -88,10 +88,10 @@ vm = function() {
         };
         return view;
     };
-    const commentedBlock = (txt, contents) => {
+    const collapsibleBlock = (txt, contents) => {
         if (!txt) return contents;
         return e('div', 'block',
-            toggleLine(comment(txt, 'line-comment')),
+            toggleLine(comment(txt, 'block-header')),
             e('div', 'block-body', contents)
         );
     };
@@ -876,7 +876,7 @@ vm = function() {
                 args: args,
                 body: body,
                 makeView: function(indent) {
-                    return commentedBlock(
+                    return collapsibleBlock(
                         commentText, div(this.firstLine(), body.makeView(indent + 1), div(clBrace()))
                     );
                 },

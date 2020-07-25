@@ -15,14 +15,20 @@ body {
     float: bottom;
 }
 
-/* ********************************************** */
-.block.collapsed div.comment {
+/*********************************************** */
+div.block-header {
+    font-style: italic;
+    color: dimgray;
+    background-color: #f0f0f0;
+}
+.block.collapsed div.block-header {
     color: white;
     background-color: darkgray;
 }
 .block.collapsed div.block-body {
     display: none;
 }
+
 
 div.code {
     vertical-align: top;
