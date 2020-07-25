@@ -19,9 +19,8 @@ function displayValue(v) {
     return isChar ? text(v, 'char') : text(v, 'number');
 }
 
-function arrayItemIsVariable(list, i, variables, name) {
+function arrayItemIsSetFromVariable(list, i, variables, name) {
     if (list[i].from !== undefined) {
-        // for (let v of variables) {
         for (let v in variables) {
             const at = variables[v].at;
             if (at !== undefined && at.name === name && at.index == i) {
@@ -29,6 +28,9 @@ function arrayItemIsVariable(list, i, variables, name) {
             }
         }
     }
+}
+
+function arrayItemIsSetToVariable(list, i, variables, name) {
     if (list[i].at !== undefined) {
         for (let v in variables) {
             const from = variables[v].from;
@@ -97,7 +99,9 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
         }
         if (entryPointers.size > 0) vPointers.appendChild(text('\u2192'));
 
-        const varName = arrayItemIsVariable(list, i, variables, name);
+        const varToArrayItem = arrayItemIsSetFromVariable(list, i, variables, name);
+        const varFromArrayItem = arrayItemIsSetToVariable(list, i, variables, name);
+        const varName = varToArrayItem || varFromArrayItem;
 
         const vIndex = e('td', 'listview-index');
         if (entryPointers.size > 0) vIndex.classList.add('listview-index-matched-pointer');
@@ -108,16 +112,22 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
         if (varName !== undefined) vValue.classList.add('listview-value-matched-var');
         vValue.appendChild(displayValue(list[i].value));
 
+        const vSpacer = e('td');
+        if (varToArrayItem) vSpacer.appendChild(text('\u202F\u21d0'));
+        if (varFromArrayItem) vSpacer.appendChild(text('\u202F\u21d2'));
+
         const vExtra = e('td');
         if (varName !== undefined) {
             const vView = text(varName, 'floating-var');
-            highlightVar(varName, vView, dataAccessLog);
+            if (!highlightedPointers.has(varName)) {
+                highlightVar(varName, vView, dataAccessLog);
+            }
             vExtra.appendChild(vView);
             attachedNamesSink.add(varName);
         }
 
         highlightArrayPointer(name, i, vValue, dataAccessLog);
-        t.appendChild(tr(vPointers, vIndex, vValue, vExtra));
+        t.appendChild(tr(vPointers, vIndex, vValue, vSpacer, vExtra));
     }
     return t;
 }

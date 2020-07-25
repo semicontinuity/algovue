@@ -172,7 +172,7 @@ table.listview {
     margin: 1px;
 }
 .floating-var {
-    display: block;
+    /*display: block;*/
     text-align: center;
     font-weight: bold;
     padding-left: 1ex;
