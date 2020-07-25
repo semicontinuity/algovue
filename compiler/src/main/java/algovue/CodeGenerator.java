@@ -124,9 +124,8 @@ public class CodeGenerator {
         String name = e.name.toString();
         AbstractMap.SimpleEntry<List<String>, String> anns = annotationValues(e.mods);
         List<String> relations = anns != null ? anns.getKey() : null;
-        String targetArray = relations != null && relations.size() > 0 ? relations.get(0) : null;
         return ExpressionStatement.builder()
-                .left(VarWrite.builder().name(name).targetArray(targetArray))
+                .left(VarWrite.builder().name(name).targetArrays(relations))
                 .right(generateFrom(e.init));
     }
 

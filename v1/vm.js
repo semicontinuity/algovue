@@ -342,16 +342,12 @@ vm = function() {
             };
         },
 
-        variable: function(name, targetArray) {
+        variable: function(name) {
             return {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     push(readVar(name));
-                    if (targetArray !== undefined) {
-                        addRelation(targetArray, name);
-                        addRelation(name, targetArray);
-                    }
                 },
                 toString: () => name
             };
@@ -371,7 +367,7 @@ vm = function() {
             };
         },
 
-        varWrite: function(name, targetArray) {
+        varWrite: function(name, targetArrays) {
             return {
                 type: VAR_WRITE,
                 name: name,
@@ -379,9 +375,11 @@ vm = function() {
                 run: function* () {
                     const v = pop();
                     writeVar(name, v);
-                    if (targetArray !== undefined) {
-                        addRelation(targetArray, name);
-                        addRelation(name, targetArray);
+                    if (targetArrays !== undefined) {
+                        for (let a of targetArrays) {
+                            addRelation(a, name);
+                            addRelation(name, a);
+                        }
                     }
                 },
                 toString: () => name

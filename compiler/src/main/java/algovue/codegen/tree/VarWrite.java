@@ -1,9 +1,12 @@
 package algovue.codegen.tree;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class VarWrite extends Expression {
 
     String name;
-    String targetArray;
+    List<String> targetArrays;
 
     public static VarWrite builder() {
         return new VarWrite();
@@ -14,8 +17,8 @@ public class VarWrite extends Expression {
         return this;
     }
 
-    public VarWrite targetArray(String a) {
-        this.targetArray = a;
+    public VarWrite targetArrays(List<String> a) {
+        this.targetArrays = a;
         return this;
     }
 
@@ -23,8 +26,8 @@ public class VarWrite extends Expression {
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
         b.append("vm.varWrite('").append(name).append("'");
-        if (targetArray != null) {
-            b.append(", '").append(targetArray).append("'");
+        if (targetArrays != null) {
+            b.append(", [").append(targetArrays.stream().map(this::jsString).collect(Collectors.joining(", "))).append("]");
         }
         b.append(")");
         return b;
