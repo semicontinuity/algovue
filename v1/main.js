@@ -155,7 +155,6 @@ function renderLists(t, lists, variables, relations, dataAccessLog) {
 function renderVariables(variables, relations, dataAccessLog) {
     const used = new Set();
     const lists = [];
-    // for (let v of variables) {
     for (let v in variables) {
         const value = variables[v].value;
         if (Array.isArray(value) || (typeof(value) === 'string' && value.length > 1)) lists.push(variables[v]);
@@ -166,7 +165,6 @@ function renderVariables(variables, relations, dataAccessLog) {
     lists.forEach(l => used.add(l.self.name));
     attachedNames.forEach(n => used.add(n));
 
-    // for (let v of variables) {
     for (let v in variables) {
         const name = v;
         if (used.has(name)) continue;

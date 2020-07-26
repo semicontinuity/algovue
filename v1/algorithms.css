@@ -16,7 +16,24 @@ body {
 }
 
 /*********************************************** */
-div.block-header {
+.active {
+    background-color: #c0c0e0;
+}
+.code-block {
+    /*display: table;*/
+    width: 100%;
+}
+.block {
+    /*display: table-row-group;*/
+}
+.line {
+    /*display: table-row;*/
+}
+.td1, .td2 {
+    /*display: table-cell;*/
+}
+
+.block-header {
     font-style: italic;
     color: dimgray;
     background-color: #f0f0f0;
@@ -29,15 +46,12 @@ div.block-header {
     display: none;
 }
 
+/*********************************************** */
 
 div.code {
     vertical-align: top;
     font-family: monospace;
     font-size: 1.44em;
-}
-
-div.active {
-    background-color: #c0c0e0;
 }
 
 .bordered {
@@ -73,7 +87,7 @@ div.active {
     font-style: italic;
     color: dimgray;
 }
-.line-comment {
+.standalone-comment {
     font-style: italic;
     color: dimgray;
 }

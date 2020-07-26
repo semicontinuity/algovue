@@ -77,11 +77,9 @@ vm = function() {
     const clBrace = () => text('}');
     const comma = () => text(',');
 
-    const comment = (innerText, className) => {
-        const view = e('div', className);
-        view.innerText = innerText;
-        return view;
-    };
+    const codeLine = (...args) => divWithClass('line', spanWithClass('td1', ...args), spanWithClass('td2'));
+    const standaloneComment = (txt) => e('div', 'standalone-comment', text(txt));
+    const lineBreak = () => div(text('\u202f'));
     const toggleLine = (view) => {
         view.onclick = e => {
             toggleClass(e.target.parentElement, 'collapsed');
@@ -91,7 +89,7 @@ vm = function() {
     const collapsibleBlock = (txt, contents) => {
         if (!txt) return contents;
         return e('div', 'block',
-            toggleLine(comment(txt, 'block-header')),
+            toggleLine(textBlock(txt, 'block-header')),
             e('div', 'block-body', contents)
         );
     };
@@ -583,7 +581,7 @@ vm = function() {
                 makeView: function(indent) {
                     return div(
                         indentSpan(indent),
-                        comment(txt === undefined ? '\u202f' : txt, txt === undefined ? 'no-comment' : 'line-comment')
+                        txt !== undefined ? standaloneComment(txt) : lineBreak()
                     );
                 },
                 run: function*() {
@@ -601,19 +599,12 @@ vm = function() {
         assignment: function(lvalue, rvalue) {
             return {
                 makeView: function(indent) {
-                    return this.line = (lvalue === undefined
-                            ? div(
-                                indentSpan(indent),
-                                rvalue.makeView()
-                            ) : div(
-                                indentSpan(indent),
-                                lvalue.makeView(),
-                                space(),
-                                opSign('='),
-                                space(),
-                                rvalue.makeView()
-                            )
-                    );
+                    return this.line = codeLine(indentSpan(indent), ...this.newView());
+                },
+                newView() {
+                    return lvalue === undefined
+                        ? [rvalue.makeView()]
+                        : [lvalue.makeView(), space(), opSign('='), space(), rvalue.makeView()];
                 },
                 run: function*() {
                     yield rvalue;
@@ -919,9 +910,7 @@ vm = function() {
         codeBlocks: function(declarations) {
             return {
                 makeView: function () {
-                    return this.populateView(div());
-                },
-                populateView: function (view) {
+                    const view = e('div', 'code-block');
                     for (let i = 0; i < declarations.length; i++) {
                         view.appendChild(declarations[i].makeView(0));
                         if (i < declarations.length - 1) view.appendChild(div(text('\u202F')));

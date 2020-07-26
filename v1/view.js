@@ -53,20 +53,41 @@ function td(...args) {
     return view;
 }
 
-function span(...args) {
-    const view = document.createElement('span');
-    args.forEach(c => view.appendChild(c));
-    return view;
-}
-
 function div(...args) {
     const view = document.createElement('div');
     args.forEach(c => { if (c !== undefined) view.appendChild(c);});
     return view;
 }
 
+function divWithClass(clazz, ...args) {
+    const view = document.createElement('div');
+    view.className = clazz;
+    args.forEach(c => { if (c !== undefined) view.appendChild(c);});
+    return view;
+}
+
+function span(...args) {
+    const view = document.createElement('span');
+    args.forEach(c => view.appendChild(c));
+    return view;
+}
+
+function spanWithClass(clazz, ...args) {
+    const view = document.createElement('span');
+    view.className = clazz;
+    args.forEach(c => { if (c !== undefined) view.appendChild(c);});
+    return view;
+}
+
 function text(innerText, className) {
     const view = document.createElement('span');
+    if (innerText !== undefined) view.innerText = innerText;
+    if (className) view.className = className;
+    return view;
+}
+
+function textBlock(innerText, className) {
+    const view = document.createElement('div');
     if (innerText !== undefined) view.innerText = innerText;
     if (className) view.className = className;
     return view;
