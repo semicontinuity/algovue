@@ -77,10 +77,11 @@ vm = function() {
     const clBrace = () => text('}');
     const comma = () => text(',');
 
-    const codeLine = (...args) => divWithClass('line', spanWithClass('td1', ...args), spanWithClass('td2'));
-    const standaloneComment = (txt) => e('div', 'standalone-comment', text(txt));
+    const codeBlock = (...args) => e('div', 'code-block', ...args);
+    const codeLine = (...args) => divWithClass('line', spanWithClass('td1', ...args), spanWithClass('td2', text('\u202f')));
+    const standaloneComment = (txt) => e('span', 'standalone-comment', text(txt));
     const lineBreak = () => div(text('\u202f'));
-    const toggleLine = (view) => {
+    const toggleCollapsedOnClick = (view) => {
         view.onclick = e => {
             toggleClass(e.target.parentElement, 'collapsed');
         };
@@ -89,7 +90,7 @@ vm = function() {
     const collapsibleBlock = (txt, contents) => {
         if (!txt) return contents;
         return e('div', 'block',
-            toggleLine(textBlock(txt, 'block-header')),
+            toggleCollapsedOnClick(textBlock(txt, 'block-header')),
             e('div', 'block-body', contents)
         );
     };
@@ -579,10 +580,7 @@ vm = function() {
         lineComment: function(txt) {
             return {
                 makeView: function(indent) {
-                    return div(
-                        indentSpan(indent),
-                        txt !== undefined ? standaloneComment(txt) : lineBreak()
-                    );
+                    return txt !== undefined ? codeLine(indentSpan(indent), standaloneComment(txt)) : lineBreak();
                 },
                 run: function*() {
                 },
@@ -622,9 +620,9 @@ vm = function() {
             return {
                 makeView: function(indent) {
                     return this.view = this.inactivate(
-                        div(
+                        codeBlock(
                             txt && div(indentSpan(indent), e('div', 'comment', text(txt))),
-                            this.populateView(div(), indent)
+                            this.populateView(codeBlock(), indent)
                         )
                     );
                 },
@@ -650,7 +648,7 @@ vm = function() {
         sequenceStatement: function(statements) {
             return {
                 makeView: function(indent) {
-                    return this.populateView(div(), indent);
+                    return this.populateView(codeBlock(), indent);
                 },
                 populateView: function(view, indent) {
                     for (let i = 0; i < statements.length; i++) {
@@ -673,7 +671,7 @@ vm = function() {
         breakStatement: function() {
             return {
                 makeView: function(indent) {
-                    return this.line = div(indentSpan(indent), keyword('break'));
+                    return this.line = codeLine(indentSpan(indent), keyword('break'));
                 },
                 run: function*() {
                     return TOKEN_BREAK;
@@ -685,7 +683,7 @@ vm = function() {
         continueStatement: function() {
             return {
                 makeView: function(indent) {
-                    return this.line = div(indentSpan(indent), keyword('continue'));
+                    return this.line = codeLine(indentSpan(indent), keyword('continue'));
                 },
                 run: function*() {
                     return TOKEN_CONTINUE;
@@ -697,7 +695,7 @@ vm = function() {
         returnStatement: function(expression) {
             return {
                 makeView: function(indent) {
-                    return this.line = div(indentSpan(indent), keyword('return'), space(), expression.makeView());
+                    return this.line = codeLine(indentSpan(indent), keyword('return'), space(), expression.makeView());
                 },
                 run: function*(token) {
                     yield expression;
@@ -716,22 +714,21 @@ vm = function() {
                     );
                 },
                 composeView: function(ifLine, ifStatements, elseStatements, indent) {
-                    const view = div();
+                    const view = codeBlock();
                     view.appendChild(ifLine);
                     view.appendChild(ifStatements.makeView(indent + 1));
                     view.appendChild(div(indentSpan(indent), clBrace()));
                     if (elseStatements) {
-                        const elseLine = div(indentSpan(indent), keyword('else'), space(), opBrace());
-                        view.appendChild(elseLine);
+                        view.appendChild(codeLine(indentSpan(indent), keyword('else'), space(), opBrace()));
                         view.appendChild(elseStatements.makeView(indent + 1));
-                        view.appendChild(div(indentSpan(indent), clBrace()));
+                        view.appendChild(codeLine(indentSpan(indent), clBrace()));
                     }
                     return view;
                 },
                 makeConditionStatement: function() {
                     return {
                         makeView: function (indent) {
-                            return this.line = div(
+                            return this.line = codeLine(
                                 indentSpan(indent),
                                 keyword('if'),
                                 space(),
@@ -769,16 +766,16 @@ vm = function() {
             return {
                 makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
-                    return div(
+                    return codeBlock(
                         this.conditionStatement.makeView(indent),
                         bodyStatement.makeView(indent + 1),
-                        div(indentSpan(indent), clBrace())
+                        codeLine(indentSpan(indent), clBrace())
                     );
                 },
                 makeConditionStatement: function() {
                     return {
                         makeView: function (indent) {
-                            return this.line = div(
+                            return this.line = codeLine(
                                 indentSpan(indent),
                                 keyword('while'),
                                 space(),
@@ -815,8 +812,8 @@ vm = function() {
             return {
                 makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
-                    return div(
-                        div(indentSpan(indent), keyword('do'), space(), opBrace()),
+                    return codeBlock(
+                        codeLine(indentSpan(indent), keyword('do'), space(), opBrace()),
                         bodyStatement.makeView(indent + 1),
                         this.conditionStatement.makeView(indent)
                     );
@@ -824,7 +821,7 @@ vm = function() {
                 makeConditionStatement: function() {
                     return {
                         makeView: function (indent) {
-                            return this.line = div(
+                            return this.line = codeLine(
                                 indentSpan(indent),
                                 clBrace(),
                                 space(),
@@ -868,7 +865,7 @@ vm = function() {
                 body: body,
                 makeView: function(indent) {
                     return collapsibleBlock(
-                        commentText, div(this.firstLine(), body.makeView(indent + 1), div(clBrace()))
+                        commentText, codeBlock(this.firstLine(), body.makeView(indent + 1), div(clBrace()))
                     );
                 },
                 firstLine: function() {
@@ -910,10 +907,10 @@ vm = function() {
         codeBlocks: function(declarations) {
             return {
                 makeView: function () {
-                    const view = e('div', 'code-block');
+                    const view = codeBlock();
                     for (let i = 0; i < declarations.length; i++) {
                         view.appendChild(declarations[i].makeView(0));
-                        if (i < declarations.length - 1) view.appendChild(div(text('\u202F')));
+                        if (i < declarations.length - 1) view.appendChild(lineBreak());
                     }
                     return view;
                 }
