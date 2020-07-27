@@ -2,17 +2,25 @@ body {
     margin: 0;
 }
 
+#info {
+    background: lightblue;
+    padding: 0 2pt;
+    font-family: Verdana, serif;
+    float: bottom;
+}
+
 #variables {
     width: 25%;
     display: table-cell;
     background: darkgray;
 }
 
-#info {
-    background: lightblue;
-    padding: 0 2pt;
-    font-family: Verdana, serif;
-    float: bottom;
+#algorithmView {
+    display: table-cell;
+    padding: 0 8pt;
+    vertical-align: top;
+    font-family: monospace;
+    font-size: 1.44em;
 }
 
 /*********************************************** */
@@ -47,16 +55,6 @@ body {
 }
 
 /*********************************************** */
-
-div.code {
-    vertical-align: top;
-    font-family: monospace;
-    font-size: 1.44em;
-}
-
-.bordered {
-    border: solid 1px gray;
-}
 
 .keyword {
     font-weight: bold;
