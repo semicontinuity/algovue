@@ -1,20 +1,17 @@
 package algovue.codegen.tree;
 
-public class LineComment extends Statement {
+public class EolComment extends Statement {
 
     final String txt;
 
-    public LineComment(String txt) {
+    public EolComment(String txt) {
         this.txt = txt;
-    }
-    public LineComment() {
-        this(null);
     }
 
     @Override
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
-        b.append("vm.lineComment(");
+        indent(b, indent).append("vm.eolComment(");
         if (txt != null) {
             b.append("'").append(txt).append("'");
         }

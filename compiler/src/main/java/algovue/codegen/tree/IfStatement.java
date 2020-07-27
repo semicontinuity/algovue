@@ -32,10 +32,9 @@ public class IfStatement extends Statement {
         b.append(expression.charSequence(indent + 1));
         b.append(",\n");
         b.append(ifStatement.charSequence(indent + 1));
-        if (elseStatement != null) {
-            b.append(",\n");
-            b.append(elseStatement.charSequence(indent + 1));
-        }
+        b.append(",\n");
+        b.append(elseStatement == null ? "undefined" : elseStatement.charSequence(indent + 1));
+        if (eolComment != null) b.append(", ").append(jsString(eolComment));
         b.append('\n');
         indent(b, indent).append(")");
         return b;

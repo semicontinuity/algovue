@@ -580,7 +580,7 @@ vm = function() {
         // statements
         // ---------------------------------------------------------------------
 
-        lineComment: function(txt) {
+        standAloneComment: function(txt) {
             return {
                 makeView: function(indent) {
                     return txt !== undefined ? codeLine(code(indentSpan(indent), standaloneComment(txt))) : lineBreak();
@@ -597,10 +597,13 @@ vm = function() {
          * @param lvalue    the lvalue of assignment
          * @param rvalue    the rvalue of assignment
          */
-        assignment: function(lvalue, rvalue) {
+        assignment: function(lvalue, rvalue, commentTxt) {
             return {
                 makeView: function(indent) {
-                    return this.line = codeLine(code(indentSpan(indent), ...this.newView()));
+                    return this.line = codeLine(
+                        code(indentSpan(indent), ...this.newView()),
+                        commentTxt && eolComment(commentTxt)
+                    );
                 },
                 newView() {
                     return lvalue === undefined
@@ -717,7 +720,7 @@ vm = function() {
             };
         },
 
-        ifStatement: function(condition, ifStatements, elseStatements) {
+        ifStatement: function(condition, ifStatements, elseStatements, commentTxt) {
             return {
                 makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
@@ -750,7 +753,8 @@ vm = function() {
                                     clParen(),
                                     space(),
                                     opBrace()
-                                )
+                                ),
+                                commentTxt && eolComment(commentTxt)
                             );
                         },
                         run: function*() {

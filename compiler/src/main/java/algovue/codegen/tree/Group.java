@@ -40,7 +40,7 @@ public class Group extends Statement {
                 .append(jsString(inactiveColor)).append(", ")
                 .append(jsString(activeColor)).append(",\n");
 
-        indent(b, indent).append("[");
+        indent(b, indent).append("[").append('\n');
         for (int i = 0; i < statements.size(); i++) {
             Statement statement = statements.get(i);
             b.append(statement.charSequence(indent + 1));

@@ -25,13 +25,14 @@ import algovue.codegen.tree.Char;
 import algovue.codegen.tree.ContinueStatement;
 import algovue.codegen.tree.Declarations;
 import algovue.codegen.tree.DoWhileStatement;
+import algovue.codegen.tree.EolComment;
 import algovue.codegen.tree.Expression;
 import algovue.codegen.tree.ExpressionStatement;
 import algovue.codegen.tree.FunctionCall;
 import algovue.codegen.tree.FunctionDeclaration;
 import algovue.codegen.tree.Group;
 import algovue.codegen.tree.IfStatement;
-import algovue.codegen.tree.LineComment;
+import algovue.codegen.tree.StandAloneComment;
 import algovue.codegen.tree.Number;
 import algovue.codegen.tree.ReturnStatement;
 import algovue.codegen.tree.Statement;
@@ -166,19 +167,27 @@ public class CodeGenerator {
 
     private Statements generateFrom(JCTree.JCBlock e) {
         Statements result = Statements.builder();
+        EolComment eolComment = null;
         Group group = null;
         for (JCTree def : e.stats) {
             Statement statement = generateFrom((JCTree.JCStatement) def);
-            if (statement == null) {
+            if (statement == null) { // group terminator
                 result.statement(group);
                 group = null;
+                eolComment = null;
             } else if (statement instanceof Group) {
                 group = (Group) statement;
+                eolComment = null;
+            } else if (statement instanceof EolComment) {
+                eolComment = (EolComment) statement;
             } else {
-                if (group != null)
+                statement.setEolComment(eolComment);
+                eolComment = null;
+                if (group != null) {
                     group.statement(statement);
-                else
+                } else {
                     result.statement(statement);
+                }
             }
         }
         if (group != null) {
@@ -203,7 +212,13 @@ public class CodeGenerator {
                         .inactiveColor(anns.getKey().size() > 0 ? anns.getKey().get(0) : null)
                         .activeColor(anns.getKey().size() > 1 ? anns.getKey().get(1) : null);
             } else if (name.startsWith("_")) {
-                return new LineComment(commentText(anns));
+                if (anns != null) {
+                    if (anns.getValue() == null)
+                        return new StandAloneComment(commentText(anns));
+                    else
+                        return new EolComment(" // " + anns.getValue());
+                }
+                return new StandAloneComment(null); // line break
             } else {
                 return generateFrom(e);
             }

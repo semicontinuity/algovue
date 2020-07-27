@@ -16,7 +16,9 @@ public class ReturnStatement extends Statement {
     @Override
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
-        indent(b, indent).append("vm.returnStatement(").append(expression.charSequence(0)).append(")");
+        indent(b, indent).append("vm.returnStatement(").append(expression.charSequence(0));
+        if (eolComment != null) b.append(", ").append(jsString(eolComment));
+        b.append(")");
         return b;
     }
 }
