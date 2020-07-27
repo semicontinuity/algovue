@@ -78,7 +78,9 @@ vm = function() {
     const comma = () => text(',');
 
     const codeBlock = (...args) => e('div', 'code-block', ...args);
-    const codeLine = (...args) => divWithClass('line', spanWithClass('td1', ...args), spanWithClass('td2', text('\u202f')));
+
+    const code = (...args) => spanWithClass('code', ...args);
+    const codeLine = (...args) => divWithClass('line', ...args);
     const standaloneComment = (txt) => e('span', 'standalone-comment', text(txt));
     const lineBreak = () => div(text('\u202f'));
     const toggleCollapsedOnClick = (view) => {
@@ -580,7 +582,7 @@ vm = function() {
         lineComment: function(txt) {
             return {
                 makeView: function(indent) {
-                    return txt !== undefined ? codeLine(indentSpan(indent), standaloneComment(txt)) : lineBreak();
+                    return txt !== undefined ? codeLine(code(indentSpan(indent), standaloneComment(txt))) : lineBreak();
                 },
                 run: function*() {
                 },
@@ -597,7 +599,7 @@ vm = function() {
         assignment: function(lvalue, rvalue) {
             return {
                 makeView: function(indent) {
-                    return this.line = codeLine(indentSpan(indent), ...this.newView());
+                    return this.line = codeLine(code(indentSpan(indent), ...this.newView()));
                 },
                 newView() {
                     return lvalue === undefined
@@ -671,7 +673,7 @@ vm = function() {
         breakStatement: function() {
             return {
                 makeView: function(indent) {
-                    return this.line = codeLine(indentSpan(indent), keyword('break'));
+                    return this.line = codeLine(code(indentSpan(indent), keyword('break')));
                 },
                 run: function*() {
                     return TOKEN_BREAK;
@@ -683,7 +685,7 @@ vm = function() {
         continueStatement: function() {
             return {
                 makeView: function(indent) {
-                    return this.line = codeLine(indentSpan(indent), keyword('continue'));
+                    return this.line = codeLine(code(indentSpan(indent), keyword('continue')));
                 },
                 run: function*() {
                     return TOKEN_CONTINUE;
@@ -695,9 +697,11 @@ vm = function() {
         returnStatement: function(expression) {
             return {
                 makeView: function(indent) {
-                    return this.line = codeLine(indentSpan(indent), keyword('return'), space(), expression.makeView());
+                    return this.line = codeLine(
+                        code(indentSpan(indent), keyword('return'), space(), expression.makeView())
+                    );
                 },
-                run: function*(token) {
+                run: function*() {
                     yield expression;
                     return TOKEN_RETURN;
                 },
@@ -719,9 +723,9 @@ vm = function() {
                     view.appendChild(ifStatements.makeView(indent + 1));
                     view.appendChild(div(indentSpan(indent), clBrace()));
                     if (elseStatements) {
-                        view.appendChild(codeLine(indentSpan(indent), keyword('else'), space(), opBrace()));
+                        view.appendChild(codeLine(code(indentSpan(indent), keyword('else'), space(), opBrace())));
                         view.appendChild(elseStatements.makeView(indent + 1));
-                        view.appendChild(codeLine(indentSpan(indent), clBrace()));
+                        view.appendChild(codeLine(code(indentSpan(indent), clBrace())));
                     }
                     return view;
                 },
@@ -729,14 +733,16 @@ vm = function() {
                     return {
                         makeView: function (indent) {
                             return this.line = codeLine(
-                                indentSpan(indent),
-                                keyword('if'),
-                                space(),
-                                opParen(),
-                                condition.makeView(),
-                                clParen(),
-                                space(),
-                                opBrace()
+                                code(
+                                    indentSpan(indent),
+                                    keyword('if'),
+                                    space(),
+                                    opParen(),
+                                    condition.makeView(),
+                                    clParen(),
+                                    space(),
+                                    opBrace()
+                                )
                             );
                         },
                         run: function*() {
@@ -769,21 +775,23 @@ vm = function() {
                     return codeBlock(
                         this.conditionStatement.makeView(indent),
                         bodyStatement.makeView(indent + 1),
-                        codeLine(indentSpan(indent), clBrace())
+                        codeLine(code(indentSpan(indent), clBrace()))
                     );
                 },
                 makeConditionStatement: function() {
                     return {
                         makeView: function (indent) {
                             return this.line = codeLine(
-                                indentSpan(indent),
-                                keyword('while'),
-                                space(),
-                                opParen(),
-                                condition.makeView(),
-                                clParen(),
-                                space(),
-                                opBrace()
+                                code(
+                                    indentSpan(indent),
+                                    keyword('while'),
+                                    space(),
+                                    opParen(),
+                                    condition.makeView(),
+                                    clParen(),
+                                    space(),
+                                    opBrace()
+                                )
                             );
                         },
                         run: function*() {
@@ -813,7 +821,7 @@ vm = function() {
                 makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
                     return codeBlock(
-                        codeLine(indentSpan(indent), keyword('do'), space(), opBrace()),
+                        codeLine(code(indentSpan(indent), keyword('do'), space(), opBrace())),
                         bodyStatement.makeView(indent + 1),
                         this.conditionStatement.makeView(indent)
                     );
@@ -822,14 +830,16 @@ vm = function() {
                     return {
                         makeView: function (indent) {
                             return this.line = codeLine(
-                                indentSpan(indent),
-                                clBrace(),
-                                space(),
-                                keyword('while'),
-                                space(),
-                                opParen(),
-                                condition.makeView(),
-                                clParen()
+                                code(
+                                    indentSpan(indent),
+                                    clBrace(),
+                                    space(),
+                                    keyword('while'),
+                                    space(),
+                                    opParen(),
+                                    condition.makeView(),
+                                    clParen()
+                                )
                             );
                         },
                         run: function*() {
