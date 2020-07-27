@@ -34,8 +34,8 @@ public class KnuthMorrisPratt {
                     i++;
                 } else {
                     @Generated(value = {"#F0F8FF", "A0D0FF"}) int $b1;
+                    @Generated(value = {}, comments = "Note, that i is NOT incremented") int _;
                     j = lps[j - 1];
-                    @Generated("Note, that i is NOT incremented") int _;
                 }
             }
         }
@@ -65,8 +65,8 @@ public class KnuthMorrisPratt {
                     i++;  // Mismatch right at the first character: restart matching from the next one
                 } else {
                     @Generated(value = {"#F0F8FF", "A0D0FF"}) int $b1;
+                    @Generated(value = {}, comments = "We know that j charaters match. Note, that i is NOT incremented.") int _;
                     j = lps[j - 1];
-                    @Generated("We know that j charaters match") int _;
                 }
             }
         }
