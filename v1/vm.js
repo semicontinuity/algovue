@@ -80,6 +80,7 @@ vm = function() {
     const codeBlock = (...args) => e('div', 'code-block', ...args);
 
     const code = (...args) => spanWithClass('code', ...args);
+    const eolComment = (...txt) => text(txt, 'comment');
     const codeLine = (...args) => divWithClass('line', ...args);
     const standaloneComment = (txt) => e('span', 'standalone-comment', text(txt));
     const lineBreak = () => div(text('\u202f'));
@@ -670,10 +671,13 @@ vm = function() {
         },
 
 
-        breakStatement: function() {
+        breakStatement: function(commentTxt) {
             return {
                 makeView: function(indent) {
-                    return this.line = codeLine(code(indentSpan(indent), keyword('break')));
+                    return this.line = codeLine(
+                        code(indentSpan(indent), keyword('break')),
+                        commentTxt && eolComment(commentTxt)
+                    );
                 },
                 run: function*() {
                     return TOKEN_BREAK;
@@ -682,10 +686,13 @@ vm = function() {
             };
         },
 
-        continueStatement: function() {
+        continueStatement: function(commentTxt) {
             return {
                 makeView: function(indent) {
-                    return this.line = codeLine(code(indentSpan(indent), keyword('continue')));
+                    return this.line = codeLine(
+                        code(indentSpan(indent), keyword('continue')),
+                        commentTxt && eolComment(commentTxt)
+                    );
                 },
                 run: function*() {
                     return TOKEN_CONTINUE;
@@ -694,11 +701,12 @@ vm = function() {
             };
         },
 
-        returnStatement: function(expression) {
+        returnStatement: function(expression, commentTxt) {
             return {
                 makeView: function(indent) {
                     return this.line = codeLine(
-                        code(indentSpan(indent), keyword('return'), space(), expression.makeView())
+                        code(indentSpan(indent), keyword('return'), space(), expression.makeView()),
+                        commentTxt && eolComment(commentTxt)
                     );
                 },
                 run: function*() {
