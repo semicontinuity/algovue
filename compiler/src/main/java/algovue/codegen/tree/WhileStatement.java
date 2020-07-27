@@ -23,10 +23,9 @@ public class WhileStatement extends Statement {
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
         indent(b, indent).append("vm.whileStatement(\n");
-        b.append(expression.charSequence(indent + 1));
-        b.append(",\n");
-        b.append(body.charSequence(indent + 1));
-        b.append('\n');
+        b.append(expression.charSequence(indent + 1)).append(",\n");
+        b.append(body.charSequence(indent + 1)).append('\n');
+        if (eolComment != null) b.append(", ").append(jsString(eolComment));
         indent(b, indent).append(")");
         return b;
     }

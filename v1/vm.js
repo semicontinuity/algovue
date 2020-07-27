@@ -780,7 +780,7 @@ vm = function() {
         },
 
 
-        whileStatement: function(condition, bodyStatement) {
+        whileStatement: function(condition, bodyStatement, commentTxt) {
             return {
                 makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
@@ -803,7 +803,8 @@ vm = function() {
                                     clParen(),
                                     space(),
                                     opBrace()
-                                )
+                                ),
+                                commentTxt && eolComment(commentTxt)
                             );
                         },
                         run: function*() {
@@ -828,7 +829,7 @@ vm = function() {
             };
         },
 
-        doWhileStatement: function(condition, bodyStatement) {
+        doWhileStatement: function(condition, bodyStatement, commentTxt) {
             return {
                 makeView: function(indent) {
                     this.conditionStatement = this.makeConditionStatement();
@@ -851,7 +852,8 @@ vm = function() {
                                     opParen(),
                                     condition.makeView(),
                                     clParen()
-                                )
+                                ),
+                                commentTxt && eolComment(commentTxt)
                             );
                         },
                         run: function*() {
