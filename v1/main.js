@@ -183,6 +183,7 @@ function main() {
     let line = vm.init(test.entry);
 
     document.body.onkeydown = function (e) {
+        $('info').style.display = 'none';
         if (!line) return;
         vm.clearDataAccessLog();
         while (true) {
@@ -202,6 +203,7 @@ function main() {
             )
         );
     };
+
 }
 
 const l = window.location.search;

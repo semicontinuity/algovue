@@ -42,7 +42,7 @@ test = function() {
                 ])
             ),
             vm.standAloneComment(),
-            vm.group('// Scan to find non-proper value','#F0F8FF', 'A0D0FF',
+            vm.group('// Scan to find out-of-place value','#F0F8FF', 'A0D0FF',
                 [
                     vm.assignment(vm.varWrite('i'), vm.number(0)),
                     vm.whileStatement(

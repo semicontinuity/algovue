@@ -34,7 +34,7 @@ public class Solution {
         }
 
         int _1;
-        @Generated(comments = "Scan to find non-proper value", value = {"#F0F8FF", "A0D0FF"}) int $b;
+        @Generated(comments = "Scan to find out-of-place value", value = {"#F0F8FF", "A0D0FF"}) int $b;
         i = 0;
         while (i < n) {
             if (a[i] != i + 1) {

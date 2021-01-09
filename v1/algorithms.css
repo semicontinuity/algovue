@@ -3,9 +3,11 @@ body {
 }
 
 #info {
-    background: lightblue;
+    background: yellow;
     padding: 0 2pt;
     font-family: Verdana, serif;
+    font-weight: bold;
+    text-align: center;
     float: bottom;
 }
 
