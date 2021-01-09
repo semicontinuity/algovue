@@ -21,7 +21,7 @@ test = function() {
                                 ])
                             )
                         ]),
-                    vm.lineComment(),
+                    vm.standAloneComment(),
                     vm.group('// Consume char 2 of pattern','#F0FFF0', 'D0FFD0',
                         [                    vm.assignment(vm.varWrite('c2'), vm.arrItem('a', vm.varPostOp('i', true))),
                             vm.ifStatement(
@@ -35,7 +35,7 @@ test = function() {
                                 ])
                             )
                         ]),
-                    vm.lineComment(),
+                    vm.standAloneComment(),
                     vm.group('// Consume char 3 of pattern','#F0F8FF', 'A0D0FF',
                         [                    vm.assignment(vm.varWrite('c3'), vm.arrItem('a', vm.varPostOp('i', true))),
                             vm.ifStatement(
@@ -50,7 +50,7 @@ test = function() {
                                 ])
                             )
                         ]),
-                    vm.lineComment(),
+                    vm.standAloneComment(),
                     vm.group('// Consume repetitions of char 3','#F4F0FF', 'E0D0FF',
                         [                    vm.whileStatement(
                             vm.bool(true),

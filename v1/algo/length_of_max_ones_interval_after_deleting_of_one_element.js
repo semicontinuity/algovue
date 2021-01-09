@@ -8,41 +8,44 @@ test = function() {
             vm.assignment(vm.varWrite('curSize'), vm.number(0)),
             vm.assignment(vm.varWrite('prevSize'), vm.number(0)),
             vm.assignment(vm.varWrite('maxSize'), vm.number(0)),
-            vm.lineComment(),
-            vm.assignment(vm.varWrite('i', 'a'), vm.number(0)),
+            vm.standAloneComment(),
+            vm.assignment(vm.varWrite('i', ['a']), vm.number(0)),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('length')),
                 vm.sequenceStatement([
                     vm.assignment(vm.varWrite('value'), vm.arrItem('a', vm.varPostOp('i', true))),
-                    vm.lineComment(),
+                    vm.standAloneComment(),
                     vm.ifStatement(
                         vm.expression(vm.eq(), vm.variable('value'), vm.number(1)),
                         vm.sequenceStatement([
                             vm.group('// one','#F0FFF0', 'D0FFD0',
-                                [vm.lineComment('// current block of 1s grows'),
+                                [
+                                    vm.standAloneComment('// current block of 1s grows'),
                                     vm.assignment(vm.varWrite('curSize'), vm.expression(vm.plus(), vm.variable('curSize'), vm.number(1))),
                                     vm.ifStatement(
                                         vm.expression(vm.gt(), vm.expression(vm.plus(), vm.variable('curSize'), vm.variable('prevSize')), vm.variable('maxSize')),
                                         vm.sequenceStatement([
                                             vm.assignment(vm.varWrite('maxSize'), vm.expression(vm.plus(), vm.variable('curSize'), vm.variable('prevSize')))
-                                        ])
+                                        ]),
+                                        undefined
                                     )
                                 ])
                         ]),
                         vm.sequenceStatement([
                             vm.group('// zero','FFF0F0', 'FFD0D0',
-                                [                            vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(true)),
-                                    vm.lineComment('// current block becomes previous'),
+                                [
+                                    vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(true)),
+                                    vm.standAloneComment('// current block becomes previous'),
                                     vm.assignment(vm.varWrite('prevSize'), vm.variable('curSize')),
-                                    vm.lineComment('// New empty block starts'),
+                                    vm.standAloneComment('// New empty block starts'),
                                     vm.assignment(vm.varWrite('curSize'), vm.number(0))
                                 ])
                         ])
                     )
                 ])
             ),
-            vm.lineComment(),
-            vm.lineComment('// Consider special case of all-ones'),
+            vm.standAloneComment(),
+            vm.standAloneComment('// Consider special case of all-ones'),
             vm.ifStatement(
                 vm.variable('zeroesOccurred'),
                 vm.sequenceStatement([

@@ -211,5 +211,5 @@ const index = indexOfAmp !== -1 ? indexOfAmp : indexOfQm;
 if (index >= 0) {
     const algo = l.substr(index + 1);
     $('algo').onload = main;
-    $('algo').src = '/algovue/v1/algo/' + algo + '.js';
+    $('algo').src = 'algo/' + algo + '.js';
 }
