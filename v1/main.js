@@ -193,7 +193,6 @@ function main() {
                 break;
             }
         }
-        // $('stackView').innerText = vm.stack().join();
         renderIn(
             $('variables'),
             renderVariables(
@@ -203,7 +202,6 @@ function main() {
             )
         );
     };
-
 }
 
 const l = window.location.search;

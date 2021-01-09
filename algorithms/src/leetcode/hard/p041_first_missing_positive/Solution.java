@@ -6,47 +6,69 @@ public class Solution {
 
     @Generated("First Missing Positive (https://leetcode.com/problems/first-missing-positive/)")
     int firstMissingPositive(int[] a, int n) {
+
         @Generated("a")
         int i = 0;
+
         while (i < n) {
-            @Generated(comments = "Push a[i] value to its place until it contains proper value", value = {"#F4F0FF", "E0D0FF"}) int $a;
-            while (a[i] != i + 1) {
-                if (a[i] <= 0 || a[i] > n) {
-                    @Generated(value = {}, comments = "Value is out range") int _;
+            @Generated("Push a[i] value to its place until it contains proper value") int _bc1;
+            do {
+                @Generated({"FFF0F0", "FFD0D0"}) int $a;
+                int a_i = a[i];
+                if (a_i <= 0 || a_i > n) {
+                    @Generated(value = {}, comments = "Value is out range, nowhere to push it") int _0;
                     break;
                 }
-                if (a[i] == a[a[i] - 1]) {
-                    @Generated(value = {}, comments = "Would not exchange for the same value") int _;
+                int $a$;
+
+                int __1;    // -----------------------------------------------------------------------------------------
+
+                @Generated({"#F0FFF0", "D0FFD0"}) int $b;
+                @Generated(value = {}, comments = "Proper place for value in a[i]") int _b1;
+//                @Generated("a")   // somehow, view is not updated, if annotated as pointer
+                int j = a_i - 1;
+                if (i == j) {
+                    @Generated(value = {}, comments = "Value is on its place") int _b2;
                     break;
                 }
+                int $b$;
 
-                int _1;
+                int __2;    // -----------------------------------------------------------------------------------------
 
-                @Generated(comments = "Exchange a[i] and a[a[i] - 1]", value = {"FFFAFA", "FFF0F0"}) int $b;
-                int temp = a[i];
-                //@Generated("a")   // somehow, view is not updated, if annotated as pointer
-                int tempPtr = temp - 1;
+                @Generated({"#FFFFF0", "FFFFD0"}) int $c;
+                int a_j = a[j];
+                if (a_i == a_j) {
+                    @Generated(value = {}, comments = "Would not exchange for the same value") int _c1;
+                    break;
+                }
+                int $c$;
 
-                a[i] = a[tempPtr];
-                a[tempPtr] = temp;
-            }
+                int __3;    // -----------------------------------------------------------------------------------------
+
+                @Generated(comments = "Exchange a[i] and a[a[i] - 1]", value = {"#F0F8FF", "C0E0FF"}) int $d;
+                a[i] = a_j;
+                a[j] = a_i;
+                int $d$;
+            } while (true);
             i++;
         }
 
-        int _1;
-        @Generated(comments = "Scan to find out-of-place value", value = {"#F0F8FF", "A0D0FF"}) int $b;
-        i = 0;
-        while (i < n) {
-            if (a[i] != i + 1) {
-                return i + 1;
+        int __3;
+
+        @Generated(comments = "Scan to find out-of-place value", value = {"#F4F0FF", "E0D0FF"}) int $s;
+        int k = 0;
+        while (k < n) {
+            if (a[k] != k + 1) {
+                return k + 1;
             }
-            i++;
+            k++;
         }
 
-        int _exit;
-        @Generated(comments = "All first n values present, return n + 1", value = {}) int _;
+        int __4;
+
+        @Generated(comments = "All first n values present, return n + 1", value = {}) int _bc2;
         return n + 1;
     }
 
-    int result = firstMissingPositive(new int[]{3, 4, -1, 1}, 4);
+    int result = firstMissingPositive(new int[]{3, 3, 4, -1, 1}, 5);
 }
