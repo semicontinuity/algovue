@@ -56,6 +56,7 @@ public class Solution {
         int __3;
 
         @Generated(comments = "Scan to find out-of-place value", value = {"#F4F0FF", "E0D0FF"}) int $s;
+        @Generated("a")
         int k = 0;
         while (k < n) {
             if (a[k] != k + 1) {

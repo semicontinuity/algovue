@@ -61,7 +61,7 @@ test = function() {
             vm.standAloneComment(),
             vm.group('// Scan to find out-of-place value','#F4F0FF', 'E0D0FF',
                 [
-                    vm.assignment(vm.varWrite('k'), vm.number(0)),
+                    vm.assignment(vm.varWrite('k', ['a']), vm.number(0)),
                     vm.whileStatement(
                         vm.expression(vm.lt(), vm.variable('k'), vm.variable('n')),
                         vm.sequenceStatement([
