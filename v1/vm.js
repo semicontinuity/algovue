@@ -351,9 +351,9 @@ vm = function() {
                     return span(
                         keyword('new'),
                         space(),
-                        text(name, 'Array'), opParen(), lengthExpr.makeView(), clParen(),
+                        text('Array', 'id'), opParen(), lengthExpr.makeView(), clParen(),
                         dot(),
-                        text(name, 'fill'), opParen(), text('0', 'number'), clParen()
+                        text('fill', 'id'), opParen(), text('0', 'number'), clParen()
                     );
                 },
                 run: function*() {

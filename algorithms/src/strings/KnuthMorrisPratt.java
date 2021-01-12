@@ -44,10 +44,12 @@ public class KnuthMorrisPratt {
     }
 
     @Generated("Knuth-Morris-Pratt algorithm")
-    private int kmp(String txt, String pat, int[] lps) {
+    private int kmp(String txt, String pat) {
+
         int N = txt.length();
         int M = pat.length();
         if (M <= 0) return -1;
+        int[] lps = new int[M];
         computeLPSArray(pat, lps);
         @Generated({"pat", "lps"}) int j = 0;
         @Generated("txt") int i = 0;
@@ -78,5 +80,5 @@ public class KnuthMorrisPratt {
         return -1;
     }
 
-    int index = kmp("ABABDABACDABABCABAB", "ABABCABAB", new int[9]);
+    int index = kmp("ABABDABACDABABCABAB", "ABABCABAB");
 }
