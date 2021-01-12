@@ -47,10 +47,9 @@ function pointersHighlighted(name, list, listPointerNames, variables, dataAccess
         const entryPointers = new Set();
         if (listPointerNames !== undefined) {
             for (let p of listPointerNames) {
-                // const v = variables.get(p).value;
-                const v = variables[p].value;
+                const variable = variables[p];  // variable may be out of scope
                 // noinspection EqualityComparisonWithCoercionJS
-                if (v == i) {
+                if (variable !== undefined && variable.value == i) {
                     entryPointers.add(p);
                 }
             }
@@ -73,10 +72,9 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
         const entryPointers = new Set();
         if (listPointerNames !== undefined) {
             for (let p of listPointerNames) {
-                // const v = variables.get(p).value;
-                const v = variables[p].value;
+                const variable = variables[p];  // variable can be out of scope
                 // noinspection EqualityComparisonWithCoercionJS
-                if (v == i) {
+                if (variable !== undefined && variable.value == i) {
                     entryPointers.add(p);
                     attachedNamesSink.add(p);
                 }

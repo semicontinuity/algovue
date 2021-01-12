@@ -12,7 +12,7 @@ public class Solution {
 
         while (i < n) {
             @Generated("Push a[i] value to its place until it contains proper value") int _bc1;
-            do {
+            while (true) {
                 @Generated({"FFF0F0", "FFD0D0"}) int $a;
                 int a_i = a[i];
                 if (a_i <= 0 || a_i > n) {
@@ -25,7 +25,7 @@ public class Solution {
 
                 @Generated({"#F0FFF0", "D0FFD0"}) int $b;
                 @Generated(value = {}, comments = "Proper place for value in a[i]") int _b1;
-//                @Generated("a")   // somehow, view is not updated, if annotated as pointer
+                @Generated("a")   // somehow, view is not updated, if annotated as pointer
                 int j = a_i - 1;
                 if (i == j) {
                     @Generated(value = {}, comments = "Value is on its place") int _b2;
@@ -45,11 +45,15 @@ public class Solution {
 
                 int __3;    // -----------------------------------------------------------------------------------------
 
-                @Generated(comments = "Exchange a[i] and a[a[i] - 1]", value = {"#F0F8FF", "C0E0FF"}) int $d;
+                @Generated(comments = "Exchange a[i] and a[j]", value = {"#F0F8FF", "C0E0FF"}) int $d;
                 a[i] = a_j;
                 a[j] = a_i;
                 int $d$;
-            } while (true);
+
+                int __4;    // -----------------------------------------------------------------------------------------
+                @Generated(value = {}, comments = "Dummy, to visualize") int _e1;
+                continue;
+            }
             i++;
         }
 

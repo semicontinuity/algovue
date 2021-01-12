@@ -9,7 +9,7 @@ test = function() {
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('n')),
                 vm.sequenceStatement([
                     vm.standAloneComment('// Push a[i] value to its place until it contains proper value'),
-                    vm.doWhileStatement(
+                    vm.whileStatement(
                         vm.bool(true),
                         vm.sequenceStatement([
                             vm.group(undefined,'FFF0F0', 'FFD0D0',
@@ -26,7 +26,7 @@ test = function() {
                             vm.standAloneComment(),
                             vm.group(undefined,'#F0FFF0', 'D0FFD0',
                                 [
-                                    vm.assignment(vm.varWrite('j'), vm.expression(vm.minus(), vm.variable('a_i'), vm.number(1)), ' // Proper place for value in a[i]'),
+                                    vm.assignment(vm.varWrite('j', ['a']), vm.expression(vm.minus(), vm.variable('a_i'), vm.number(1)), ' // Proper place for value in a[i]'),
                                     vm.ifStatement(
                                         vm.expression(vm.eq(), vm.variable('i'), vm.variable('j')),
                                         vm.sequenceStatement([
@@ -48,11 +48,13 @@ test = function() {
                                     )
                                 ]),
                             vm.standAloneComment(),
-                            vm.group('// Exchange a[i] and a[a[i] - 1]','#F0F8FF', 'C0E0FF',
+                            vm.group('// Exchange a[i] and a[j]','#F0F8FF', 'C0E0FF',
                                 [
                                     vm.assignment(vm.arrItemWrite('a', vm.variable('i')), vm.variable('a_j')),
                                     vm.assignment(vm.arrItemWrite('a', vm.variable('j')), vm.variable('a_i'))
-                                ])
+                                ]),
+                            vm.standAloneComment(),
+                            vm.continueStatement(' // Dummy, to visualize')
                         ])
                     ),
                     vm.assignment(undefined, vm.varPostOp('i', true))
