@@ -553,12 +553,27 @@ vm = function() {
                 },
                 run: function*() {
                     if (self !== undefined) {
-                        // primitive method calls; 1 argument only! only array.push(x)!
-                        yield args[0];
-                        const wrappedArg0 = pop();
-                        const wrappedSelfArg = getVar(self);
-                        wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
-                        writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
+                        // native method calls
+                        if (self === "Math") {
+                            const argValues = [];
+                            for (let i = 0; i < args.length; i++) {
+                                yield args[i];
+                                const argValueNode = pop();
+                                const argValue = argValueNode.value;
+                                argValues.push(argValue);
+                            }
+
+                            const callee = Math[decl];
+                            const result = callee.call(null, ...argValues);
+                            push({value: result});
+                        } else {
+                            // 1 argument only! only array.push(x)!
+                            yield args[0];
+                            const wrappedArg0 = pop();
+                            const wrappedSelfArg = getVar(self);
+                            wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
+                            writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
+                        }
                     } else {
                         const aNewFrame = newFrame();
                         for (let i = 0; i < args.length; i++) {

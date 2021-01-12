@@ -4,13 +4,6 @@ import javax.annotation.Generated;
 
 public class Solution {
 
-    int max(int a, int b) {
-        if (a >= b) {
-            return a;
-        }
-        return b;
-    }
-
     @Generated("Trapping Rain Water (https://leetcode.com/problems/trapping-rain-water/)")
     public int trap(int[] height, int n) {
         if (n == 0) return 0;
@@ -33,13 +26,13 @@ public class Solution {
         while (left < right) {
             if (leftMax < rightMax) {
                 left++;
-                leftMax = max(leftMax, height[left]);
+                leftMax = Math.max(leftMax, height[left]);
                 // result += leftMax - height[left]
                 // (codegen bug)
                 result = result + leftMax - height[left];
             } else {
                 right--;
-                rightMax = max(rightMax, height[right]);
+                rightMax = Math.max(rightMax, height[right]);
                 result = result + rightMax - height[right];
             }
         }
