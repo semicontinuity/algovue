@@ -5,7 +5,8 @@ import javax.annotation.Generated;
 public class KnuthMorrisPratt {
 
     @Generated("Preprocess the pattern (calculate lps[] array)")
-    void computeLPSArray(String pat, int M, int[] lps) {
+    void computeLPSArray(String pat, int[] lps) {
+        int M = pat.length();
         lps[0] = 0; // lps[0] is always 0
 
         // length of the previous longest prefix suffix
@@ -43,9 +44,11 @@ public class KnuthMorrisPratt {
     }
 
     @Generated("Knuth-Morris-Pratt algorithm")
-    private int kmp(String txt, int N, String pat, int M, int[] lps) {
+    private int kmp(String txt, String pat, int[] lps) {
+        int N = txt.length();
+        int M = pat.length();
         if (M <= 0) return -1;
-        computeLPSArray(pat, M, lps);
+        computeLPSArray(pat, lps);
         @Generated({"pat", "lps"}) int j = 0;
         @Generated("txt") int i = 0;
 
@@ -75,5 +78,5 @@ public class KnuthMorrisPratt {
         return -1;
     }
 
-    int index = kmp("ABABDABACDABABCABAB", 19, "ABABCABAB", 9, new int[9]);
+    int index = kmp("ABABDABACDABABCABAB", "ABABCABAB", new int[9]);
 }

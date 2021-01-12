@@ -2,8 +2,9 @@ test = function() {
 
     const computeLPSArray = vm.functionDeclaration(
         'computeLPSArray',
-        [vm.variable('pat'), vm.variable('M'), vm.variable('lps')],
+        [vm.variable('pat'), vm.variable('lps')],
         vm.sequenceStatement([
+            vm.assignment(vm.varWrite('M'), vm.functionCall('length', [], 'pat')),
             vm.assignment(vm.arrItemWrite('lps', vm.number(0)), vm.number(0)),
             vm.assignment(vm.varWrite('j', ['pat', 'lps']), vm.number(0)),
             vm.assignment(vm.varWrite('i', ['pat', 'lps']), vm.number(1)),
@@ -51,14 +52,16 @@ test = function() {
     );
     const kmp = vm.functionDeclaration(
         'kmp',
-        [vm.variable('txt'), vm.variable('N'), vm.variable('pat'), vm.variable('M'), vm.variable('lps')],
+        [vm.variable('txt'), vm.variable('pat'), vm.variable('lps')],
         vm.sequenceStatement([
+            vm.assignment(vm.varWrite('N'), vm.functionCall('length', [], 'txt')),
+            vm.assignment(vm.varWrite('M'), vm.functionCall('length', [], 'pat')),
             vm.ifStatement(
                 vm.expression(vm.le(), vm.variable('M'), vm.number(0)),
                 vm.returnStatement(vm.number(-1)),
                 undefined
             ),
-            vm.assignment(undefined, vm.functionCall(computeLPSArray, [vm.variable('pat'), vm.variable('M'), vm.variable('lps')])),
+            vm.assignment(undefined, vm.functionCall(computeLPSArray, [vm.variable('pat'), vm.variable('lps')])),
             vm.assignment(vm.varWrite('j', ['pat', 'lps']), vm.number(0)),
             vm.assignment(vm.varWrite('i', ['txt']), vm.number(0)),
             vm.standAloneComment(),
@@ -110,7 +113,7 @@ test = function() {
         '// Knuth-Morris-Pratt algorithm'
     );
 
-    const usage = vm.assignment(vm.varWrite('index'), vm.functionCall(kmp, [vm.string('ABABDABACDABABCABAB'), vm.number(19), vm.string('ABABCABAB'), vm.number(9), vm.arrayLiteral([vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0)])]));
+    const usage = vm.assignment(vm.varWrite('index'), vm.functionCall(kmp, [vm.string('ABABDABACDABABCABAB'), vm.string('ABABCABAB'), vm.arrayLiteral([vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0), vm.number(0)])]));
 
     return {
         code: vm.codeBlocks([computeLPSArray, kmp, usage]),

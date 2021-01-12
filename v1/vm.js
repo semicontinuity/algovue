@@ -554,7 +554,7 @@ vm = function() {
                 run: function*() {
                     if (self !== undefined) {
                         // native method calls
-                        if (self === "Math") {
+                        if (self === "Math") {  // Math.min, Math.max, etc
                             const argValues = [];
                             for (let i = 0; i < args.length; i++) {
                                 yield args[i];
@@ -567,12 +567,19 @@ vm = function() {
                             const result = callee.call(null, ...argValues);
                             push({value: result});
                         } else {
-                            // 1 argument only! only array.push(x)!
-                            yield args[0];
-                            const wrappedArg0 = pop();
                             const wrappedSelfArg = getVar(self);
-                            wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
-                            writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
+                            const selfValue = wrappedSelfArg.value;
+                            if (Array.isArray(selfValue) && decl === 'length') {    // String is transpiled to Array
+                                const value = selfValue.length;
+                                push({value: value});
+                            } else {
+                                // array.push(x)
+                                // assume 1 argument only!
+                                yield args[0];
+                                const wrappedArg0 = pop();
+                                wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
+                                writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
+                            }
                         }
                     } else {
                         const aNewFrame = newFrame();
