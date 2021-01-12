@@ -76,6 +76,7 @@ vm = function() {
     const opBrace = () => text('{');
     const clBrace = () => text('}');
     const comma = () => text(',');
+    const dot = () => text('.');
 
     const codeBlock = (...args) => e('div', 'code-block', ...args);
 
@@ -341,6 +342,33 @@ vm = function() {
                     push({value: value});
                 },
                 toString: () => '[...]'
+            };
+        },
+
+        newIntArray: function(lengthExpr) {
+            return {
+                makeView: function() {
+                    return span(
+                        keyword('new'),
+                        space(),
+                        text(name, 'Array'), opParen(), lengthExpr.makeView(), clParen(),
+                        dot(),
+                        text(name, 'fill'), opParen(), text('0', 'number'), clParen()
+                    );
+                },
+                run: function*() {
+                    yield lengthExpr;
+                    const wrappedLength = pop();
+                    const length = wrappedLength.value;
+
+                    const value = [];
+                    for (let i = 0; i < length; i++) {
+                        value.push({value: 0});
+                    }
+
+                    push({value: value});
+                },
+                toString: () => `new int[...]`
             };
         },
 

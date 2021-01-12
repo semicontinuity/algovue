@@ -32,9 +32,10 @@ import algovue.codegen.tree.FunctionCall;
 import algovue.codegen.tree.FunctionDeclaration;
 import algovue.codegen.tree.Group;
 import algovue.codegen.tree.IfStatement;
-import algovue.codegen.tree.StandAloneComment;
+import algovue.codegen.tree.NewIntArray;
 import algovue.codegen.tree.Number;
 import algovue.codegen.tree.ReturnStatement;
+import algovue.codegen.tree.StandAloneComment;
 import algovue.codegen.tree.Statement;
 import algovue.codegen.tree.Statements;
 import algovue.codegen.tree.StringLiteral;
@@ -374,12 +375,17 @@ public class CodeGenerator {
         if (e.elems != null) {
             return ArrayLiteral.builder().params(e.elems.stream().map(this::generateFrom).collect(Collectors.toList()));
         } else {
-            JCTree.JCExpression sizeConst = e.dims.get(0);
-            JCTree.JCLiteral sizeLiteral = (JCTree.JCLiteral) sizeConst;
-            Integer size = (Integer) sizeLiteral.value;
-            return ArrayLiteral.builder().params(
-                    IntStream.range(0, size).mapToObj(i -> new Number(0)).collect(Collectors.toList())
-            );
+            JCTree.JCExpression sizeExpr = e.dims.get(0);
+            if (sizeExpr instanceof JCTree.JCLiteral) {
+                JCTree.JCLiteral sizeLiteral = (JCTree.JCLiteral) sizeExpr;
+                Integer size = (Integer) sizeLiteral.value;
+                return ArrayLiteral.builder().params(
+                        IntStream.range(0, size).mapToObj(i -> new Number(0)).collect(Collectors.toList())
+                );
+            } else {
+                // new int[expr]
+                return new NewIntArray(generateFrom(sizeExpr));
+            }
         }
     }
 
