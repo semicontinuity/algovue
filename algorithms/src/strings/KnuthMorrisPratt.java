@@ -9,15 +9,21 @@ import algovue.annotations.StandAloneComment;
 public class KnuthMorrisPratt {
 
     @MethodComment("Preprocess the pattern (calculate lps[] array)")
-    void computeLPSArray(String pat, int[] lps) {
+    int[] computeLPSArray(String pat) {
+        @StandAloneComment("Note, this is exacly like KMP, only it compares pattern with itself and fills lps as it runs") int _;
+
         int M = pat.length();
+        int[] lps = new int[M];
         lps[0] = 0; // lps[0] is always 0
+
+        int _0;
 
         // length of the previous longest prefix suffix
         @Indexes({"pat", "lps"})
         int j = 0;
         @Indexes({"pat", "lps"}) int i = 1;
-        int _0;
+
+        int _1;
 
         // the loop calculates lps[i] for i = 1 to M-1
         while (i < M) {
@@ -39,12 +45,14 @@ public class KnuthMorrisPratt {
                     i++;
                 } else {
                     @Block(colors = {"#F0F8FF", "A0D0FF"}) int $b1;
-                    @EolComment("Note, that i is NOT incremented") int _;
+                    @EolComment("Note, that i is NOT incremented") int _b1;
                     j = lps[j - 1];
                 }
             }
         }
-        @StandAloneComment("Note, this is exacly like KMP, only it compares pattern with itself and fills lps as it runs") int _;
+
+        int _2;
+        return lps;
     }
 
 
@@ -54,8 +62,9 @@ public class KnuthMorrisPratt {
         int N = txt.length();
         int M = pat.length();
         if (M <= 0) return -1;
-        int[] lps = new int[M];
-        computeLPSArray(pat, lps);
+        int _emptyLine0;
+
+        int[] lps = computeLPSArray(pat);
         @Indexes({"pat", "lps"}) int j = 0;
         @Indexes("txt") int i = 0;
 

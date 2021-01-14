@@ -2,10 +2,13 @@ test = function() {
 
     const computeLPSArray = vm.functionDeclaration(
         'computeLPSArray',
-        [vm.variable('pat'), vm.variable('lps')],
+        [vm.variable('pat')],
         vm.sequenceStatement([
+            vm.standAloneComment('// Note, this is exacly like KMP, only it compares pattern with itself and fills lps as it runs'),
             vm.assignment(vm.varWrite('M'), vm.functionCall('length', [], 'pat')),
+            vm.assignment(vm.varWrite('lps'), vm.newIntArray(vm.variable('M'))),
             vm.assignment(vm.arrItemWrite('lps', vm.number(0)), vm.number(0)),
+            vm.standAloneComment(),
             vm.assignment(vm.varWrite('j', ['pat', 'lps']), vm.number(0)),
             vm.assignment(vm.varWrite('i', ['pat', 'lps']), vm.number(1)),
             vm.standAloneComment(),
@@ -46,7 +49,8 @@ test = function() {
                     )
                 ])
             ),
-            vm.standAloneComment('// Note, this is exacly like KMP, only it compares pattern with itself and fills lps as it runs')
+            vm.standAloneComment(),
+            vm.returnStatement(vm.variable('lps'))
         ]),
         '// Preprocess the pattern (calculate lps[] array)'
     );
@@ -61,8 +65,8 @@ test = function() {
                 vm.returnStatement(vm.number(-1)),
                 undefined
             ),
-            vm.assignment(vm.varWrite('lps'), vm.newIntArray(vm.variable('M'))),
-            vm.assignment(undefined, vm.functionCall(computeLPSArray, [vm.variable('pat'), vm.variable('lps')])),
+            vm.standAloneComment(),
+            vm.assignment(vm.varWrite('lps'), vm.functionCall(computeLPSArray, [vm.variable('pat')])),
             vm.assignment(vm.varWrite('j', ['pat', 'lps']), vm.number(0)),
             vm.assignment(vm.varWrite('i', ['txt']), vm.number(0)),
             vm.standAloneComment(),
