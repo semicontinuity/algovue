@@ -77,6 +77,7 @@ vm = function() {
     const clBrace = () => text('}');
     const comma = () => text(',');
     const dot = () => text('.');
+    const bang = () => text('!');
 
     const codeBlock = (...args) => e('div', 'code-block', ...args);
 
@@ -450,6 +451,22 @@ vm = function() {
             };
         },
 
+        not: function(expression) {
+            return {
+                makeView: function() {
+                    return span(
+                        bang(), expression.makeView()
+                    );
+                },
+                run: function*() {
+                    yield expression;
+                    const wrappedResult = pop();
+                    const r = !wrappedResult.value;
+                    push({value: r});
+                },
+                toString: () => '!' + expression.toString()
+            };
+        },
 
         expression: function(functor, leftSide, rightSide) {
             return {
@@ -461,8 +478,17 @@ vm = function() {
                 run: function*() {
                     yield leftSide;
                     const wrappedLeftValue = pop();
+
+                    if (functor.computeRight !== undefined) {
+                        if (!functor.computeRight(wrappedLeftValue.value)) {
+                            push({value: wrappedLeftValue.value});
+                            return;
+                        }
+                    }
+
                     yield rightSide;
                     const wrappedRightValue = pop();
+
                     const r = functor.apply(wrappedLeftValue.value, wrappedRightValue.value);
                     push({value: r});
                 },
@@ -513,13 +539,15 @@ vm = function() {
         or: () => ({
             makeView: () => opSign('||'),
             apply: (a, b) => a || b,
-            toString: () => '||'
+            toString: () => '||',
+            computeRight: (left) => !left
         }),
 
         and: () => ({
             makeView: () => opSign('&&'),
             apply: (a, b) => a && b,
-            toString: () => '&&'
+            toString: () => '&&',
+            computeRight: (left) => left
         }),
 
         minus: () => ({
@@ -597,16 +625,24 @@ vm = function() {
                         } else {
                             const wrappedSelfArg = getVar(self);
                             const selfValue = wrappedSelfArg.value;
-                            if (Array.isArray(selfValue) && decl === 'length') {    // String is transpiled to Array
-                                const value = selfValue.length;
-                                push({value: value});
+                            if (Array.isArray(selfValue)) {
+                                if (decl === 'length') {    // String is transpiled to Array
+                                    push({value: selfValue.length});
+                                } else if (decl === 'isEmpty') {    // String is transpiled to Array
+                                    push({value: selfValue.length === 0});
+                                } else if (decl === 'push' || decl === 'unshift') {    // String is transpiled to Array
+                                    yield args[0];
+                                    const wrappedArg0 = pop();
+                                    wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
+                                    writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
+                                } else if (decl === 'pop' || decl === 'shift') {    // String is transpiled to Array
+                                    const result = wrappedSelfArg.value[decl].call(wrappedSelfArg.value);
+                                    push({value: result.value});
+                                } else {
+                                    alert('Unsupported');
+                                }
                             } else {
-                                // array.push(x)
-                                // assume 1 argument only!
-                                yield args[0];
-                                const wrappedArg0 = pop();
-                                wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
-                                writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
+                                alert('Unsupported');
                             }
                         }
                     } else {

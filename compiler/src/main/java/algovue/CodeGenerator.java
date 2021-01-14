@@ -39,6 +39,7 @@ import algovue.codegen.tree.StandAloneComment;
 import algovue.codegen.tree.Statement;
 import algovue.codegen.tree.Statements;
 import algovue.codegen.tree.StringLiteral;
+import algovue.codegen.tree.UnaryExpression;
 import algovue.codegen.tree.VarPostOp;
 import algovue.codegen.tree.VarRead;
 import algovue.codegen.tree.VarWrite;
@@ -83,6 +84,7 @@ public class CodeGenerator {
         System.out.println("test = function() {");
         System.out.println();
         System.out.println(declarations);
+        if (usage == null) throw new IllegalArgumentException("No usage");
         System.out.println("const usage = " + usage.charSequence(0) + ";");
         System.out.println();
         System.out.println("return {");
@@ -325,6 +327,8 @@ public class CodeGenerator {
             return generateFrom((JCTree.JCBinary) e);
         } else if (e instanceof JCTree.JCIdent) {
             return generateVarRead((JCTree.JCIdent) e);
+        } else if (e instanceof JCTree.JCFieldAccess) {
+            return generateFrom((JCTree.JCFieldAccess) e);
         } else if (e instanceof JCTree.JCMethodInvocation) {
             return generateFrom((JCTree.JCMethodInvocation) e);
         } else if (e instanceof JCTree.JCNewArray) {
@@ -344,6 +348,16 @@ public class CodeGenerator {
         return ArrayLiteral.builder();
     }
 
+    private Expression generateFrom(JCTree.JCFieldAccess e) {
+        String self = e.selected.toString();
+        String name = e.name.toString();
+        if (!"length".equals(name)) throw new IllegalArgumentException(name);
+
+        return FunctionCall.builder()
+                .self(self)
+                .name(name);
+    }
+
     private Expression generateFrom(JCTree.JCMethodInvocation e) {
         JCTree.JCExpression meth = e.meth;
         String self = null;
@@ -351,13 +365,40 @@ public class CodeGenerator {
         if (meth instanceof JCTree.JCFieldAccess) {
             self = ((JCTree.JCFieldAccess) meth).selected.toString();
             name = ((JCTree.JCFieldAccess) meth).name.toString();
-            if (name.equals("append")) {
-                name = "push";
-            } else if (name.equals("charAt")) {
-                return new ArrayElementRead(self, generateFrom(e.args.last()));
+            switch (name) {
+                case "append":
+                case "addLast":
+                case "push":
+                    name = "push";
+                    break;
+                case "addFirst":
+                    name = "unshift";
+                    break;
+                case "getLast":
+                    return new ArrayElementRead(
+                            self,
+                            BinaryExpression.builder()
+                                    .left(
+                                            FunctionCall.builder()
+                                                    .self(self)
+                                                    .name("length")
+                                    )
+                                    .functor("minus")
+                                    .right(new Number(1))
+                    );
+                case "getFirst":
+                    return new ArrayElementRead(self, new Number(0));
+                case "removeLast":
+                    name = "pop";
+                    break;
+                case "removeFirst":
+                    name = "shift";
+                    break;
+                case "charAt":
+                    return new ArrayElementRead(self, generateFrom(e.args.last()));
             }
         } else {
-            name = meth.toString();
+            name = meth.toString(); // e.g. length() ?
         }
         return FunctionCall.builder()
                 .self(self)
@@ -402,6 +443,8 @@ public class CodeGenerator {
             return VarPostOp.builder().name(e.arg.toString()).increment(true);
         else if (e.getTag() == JCTree.Tag.POSTDEC)
             return VarPostOp.builder().name(e.arg.toString()).increment(false);
+        else if (e.getTag() == JCTree.Tag.NOT)
+            return new UnaryExpression(generateFrom(e.getExpression()));
         else
             throw new IllegalArgumentException(e.toString());
     }
