@@ -274,11 +274,21 @@ vm = function() {
         // expression parts
         //----------------------------------------------------------------------
 
+        nullLiteral: function () {
+            return {
+                makeView: function() { return keyword('null');},
+                run: function* () {
+                    push({value: null});
+                },
+                toString: () => 'null'
+            };
+        },
+
         char: function (value) {
             return {
                 makeView: function() { return span(text("'" + value + "'", 'char'));},
                 run: function* () {
-                    push({value:value});
+                    push({value: value});
                 },
                 toString: () => value
             };

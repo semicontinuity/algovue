@@ -33,6 +33,7 @@ import algovue.codegen.tree.FunctionDeclaration;
 import algovue.codegen.tree.Group;
 import algovue.codegen.tree.IfStatement;
 import algovue.codegen.tree.NewIntArray;
+import algovue.codegen.tree.Null;
 import algovue.codegen.tree.Number;
 import algovue.codegen.tree.ReturnStatement;
 import algovue.codegen.tree.StandAloneComment;
@@ -462,6 +463,8 @@ public class CodeGenerator {
         } else if (e.typetag == TypeTag.CLASS) {    // must be String
             String value = (String) e.value;
             return StringLiteral.builder().value(value);
+        } else if (e.typetag == TypeTag.BOT) {
+            return new Null();
         } else {
             throw new IllegalArgumentException(e.toString());
         }

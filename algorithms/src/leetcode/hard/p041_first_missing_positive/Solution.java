@@ -1,6 +1,6 @@
 package leetcode.hard.p041_first_missing_positive;
 
-import javax.annotation.Generated;
+import javax.annotation.processing.Generated;
 
 public class Solution {
 

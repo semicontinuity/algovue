@@ -1,7 +1,7 @@
 package strings;
 
-import javax.annotation.Generated;
 
+import javax.annotation.processing.Generated;
 
 public class DeleteSmiles {
 

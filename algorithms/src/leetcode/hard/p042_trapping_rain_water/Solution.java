@@ -1,6 +1,6 @@
 package leetcode.hard.p042_trapping_rain_water;
 
-import javax.annotation.Generated;
+import javax.annotation.processing.Generated;
 
 public class Solution {
 

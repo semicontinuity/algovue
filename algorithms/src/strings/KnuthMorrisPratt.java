@@ -10,7 +10,7 @@ public class KnuthMorrisPratt {
 
     @MethodComment("Preprocess the pattern (calculate lps[] array)")
     int[] computeLPSArray(String pat) {
-        @StandAloneComment("Note, this is exacly like KMP, only it compares pattern with itself and fills lps as it runs") int _;
+        @StandAloneComment("Note, this is exacly like KMP, only it compares pattern with itself and fills lps as it runs") int _c1;
 
         int M = pat.length();
         int[] lps = new int[M];
@@ -84,7 +84,7 @@ public class KnuthMorrisPratt {
                     i++;  // Mismatch right at the first character: restart matching from the next one
                 } else {
                     @Block(colors = {"#F0F8FF", "A0D0FF"}) int $b1;
-                    @EolComment("We know that j charaters match. Note, that i is NOT incremented.") int _;
+                    @EolComment("We know that j charaters match. Note, that i is NOT incremented.") int _c2;
                     j = lps[j - 1];
                 }
             }
