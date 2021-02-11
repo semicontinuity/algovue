@@ -30,7 +30,7 @@ vm = function() {
     function newFrame() {
         return {
             contexts: [],
-            variables: {},
+            variables: new Map(),
             relations: new Map(),
         };
     }
@@ -760,7 +760,7 @@ vm = function() {
                 },
                 run: function*() {
                     this.variables = currentFrame().variables;
-                    replaceVariables(Object.setPrototypeOf({}, this.variables));
+                    replaceVariables(Object.setPrototypeOf(new Map(), this.variables));
                     let token = yield* execute(statements);
                     replaceVariables(this.variables);
                     return token;

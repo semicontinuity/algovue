@@ -150,28 +150,39 @@ function renderLists(t, lists, variables, relations, dataAccessLog) {
     return attachedNames;
 }
 
-function renderVariables(variables, relations, dataAccessLog) {
-    const used = new Set();
-    const lists = [];
-    for (let v in variables) {
-        const value = variables[v].value;
-        if (Array.isArray(value) || (typeof(value) === 'string' && value.length > 1)) lists.push(variables[v]);
+
+function filterArrayVariables(variables) {
+    const arrayVariables = [];
+    for (let name in variables) {
+        // own properties correspond to current frame, properties of prototypes correspond to other frames
+        const value = variables[name].value;
+        if (Array.isArray(value) || (typeof (value) === 'string' && value.length > 1)) {
+            arrayVariables.push(variables[name]);
+        }
     }
+    return arrayVariables;
+}
 
+function renderVariables(variables, relations, dataAccessLog) {
     const t = table('variables');
-    const attachedNames = renderLists(t, lists, variables, relations, dataAccessLog);
-    lists.forEach(l => used.add(l.self.name));
-    attachedNames.forEach(n => used.add(n));
 
-    for (let v in variables) {
-        const name = v;
-        if (used.has(name)) continue;
+    const arrayVariables = filterArrayVariables(variables);
+    const attachedNames = renderLists(t, arrayVariables, variables, relations, dataAccessLog);
+    const specialNames = new Set();
+    arrayVariables.forEach(wArrayVar => specialNames.add(wArrayVar.self.name));
+    attachedNames.forEach(name => specialNames.add(name));
 
-        const value = variables[v].value;
+    for (let name in variables) {
+        // own properties correspond to current frame, properties of prototypes correspond to other frames
+        if (specialNames.has(name)) continue;
+
+        // plain variable
+        const value = variables[name].value;
         const view = displayValue(value);
         highlightVar(name, view, dataAccessLog);
         t.appendChild(tr(tdWithClass('name', text(name, 'watch')), td(view)));
     }
+
     return t;
 }
 
