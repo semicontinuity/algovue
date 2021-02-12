@@ -55,7 +55,20 @@ vm = function() {
             varReads: new Set(),
             varWrites: new Set(),
             arrayReads: new Map(),
-            arrayWrites: new Map()
+            arrayWrites: new Map(),
+
+            arrayItemWasRead: function (arrayVariableName, i) {
+                return this.arrayReads.has(arrayVariableName) && dataAccessLog.arrayReads.get(arrayVariableName).has(i);
+            },
+            arrayItemWasWritten: function(arrayVariableName, i) {
+                return this.arrayWrites.has(arrayVariableName) && dataAccessLog.arrayWrites.get(arrayVariableName).has(i);
+            },
+            varWasRead: function(varName) {
+                return this.varReads.has(varName);
+            },
+            varWasWritten: function(varName) {
+                return this.varWrites.has(varName);
+            }
         };
     }
 

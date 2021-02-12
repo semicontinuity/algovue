@@ -41,26 +41,22 @@ function arrayItemIsSetToVariable(list, i, variables, name) {
     }
 }
 
-// optimize?
-function pointersHighlighted(name, list, listPointerNames, variables, dataAccessLog, highlightedPointersSink) {
-    for (let i = 0; i < list.length; i++) {
-        const entryPointers = new Set();
-        if (listPointerNames !== undefined) {
-            for (let p of listPointerNames) {
-                const variable = variables[p];  // variable may be out of scope
-                // noinspection EqualityComparisonWithCoercionJS
-                if (variable !== undefined && variable.value == i) {
-                    entryPointers.add(p);
-                }
-            }
-        }
+function fillHighlightedPointers(
+    arrayVariableName, wArrayVariableValue, arrayPointerVariableNames, variables, dataAccessLog, highlightedPointers) {
 
-        for (let p of entryPointers) {
-            const arrItemRead = dataAccessLog.arrayReads.has(name) && dataAccessLog.arrayReads.get(name).has(i);
-            const arrItemWrit = dataAccessLog.arrayWrites.has(name) && dataAccessLog.arrayWrites.get(name).has(i);
-            const pRead = dataAccessLog.varReads.has(p);
-            if ((arrItemRead && pRead) || (arrItemWrit && pRead)) {
-                highlightedPointersSink.add(p);
+    for (let p of arrayPointerVariableNames) {
+        const variable = variables[p];
+        if (variable === undefined) continue;   // variable may be out of scope
+
+        for (let i = 0; i < wArrayVariableValue.length; i++) {
+            // noinspection EqualityComparisonWithCoercionJS
+            if (variable.value == i) {
+                if ((dataAccessLog.arrayItemWasRead(arrayVariableName, i) && dataAccessLog.varWasRead(p))
+                    || (dataAccessLog.arrayItemWasWritten(arrayVariableName, i) && dataAccessLog.varWasRead(p))) {
+
+                    highlightedPointers.add(p);
+                }
+                break;  // this pointer can point only to one item, and we have found it; continue with the next pointer
             }
         }
     }
@@ -130,19 +126,31 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
     return t;
 }
 
-function renderLists(t, lists, variables, relations, dataAccessLog) {
+function renderLists(tableElement, arrayVariables, variables, relations, dataAccessLog) {
+    function wasRead(arrayVariableName, i) {
+        return dataAccessLog.arrayReads.has(arrayVariableName) && dataAccessLog.arrayReads.get(arrayVariableName).has(i);
+    }
+    function wasWritten(arrayVariableName, i) {
+        return dataAccessLog.arrayWrites.has(arrayVariableName) && dataAccessLog.arrayWrites.get(arrayVariableName).has(i);
+    }
+
     const highlightedPointers = new Set();
-    for (let v of lists) {
-        const name = v.self.name;
-        const value = v.value;
-        pointersHighlighted(name, value, relations.get(name), variables, dataAccessLog, highlightedPointers)
+    for (let wArrayVariable of arrayVariables) {
+        const arrayVariableName = wArrayVariable.self.name;
+        const arrayPointerVariableNames = relations.get(arrayVariableName);
+        if (arrayPointerVariableNames !== undefined) {
+            fillHighlightedPointers(
+                arrayVariableName, wArrayVariable.value, arrayPointerVariableNames, variables,
+                dataAccessLog, highlightedPointers
+            );
+        }
     }
 
     const attachedNames = new Set();
-    for (let v of lists) {
+    for (let v of arrayVariables) {
         const name = v.self.name;
         const value = v.value;
-        t.appendChild(tr(
+        tableElement.appendChild(tr(
             tdWithClass('name', text(name, 'watch')),
             td(renderList(name, value, relations.get(name), variables, dataAccessLog, attachedNames, highlightedPointers))
         ));
@@ -164,10 +172,10 @@ function filterArrayVariables(variables) {
 }
 
 function renderVariables(variables, relations, dataAccessLog) {
-    const t = table('variables');
+    const tableElement = table('variables');
 
     const arrayVariables = filterArrayVariables(variables);
-    const attachedNames = renderLists(t, arrayVariables, variables, relations, dataAccessLog);
+    const attachedNames = renderLists(tableElement, arrayVariables, variables, relations, dataAccessLog);
     const specialNames = new Set();
     arrayVariables.forEach(wArrayVar => specialNames.add(wArrayVar.self.name));
     attachedNames.forEach(name => specialNames.add(name));
@@ -180,10 +188,10 @@ function renderVariables(variables, relations, dataAccessLog) {
         const value = variables[name].value;
         const view = displayValue(value);
         highlightVar(name, view, dataAccessLog);
-        t.appendChild(tr(tdWithClass('name', text(name, 'watch')), td(view)));
+        tableElement.appendChild(tr(tdWithClass('name', text(name, 'watch')), td(view)));
     }
 
-    return t;
+    return tableElement;
 }
 
 function main() {
