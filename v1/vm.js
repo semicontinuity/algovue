@@ -414,8 +414,7 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    const v = pop();
-                    writeVar(name, v);
+                    writeVar(name, pop());
                     if (targetArrays !== undefined) {
                         for (let a of targetArrays) {
                             addRelation(a, name);

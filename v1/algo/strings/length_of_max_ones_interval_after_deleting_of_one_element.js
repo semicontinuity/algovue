@@ -4,16 +4,16 @@ test = function() {
         'length_of_max_ones_interval_after_deleting_of_one_element',
         [vm.variable('a'), vm.variable('length')],
         vm.sequenceStatement([
-            vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(false)),
-            vm.assignment(vm.varWrite('curSize'), vm.number(0)),
+            vm.assignment(vm.varWrite('curSize', ['i']), vm.number(0)),
             vm.assignment(vm.varWrite('prevSize'), vm.number(0)),
             vm.assignment(vm.varWrite('maxSize'), vm.number(0)),
+            vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(false)),
             vm.standAloneComment(),
             vm.assignment(vm.varWrite('i', ['a']), vm.number(0)),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('length')),
                 vm.sequenceStatement([
-                    vm.assignment(vm.varWrite('value'), vm.arrItem('a', vm.varPostOp('i', true))),
+                    vm.assignment(vm.varWrite('value'), vm.arrItem('a', vm.variable('i'))),
                     vm.standAloneComment(),
                     vm.ifStatement(
                         vm.expression(vm.eq(), vm.variable('value'), vm.number(1)),
@@ -41,7 +41,9 @@ test = function() {
                                     vm.assignment(vm.varWrite('curSize'), vm.number(0))
                                 ])
                         ])
-                    )
+                    ),
+                    vm.standAloneComment(),
+                    vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1)))
                 ])
             ),
             vm.standAloneComment(),

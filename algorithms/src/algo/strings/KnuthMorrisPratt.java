@@ -1,4 +1,4 @@
-package strings;
+package algo.strings;
 
 import algovue.annotations.Block;
 import algovue.annotations.EolComment;

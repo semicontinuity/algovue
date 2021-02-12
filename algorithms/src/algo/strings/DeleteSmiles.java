@@ -1,4 +1,4 @@
-package strings;
+package algo.strings;
 
 
 import javax.annotation.processing.Generated;
