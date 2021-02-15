@@ -84,7 +84,10 @@ test = function() {
         '// First Missing Positive (https://leetcode.com/problems/first-missing-positive/)'
     );
 
-    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(firstMissingPositive, [vm.arrayLiteral([vm.number(3), vm.number(3), vm.number(4), vm.number(-1), vm.number(1)]), vm.number(5)]));
+    const usage = vm.sequenceStatement([
+        vm.assignment(vm.varWrite('result'), vm.functionCall(firstMissingPositive, [vm.arrayLiteral([vm.number(3), vm.number(3), vm.number(4), vm.number(-1), vm.number(1)]), vm.number(5)])),
+        vm.stop()
+    ]);
 
     return {
         code: vm.codeBlocks([firstMissingPositive, usage]),

@@ -39,6 +39,7 @@ import algovue.codegen.tree.ReturnStatement;
 import algovue.codegen.tree.StandAloneComment;
 import algovue.codegen.tree.Statement;
 import algovue.codegen.tree.Statements;
+import algovue.codegen.tree.Stop;
 import algovue.codegen.tree.StringLiteral;
 import algovue.codegen.tree.UnaryExpression;
 import algovue.codegen.tree.VarPostOp;
@@ -57,7 +58,7 @@ import com.sun.tools.javac.util.Pair;
 public class CodeGenerator {
 
     Declarations declarations = Declarations.builder();
-    Statement usage;
+    Statements usage = Statements.builder();
 
 
     public static void main(String[] args) throws IOException {
@@ -86,6 +87,7 @@ public class CodeGenerator {
         System.out.println();
         System.out.println(declarations);
         if (usage == null) throw new IllegalArgumentException("No usage");
+        usage.statement(new Stop());
         System.out.println("const usage = " + usage.charSequence(0) + ";");
         System.out.println();
         System.out.println("return {");
@@ -120,7 +122,7 @@ public class CodeGenerator {
             if (def.getTag() == JCTree.Tag.METHODDEF) {
                 generateFrom((JCTree.JCMethodDecl) def);
             } else if (def.getTag() == JCTree.Tag.VARDEF) {
-                usage = generateFrom((JCTree.JCVariableDecl) def);
+                usage.statement(generateFrom((JCTree.JCVariableDecl) def));
             }
         }
     }

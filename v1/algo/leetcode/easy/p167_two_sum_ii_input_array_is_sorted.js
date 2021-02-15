@@ -40,7 +40,10 @@ test = function() {
         '// https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/'
     );
 
-    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(twoSum, [vm.arrayLiteral([vm.number(-25), vm.number(-20), vm.number(-12), vm.number(-4)]), vm.number(-32)]));
+    const usage = vm.sequenceStatement([
+        vm.assignment(vm.varWrite('result'), vm.functionCall(twoSum, [vm.arrayLiteral([vm.number(-25), vm.number(-20), vm.number(-12), vm.number(-4)]), vm.number(-32)])),
+        vm.stop()
+    ]);
 
     return {
         code: vm.codeBlocks([twoSum, usage]),

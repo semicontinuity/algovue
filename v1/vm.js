@@ -2,6 +2,7 @@ vm = function() {
     const TOKEN_CONTINUE = 0;
     const TOKEN_BREAK = -1;
     const TOKEN_RETURN = -2;
+    const TOKEN_STOP = -3;
 
     const ARR_ITEM_READ = 'arrItem';
     const ARR_ITEM_WRITE = 'arrItemWrite';
@@ -256,6 +257,11 @@ vm = function() {
                 // statement completed
                 // try to activate previous context
                 token = next.value;
+                if (token === TOKEN_STOP) {
+                    console.log("STOP");
+                    line = undefined;
+                    return undefined;
+                }
                 context = currentFrame().contexts.pop();
                 if (context === undefined) {    // reached end of function call
                     if (deleteFrame()) {
@@ -766,7 +772,9 @@ vm = function() {
                 },
                 populateView: function(view, indent) {
                     for (let i = 0; i < statements.length; i++) {
-                        view.appendChild(statements[i].makeView(indent));
+                        if (statements[i].makeView) {
+                            view.appendChild(statements[i].makeView(indent));
+                        }
                     }
                     return view;
                 },
@@ -1046,6 +1054,15 @@ vm = function() {
                     }
                     return view;
                 }
+            };
+        },
+
+        stop: function() {
+            return {
+                run: function*() {
+                    return TOKEN_STOP;
+                },
+                toString: () => `stop`
             };
         }
     };

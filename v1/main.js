@@ -191,7 +191,12 @@ function renderVariables(variables, relations, dataAccessLog) {
 function main() {
     $('algorithmView').appendChild(test.code.makeView(0));
 
-    let line = vm.init(test.entry);
+
+    vm.init(test.entry);
+    let line;
+    do {
+        line = vm.step();
+    } while (!line);
 
     document.body.onkeydown = function (e) {
         $('info').style.display = 'none';

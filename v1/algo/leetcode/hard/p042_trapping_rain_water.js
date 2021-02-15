@@ -40,7 +40,10 @@ test = function() {
         '// Trapping Rain Water (https://leetcode.com/problems/trapping-rain-water/)'
     );
 
-    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(trap, [vm.arrayLiteral([vm.number(0), vm.number(1), vm.number(0), vm.number(2), vm.number(1), vm.number(0), vm.number(1), vm.number(3), vm.number(2), vm.number(1), vm.number(2), vm.number(1)]), vm.number(12)]));
+    const usage = vm.sequenceStatement([
+        vm.assignment(vm.varWrite('result'), vm.functionCall(trap, [vm.arrayLiteral([vm.number(0), vm.number(1), vm.number(0), vm.number(2), vm.number(1), vm.number(0), vm.number(1), vm.number(3), vm.number(2), vm.number(1), vm.number(2), vm.number(1)]), vm.number(12)])),
+        vm.stop()
+    ]);
 
     return {
         code: vm.codeBlocks([trap, usage]),

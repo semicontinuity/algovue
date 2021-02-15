@@ -47,7 +47,10 @@ test = function() {
         ])
     );
 
-    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(shortestSubarray, [vm.arrayLiteral([vm.number(2), vm.number(-1), vm.number(2)]), vm.number(3)]));
+    const usage = vm.sequenceStatement([
+        vm.assignment(vm.varWrite('result'), vm.functionCall(shortestSubarray, [vm.arrayLiteral([vm.number(2), vm.number(-1), vm.number(2)]), vm.number(3)])),
+        vm.stop()
+    ]);
 
     return {
         code: vm.codeBlocks([shortestSubarray, usage]),
