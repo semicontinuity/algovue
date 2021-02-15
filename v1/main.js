@@ -41,27 +41,6 @@ function arrayItemIsSetToVariable(list, i, variables, name) {
     }
 }
 
-function fillHighlightedPointers(
-    arrayVariableName, wArrayVariableValue, arrayPointerVariableNames, variables, dataAccessLog, highlightedPointers) {
-
-    for (let p of arrayPointerVariableNames) {
-        const variable = variables[p];
-        if (variable === undefined) continue;   // variable may be out of scope
-
-        for (let i = 0; i < wArrayVariableValue.length; i++) {
-            // noinspection EqualityComparisonWithCoercionJS
-            if (variable.value == i) {
-                if ((dataAccessLog.arrayItemWasRead(arrayVariableName, i) && dataAccessLog.varWasRead(p))
-                    || (dataAccessLog.arrayItemWasWritten(arrayVariableName, i) && dataAccessLog.varWasRead(p))) {
-
-                    highlightedPointers.add(p);
-                }
-                break;  // this pointer can point only to one item, and we have found it; continue with the next pointer
-            }
-        }
-    }
-}
-
 function renderList(name, list, listPointerNames, variables, dataAccessLog, attachedNamesSink, highlightedPointers) {
     const t = table('listview');
     for (let i = 0; i < list.length; i++) {
@@ -127,12 +106,6 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
 }
 
 function renderLists(tableElement, arrayVariables, variables, relations, dataAccessLog) {
-    function wasRead(arrayVariableName, i) {
-        return dataAccessLog.arrayReads.has(arrayVariableName) && dataAccessLog.arrayReads.get(arrayVariableName).has(i);
-    }
-    function wasWritten(arrayVariableName, i) {
-        return dataAccessLog.arrayWrites.has(arrayVariableName) && dataAccessLog.arrayWrites.get(arrayVariableName).has(i);
-    }
 
     const highlightedPointers = new Set();
     for (let wArrayVariable of arrayVariables) {
@@ -158,6 +131,27 @@ function renderLists(tableElement, arrayVariables, variables, relations, dataAcc
     return attachedNames;
 }
 
+
+function fillHighlightedPointers(
+    arrayVariableName, wArrayVariableValue, arrayPointerVariableNames, variables, dataAccessLog, highlightedPointers) {
+
+    for (let p of arrayPointerVariableNames) {
+        const variable = variables[p];
+        if (variable === undefined) continue;   // variable may be out of scope
+
+        for (let i = 0; i < wArrayVariableValue.length; i++) {
+            // noinspection EqualityComparisonWithCoercionJS
+            if (variable.value == i) {
+                if ((dataAccessLog.arrayItemWasRead(arrayVariableName, i) && dataAccessLog.varWasRead(p))
+                    || (dataAccessLog.arrayItemWasWritten(arrayVariableName, i) && dataAccessLog.varWasRead(p))) {
+
+                    highlightedPointers.add(p);
+                }
+                break;  // this pointer can point only to one item, and we have found it; continue with the next pointer
+            }
+        }
+    }
+}
 
 function filterArrayVariables(variables) {
     const arrayVariables = [];
