@@ -45,6 +45,7 @@ import algovue.codegen.tree.UnaryExpression;
 import algovue.codegen.tree.VarPostOp;
 import algovue.codegen.tree.VarRead;
 import algovue.codegen.tree.VarWrite;
+import algovue.codegen.tree.VariableDeclaration;
 import algovue.codegen.tree.WhileStatement;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;

@@ -435,9 +435,11 @@ vm = function() {
                 run: function* () {
                     writeVar(name, pop());
                     if (targetArrays !== undefined) {
-                        for (let a of targetArrays) {
-                            addRelation(a, name);
-                            addRelation(name, a);
+                        if (Array.isArray(targetArrays)) {
+                            for (let a of targetArrays) {
+                                addRelation(a, name);
+                                addRelation(name, a);
+                            }
                         }
                     }
                 },

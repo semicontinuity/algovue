@@ -10,8 +10,8 @@ test = function() {
                 undefined
             ),
             vm.standAloneComment(),
-            vm.assignment(vm.varWrite('i', ['numbers']), vm.number(0)),
-            vm.assignment(vm.varWrite('j', ['numbers']), vm.expression(vm.minus(), vm.functionCall('length', [], 'numbers'), vm.number(1))),
+            vm.assignment(vm.varWrite('i', ["numbers"]), vm.number(0)),
+            vm.assignment(vm.varWrite('j', ["numbers"]), vm.expression(vm.minus(), vm.functionCall('length', [], 'numbers'), vm.number(1))),
             vm.standAloneComment(),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('j')),
