@@ -167,7 +167,10 @@ vm = function() {
     }
 
     function wrappedValueFrom(wrappedValue, self) {
-        const aWrappedValue = {value: wrappedValue.value, self: self};
+        const aWrappedValue = Object.setPrototypeOf(
+            {value: wrappedValue.value, self: self}, Object.getPrototypeOf(wrappedValue)
+        );
+
         if (wrappedValue.self !== undefined) {
             aWrappedValue.from = wrappedValue.self;
         }
@@ -184,7 +187,8 @@ vm = function() {
     function writeVar(name, value) {
         dataAccessLog.varWrites.add(name);
         const wv = wrappedValueFrom(value, {name: name});
-        console.log("WRITE VAR " + name + " = " + JSON.stringify(value) + " -> " + JSON.stringify(wv));
+        console.log(`WRITE VAR ${name} = ${JSON.stringify(value)} -> ${JSON.stringify(wv)}`);
+        console.log(wv);
 
         if (value.self !== undefined && value.self.index !== undefined) {
             // value comes from array element
@@ -433,7 +437,7 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    writeVar(name, pop());
+                    writeVar(name, Object.setPrototypeOf(pop(), metadata === undefined ? Object.prototype : metadata));
                     if (metadata !== undefined) {
                         if (Array.isArray(metadata)) {
                             for (let a of metadata) {
