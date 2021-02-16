@@ -10,22 +10,37 @@ test = function() {
                 undefined
             ),
             vm.standAloneComment(),
-            vm.assignment(vm.varWrite('i', ["numbers"]), vm.number(0)),
-            vm.assignment(vm.varWrite('j', ["numbers"]), vm.expression(vm.minus(), vm.functionCall('length', [], 'numbers'), vm.number(1))),
+            vm.assignment(
+                vm.varWrite('i', ["numbers"]),
+                vm.number(0)
+            ),
+            vm.assignment(
+                vm.varWrite('j', ["numbers"]),
+                vm.expression(vm.minus(), vm.functionCall('length', [], 'numbers'), vm.number(1))
+            ),
             vm.standAloneComment(),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('j')),
                 vm.sequenceStatement([
-                    vm.assignment(vm.varWrite('x'), vm.expression(vm.plus(), vm.arrItem('numbers', vm.variable('i')), vm.arrItem('numbers', vm.variable('j')))),
+                    vm.assignment(
+                        vm.varWrite('x', {"targetArray":"numbers", "rangeTo":"j", "role":"rangeAggregate", "rangeFrom":"i"}),
+                        vm.expression(vm.plus(), vm.arrItem('numbers', vm.variable('i')), vm.arrItem('numbers', vm.variable('j')))
+                    ),
                     vm.ifStatement(
                         vm.expression(vm.lt(), vm.variable('x'), vm.variable('target')),
                         vm.sequenceStatement([
-                            vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1)))
+                            vm.assignment(
+                                vm.varWrite('i'),
+                                vm.expression(vm.plus(), vm.variable('i'), vm.number(1))
+                            )
                         ]),
                         vm.ifStatement(
                             vm.expression(vm.gt(), vm.variable('x'), vm.variable('target')),
                             vm.sequenceStatement([
-                                vm.assignment(vm.varWrite('j'), vm.expression(vm.minus(), vm.variable('j'), vm.number(1)))
+                                vm.assignment(
+                                    vm.varWrite('j'),
+                                    vm.expression(vm.minus(), vm.variable('j'), vm.number(1))
+                                )
                             ]),
                             vm.sequenceStatement([
                                 vm.returnStatement(vm.arrayLiteral([vm.expression(vm.plus(), vm.variable('i'), vm.number(1)), vm.expression(vm.plus(), vm.variable('j'), vm.number(1))]))
@@ -41,7 +56,10 @@ test = function() {
     );
 
     const usage = vm.sequenceStatement([
-        vm.assignment(vm.varWrite('result'), vm.functionCall(twoSum, [vm.arrayLiteral([vm.number(-25), vm.number(-20), vm.number(-12), vm.number(-4)]), vm.number(-32)])),
+        vm.assignment(
+            vm.varWrite('result'),
+            vm.functionCall(twoSum, [vm.arrayLiteral([vm.number(-25), vm.number(-20), vm.number(-12), vm.number(-4)]), vm.number(-32)])
+        ),
         vm.stop()
     ]);
 

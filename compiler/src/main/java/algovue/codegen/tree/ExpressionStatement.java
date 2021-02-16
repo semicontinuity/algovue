@@ -21,11 +21,12 @@ public class ExpressionStatement extends Statement {
     @Override
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
-        indent(b, indent).append("vm.assignment(")
-                .append(left == null ? "undefined" : left.charSequence(0)).append(", ")
-                .append(right.charSequence(0));
+        indent(b, indent).append("vm.assignment(\n");
+        indent(b, indent + 1).append(left == null ? "undefined" : left.charSequence(0)).append(",\n");
+        indent(b, indent + 1).append(right.charSequence(0));
         if (eolComment != null) b.append(", ").append(jsString(eolComment));
-        b.append(")");
+        b.append("\n");
+        indent(b, indent).append(")");
         return b;
     }
 }
