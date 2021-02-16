@@ -1,14 +1,24 @@
 package algovue.jsgen;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class JsObject extends JsExpression {
+public class JsObjectLiteral extends JsLiteral {
 
-    private final Map<String, String> elements;
+    private final Map<String, JsLiteral> elements;
 
-    public JsObject(Map<String, String> elements) {
+    public JsObjectLiteral(Map<String, JsLiteral> elements) {
         this.elements = elements;
+    }
+
+    public JsObjectLiteral() {
+        this(new HashMap<>());
+    }
+
+    public JsObjectLiteral put(String key, JsLiteral value) {
+        elements.put(key, value);
+        return this;
     }
 
     @Override
@@ -20,12 +30,12 @@ public class JsObject extends JsExpression {
         return b;
     }
 
-    private CharSequence stringifyEntry(Map.Entry<String, String> e) {
+    private CharSequence stringifyEntry(Map.Entry<String, JsLiteral> e) {
         StringBuilder b = new StringBuilder();
         b
                 .append('"').append(e.getKey()).append('"')
                 .append(':')
-                .append('"').append(e.getValue()).append('"')
+                .append(e.getValue().charSequence(0))
         ;
         return b;
     }

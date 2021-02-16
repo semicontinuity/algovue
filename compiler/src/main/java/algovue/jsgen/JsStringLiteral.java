@@ -1,6 +1,6 @@
 package algovue.jsgen;
 
-public class JsStringLiteral extends JsExpression {
+public class JsStringLiteral extends JsLiteral {
 
     private final String value;
 

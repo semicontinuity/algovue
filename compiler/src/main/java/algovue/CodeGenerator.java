@@ -135,10 +135,13 @@ public class CodeGenerator {
         AbstractMap.SimpleEntry<List<String>, String> anns = annotationValues(e.mods);
 
         List<String> targetArrays = null;
-        Map<String, String> metaData = null;
+        Map<String, Object> metaData = null;
         if (anns != null) {
             if (anns.getValue() == null) {
                 targetArrays = anns.getKey();
+                metaData = new HashMap<>();
+                metaData.put("role", "index");
+                metaData.put("targetArrays", targetArrays);
             } else if (anns.getKey() != null && anns.getKey().size() >= 1 && anns.getKey().size() <= 2) {
                 List<String> pointers = anns.getKey();
                 metaData = new HashMap<>();
@@ -149,7 +152,9 @@ public class CodeGenerator {
                 metaData.put("role", "rangeAggregate");
             }
         }
-        VarWrite varWrite = VarWrite.builder().name(name).targetArrays(targetArrays).metaData(metaData);
+        VarWrite varWrite = VarWrite.builder().name(name)
+//                .targetArrays(targetArrays)
+                .metaData(metaData);
         return ExpressionStatement.builder()
                 .left(varWrite)
                 .right(generateFrom(e.init));

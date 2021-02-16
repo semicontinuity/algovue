@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import algovue.jsgen.JsArray;
-import algovue.jsgen.JsObject;
+import algovue.jsgen.JsArrayLiteral;
+import algovue.jsgen.JsLiteral;
 import algovue.jsgen.JsStringLiteral;
 
 public class VarWrite extends Expression {
 
     String name;
-    List<String> targetArrays;
-    Map<String, String> metaData;
+    List<?> targetArrays;
+    Map<String, Object> metaData;
 
     public static VarWrite builder() {
         return new VarWrite();
@@ -23,12 +23,12 @@ public class VarWrite extends Expression {
         return this;
     }
 
-    public VarWrite targetArrays(List<String> a) {
+    public VarWrite targetArrays(List<?> a) {
         this.targetArrays = a;
         return this;
     }
 
-    public VarWrite metaData(Map<String, String> m) {
+    public VarWrite metaData(Map<String, Object> m) {
         this.metaData = m;
         return this;
     }
@@ -48,14 +48,11 @@ public class VarWrite extends Expression {
         return b;
     }
 
-    private CharSequence stringifyStringArray(List<String> targetArrays) {
-        return JsArray.builder()
-                .elements(targetArrays.stream().map(JsStringLiteral::new).collect(Collectors.toList()))
-                .charSequence(0);
+    private CharSequence stringifyStringArray(List<?> targetArrays) {
+        return JsLiteral.of(targetArrays).charSequence(0);
     }
 
-    private CharSequence stringifyMap(Map<String, String> m) {
-        return new JsObject(m)
-                .charSequence(0);
+    private CharSequence stringifyMap(Map<String, Object> m) {
+        return JsLiteral.of(m).charSequence(0);
     }
 }

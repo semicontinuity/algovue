@@ -11,11 +11,11 @@ test = function() {
             ),
             vm.standAloneComment(),
             vm.assignment(
-                vm.varWrite('i', ["numbers"]),
+                vm.varWrite('i', {"role":"index", "targetArrays":["numbers"]}),
                 vm.number(0)
             ),
             vm.assignment(
-                vm.varWrite('j', ["numbers"]),
+                vm.varWrite('j', {"role":"index", "targetArrays":["numbers"]}),
                 vm.expression(vm.minus(), vm.functionCall('length', [], 'numbers'), vm.number(1))
             ),
             vm.standAloneComment(),

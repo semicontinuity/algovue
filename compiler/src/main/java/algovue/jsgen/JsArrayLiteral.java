@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class JsArray extends JsExpression {
+public class JsArrayLiteral extends JsLiteral {
 
-    private List<JsExpression> elements = new ArrayList<>();
+    private List<JsLiteral> elements = new ArrayList<>();
 
 
-    public static JsArray builder() {
-        return new JsArray();
+    public static JsArrayLiteral builder() {
+        return new JsArrayLiteral();
     }
 
 
-    public JsArray elements(List<JsExpression> elements) {
+    public JsArrayLiteral elements(List<JsLiteral> elements) {
         this.elements = elements;
         return this;
     }

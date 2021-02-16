@@ -427,15 +427,21 @@ vm = function() {
             };
         },
 
-        varWrite: function(name, targetArrays) {
+        varWrite: function(name, metadata) {
             return {
                 type: VAR_WRITE,
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     writeVar(name, pop());
-                    if (targetArrays !== undefined) {
-                        if (Array.isArray(targetArrays)) {
+                    if (metadata !== undefined) {
+                        if (Array.isArray(metadata)) {
+                            for (let a of metadata) {
+                                addRelation(a, name);
+                                addRelation(name, a);
+                            }
+                        } else if (metadata['role'] === 'index') {
+                            const targetArrays = metadata['targetArrays'];
                             for (let a of targetArrays) {
                                 addRelation(a, name);
                                 addRelation(name, a);
