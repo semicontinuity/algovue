@@ -1,15 +1,18 @@
 package algovue.codegen.tree;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import algovue.jsgen.JsArray;
+import algovue.jsgen.JsObject;
 import algovue.jsgen.JsStringLiteral;
 
 public class VarWrite extends Expression {
 
     String name;
     List<String> targetArrays;
+    Map<String, String> metaData;
 
     public static VarWrite builder() {
         return new VarWrite();
@@ -25,6 +28,11 @@ public class VarWrite extends Expression {
         return this;
     }
 
+    public VarWrite metaData(Map<String, String> m) {
+        this.metaData = m;
+        return this;
+    }
+
     @Override
     public CharSequence charSequence(int indent) {
         StringBuilder b = new StringBuilder();
@@ -32,6 +40,9 @@ public class VarWrite extends Expression {
         if (targetArrays != null) {
             b.append(", ");
             b.append(stringifyStringArray(targetArrays));
+        } else if (metaData != null) {
+            b.append(", ");
+            b.append(stringifyMap(metaData));
         }
         b.append(")");
         return b;
@@ -40,6 +51,11 @@ public class VarWrite extends Expression {
     private CharSequence stringifyStringArray(List<String> targetArrays) {
         return JsArray.builder()
                 .elements(targetArrays.stream().map(JsStringLiteral::new).collect(Collectors.toList()))
+                .charSequence(0);
+    }
+
+    private CharSequence stringifyMap(Map<String, String> m) {
+        return new JsObject(m)
                 .charSequence(0);
     }
 }

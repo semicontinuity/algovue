@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -131,9 +133,25 @@ public class CodeGenerator {
     private Statement generateFrom(JCTree.JCVariableDecl e) {
         String name = e.name.toString();
         AbstractMap.SimpleEntry<List<String>, String> anns = annotationValues(e.mods);
-        List<String> relations = anns != null ? anns.getKey() : null;
+
+        List<String> targetArrays = null;
+        Map<String, String> metaData = null;
+        if (anns != null) {
+            if (anns.getValue() == null) {
+                targetArrays = anns.getKey();
+            } else if (anns.getKey() != null && anns.getKey().size() >= 1 && anns.getKey().size() <= 2) {
+                List<String> pointers = anns.getKey();
+                metaData = new HashMap<>();
+                String indexFrom = pointers.get(0);
+                metaData.put("rangeFrom", indexFrom);
+                metaData.put("rangeTo", pointers.size() == 2 ? pointers.get(1) : indexFrom);
+                metaData.put("targetArray", anns.getValue());
+                metaData.put("role", "rangeAggregate");
+            }
+        }
+        VarWrite varWrite = VarWrite.builder().name(name).targetArrays(targetArrays).metaData(metaData);
         return ExpressionStatement.builder()
-                .left(VarWrite.builder().name(name).targetArrays(relations))
+                .left(varWrite)
                 .right(generateFrom(e.init));
     }
 

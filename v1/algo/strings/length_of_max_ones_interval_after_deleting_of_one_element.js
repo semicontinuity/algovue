@@ -4,12 +4,12 @@ test = function() {
         'length_of_max_ones_interval_after_deleting_of_one_element',
         [vm.variable('a'), vm.variable('length')],
         vm.sequenceStatement([
-            vm.assignment(vm.varWrite('curSize', ['i']), vm.number(0)),
+            vm.assignment(vm.varWrite('curSize', {"targetArray":"a", "rangeTo":"i", "role":"rangeAggregate", "rangeFrom":"i"}), vm.number(0)),
             vm.assignment(vm.varWrite('prevSize'), vm.number(0)),
             vm.assignment(vm.varWrite('maxSize'), vm.number(0)),
             vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(false)),
             vm.standAloneComment(),
-            vm.assignment(vm.varWrite('i', ['a']), vm.number(0)),
+            vm.assignment(vm.varWrite('i', ["a"]), vm.number(0)),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('length')),
                 vm.sequenceStatement([
@@ -61,7 +61,10 @@ test = function() {
         '// given array of 0s and 1s, find maximal sub-interval of 1s after some element is deleted'
     );
 
-    const usage = vm.assignment(vm.varWrite('result'), vm.functionCall(length_of_max_ones_interval_after_deleting_of_one_element, [vm.arrayLiteral([vm.number(0), vm.number(0), vm.number(1), vm.number(1), vm.number(1), vm.number(0), vm.number(1), vm.number(1), vm.number(0), vm.number(1), vm.number(1), vm.number(1), vm.number(1), vm.number(0), vm.number(0)]), vm.number(15)]));
+    const usage = vm.sequenceStatement([
+        vm.assignment(vm.varWrite('result'), vm.functionCall(length_of_max_ones_interval_after_deleting_of_one_element, [vm.arrayLiteral([vm.number(0), vm.number(0), vm.number(1), vm.number(1), vm.number(1), vm.number(0), vm.number(1), vm.number(1), vm.number(0), vm.number(1), vm.number(1), vm.number(1), vm.number(1), vm.number(0), vm.number(0)]), vm.number(15)])),
+        vm.stop()
+    ]);
 
     return {
         code: vm.codeBlocks([length_of_max_ones_interval_after_deleting_of_one_element, usage]),
