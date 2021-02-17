@@ -166,11 +166,14 @@ vm = function() {
         return setV(currentFrame().variables, name, value);
     }
 
-    function wrappedValueFrom(wrappedValue, self) {
+    function wrappedValueFrom(wrappedValue, self, proto, metadata) {
         const aWrappedValue = Object.setPrototypeOf(
-            {value: wrappedValue.value, self: self}, Object.getPrototypeOf(wrappedValue)
+            {value: wrappedValue.value, self: self}, proto
         );
 
+        if (metadata !== undefined) {
+            aWrappedValue.metadata = metadata;
+        }
         if (wrappedValue.self !== undefined) {
             aWrappedValue.from = wrappedValue.self;
         }
@@ -179,14 +182,15 @@ vm = function() {
 
     function readVar(name) {
         dataAccessLog.varReads.add(name);
-        const value = wrappedValueFrom(getVar(name), {name: name});
+        const wV = getVar(name);
+        const value = wrappedValueFrom(wV, {name: name}, Object.getPrototypeOf(wV));
         console.log("READ VAR " + name + " -> " + JSON.stringify(value));
         return value;
     }
 
-    function writeVar(name, value) {
+    function writeVar(name, value, metadata) {
         dataAccessLog.varWrites.add(name);
-        const wv = wrappedValueFrom(value, {name: name});
+        const wv = wrappedValueFrom(value, {name: name}, Object.getPrototypeOf(value), metadata);
         console.log(`WRITE VAR ${name} = ${JSON.stringify(value)} -> ${JSON.stringify(wv)}`);
         console.log(wv);
 
@@ -200,15 +204,18 @@ vm = function() {
 
     function readArrayElement(name, indexValue) {
         getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
-        const wrapped = getVar(name);
-        const result = wrappedValueFrom(wrapped.value[indexValue], {name: name, index: indexValue});
+        const wrappedArray = getVar(name);
+        const wrappedElement = wrappedArray.value[indexValue];
+        const result = wrappedValueFrom(
+            wrappedElement, {name: name, index: indexValue}, Object.getPrototypeOf(wrappedElement)
+        );
         console.log("READ ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(result));
         return result;
     }
 
     function writeArrayElement(name, indexValue, value) {
         getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
-        const wv = wrappedValueFrom(value, {name: name, index: indexValue});
+        const wv = wrappedValueFrom(value, {name: name, index: indexValue}, Object.getPrototypeOf(value));
 
         if (value.self !== undefined && value.self.index === undefined) {
             getVar(value.self.name).at = {name: name, index: indexValue};
@@ -437,7 +444,7 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    writeVar(name, Object.setPrototypeOf(pop(), metadata === undefined ? Object.prototype : metadata));
+                    writeVar(name, pop(), metadata);
                     if (metadata !== undefined) {
                         if (Array.isArray(metadata)) {
                             for (let a of metadata) {
