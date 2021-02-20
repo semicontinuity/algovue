@@ -2,7 +2,7 @@ package leetcode.easy.p167_two_sum_ii_input_array_is_sorted;
 
 import algovue.annotations.Indexes;
 import algovue.annotations.MethodComment;
-import algovue.annotations.RangeAggregate;
+import algovue.annotations.ArrayWindow;
 
 public class Solution {
 
@@ -21,7 +21,7 @@ public class Solution {
         int __2;    // -----------------------------------------------------------------------------------------
 
         while (i < j) {
-            @RangeAggregate(array = "numbers", indices = {"i", "j"})
+            @ArrayWindow(array = "numbers", indices = {"i", "j"})
             int x = numbers[i] + numbers[j];
             if (x < target) {
                 i = i + 1;

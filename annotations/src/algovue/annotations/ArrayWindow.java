@@ -21,7 +21,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 @Retention(SOURCE)
 @Target({PACKAGE, TYPE, ANNOTATION_TYPE, METHOD, CONSTRUCTOR, FIELD,
         LOCAL_VARIABLE, PARAMETER})
-public @interface RangeAggregate {
+public @interface ArrayWindow {
    /** array variable name */
    String array();
 

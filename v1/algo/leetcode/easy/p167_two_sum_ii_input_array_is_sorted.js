@@ -23,7 +23,7 @@ test = function() {
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('j')),
                 vm.sequenceStatement([
                     vm.assignment(
-                        vm.varWrite('x', {"targetArray":"numbers", "rangeTo":"j", "role":"rangeAggregate", "rangeFrom":"i"}),
+                        vm.varWrite('x', {"targetArray":"numbers", "rangeTo":"j", "role":"arrayWindow", "rangeFrom":"i"}),
                         vm.expression(vm.plus(), vm.arrItem('numbers', vm.variable('i')), vm.arrItem('numbers', vm.variable('j')))
                     ),
                     vm.ifStatement(

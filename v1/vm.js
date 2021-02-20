@@ -12,66 +12,11 @@ vm = function() {
     const DEBUG = false;
 
     const stack = [];
-    const frames = [];
 
     let token;
     let context;
     let line;
-    let dataAccessLog;
 
-    function getOrEmptySet(map, key) {
-        let set = map.get(key);
-        if (set === undefined) {
-            set = new Set();
-            map.set(key, set);
-        }
-        return set;
-    }
-
-    function newFrame() {
-        return {
-            contexts: [],
-            variables: new Map(),
-            relations: new Map(),
-        };
-    }
-
-    function deleteFrame() {
-        if (frames.length === 1) return false;
-        frames.pop();
-        return true;
-    }
-
-    function currentFrame() {
-        return frames[frames.length - 1];
-    }
-
-    function replaceVariables(altVariables) {
-        frames[frames.length - 1].variables = altVariables;
-    }
-
-
-    function newDataAccessLog() {
-        return {
-            varReads: new Set(),
-            varWrites: new Set(),
-            arrayReads: new Map(),
-            arrayWrites: new Map(),
-
-            arrayItemWasRead: function (arrayVariableName, i) {
-                return this.arrayReads.has(arrayVariableName) && dataAccessLog.arrayReads.get(arrayVariableName).has(i);
-            },
-            arrayItemWasWritten: function(arrayVariableName, i) {
-                return this.arrayWrites.has(arrayVariableName) && dataAccessLog.arrayWrites.get(arrayVariableName).has(i);
-            },
-            varWasRead: function(varName) {
-                return this.varReads.has(varName);
-            },
-            varWasWritten: function(varName) {
-                return this.varWrites.has(varName);
-            }
-        };
-    }
 
     function indentSpan(size) {
         const view = document.createElement('span');
@@ -118,10 +63,6 @@ vm = function() {
     const highlight = s => {if (s) s.classList.add("active");};
     const unhighlight = s => {if (s) s.classList.remove("active");};
 
-    function addRelation(targetArray, name) {
-        getOrEmptySet(currentFrame().relations, targetArray).add(name);
-    }
-
 
     function vmLog(type, action) {
         if (DEBUG) {
@@ -140,98 +81,11 @@ vm = function() {
         }
     }
 
-    function getV(variables, name) {
-        // return variables.get(name);
-        return variables[name];
-    }
-
-    function setV(variables, name, value) {
-        const existing = variables[name];
-        if (existing === undefined) {
-            return variables[name] = value;
-        }
-
-        if (variables.hasOwnProperty(name)) {
-            return variables[name] = value;
-        } else {
-            setV(variables.__proto__, name, value);
-        }
-    }
-
-    function getVar(name) {
-        return getV(currentFrame().variables, name);
-    }
-
-    function setVar(name, value) {
-        return setV(currentFrame().variables, name, value);
-    }
-
-    function wrappedValueFrom(wrappedValue, self, proto, metadata) {
-        const aWrappedValue = Object.setPrototypeOf(
-            {value: wrappedValue.value, self: self}, proto
-        );
-
-        if (metadata !== undefined) {
-            aWrappedValue.metadata = metadata;
-        }
-        if (wrappedValue.self !== undefined) {
-            aWrappedValue.from = wrappedValue.self;
-        }
-        return aWrappedValue;
-    }
-
-    function readVar(name) {
-        dataAccessLog.varReads.add(name);
-        const wV = getVar(name);
-        const value = wrappedValueFrom(wV, {name: name}, Object.getPrototypeOf(wV));
-        console.log("READ VAR " + name + " -> " + JSON.stringify(value));
-        return value;
-    }
-
-    function writeVar(name, value, metadata) {
-        dataAccessLog.varWrites.add(name);
-        const wv = wrappedValueFrom(value, {name: name}, Object.getPrototypeOf(value), metadata);
-        console.log(`WRITE VAR ${name} = ${JSON.stringify(value)} -> ${JSON.stringify(wv)}`);
-        console.log(wv);
-
-        if (value.self !== undefined && value.self.index !== undefined) {
-            // value comes from array element
-            (getVar(value.self.name).value)[value.self.index].at = {name: name, index: value.self.index};
-        }
-
-        setVar(name, wv);
-    }
-
-    function readArrayElement(name, indexValue) {
-        getOrEmptySet(dataAccessLog.arrayReads, name).add(indexValue);
-        const wrappedArray = getVar(name);
-        const wrappedElement = wrappedArray.value[indexValue];
-        const result = wrappedValueFrom(
-            wrappedElement, {name: name, index: indexValue}, Object.getPrototypeOf(wrappedElement)
-        );
-        console.log("READ ARR ITEM " + name + " " + indexValue + " -> " + JSON.stringify(result));
-        return result;
-    }
-
-    function writeArrayElement(name, indexValue, value) {
-        getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
-        const wv = wrappedValueFrom(value, {name: name, index: indexValue}, Object.getPrototypeOf(value));
-
-        if (value.self !== undefined && value.self.index === undefined) {
-            getVar(value.self.name).at = {name: name, index: indexValue};
-        }
-
-        console.log("WRITE ARR ITEM " + name + " " + indexValue + " = " + JSON.stringify(value) + " -> " + JSON.stringify(wv));
-        (getVar(name).value)[indexValue] = wv;
-    }
-
     function pop() {
-        // console.log("POP");
         return stack.pop();
     }
 
     function push(value) {
-        // console.log("PUSH " + JSON.stringify(value));
         stack.push(value);
     }
 
@@ -250,7 +104,6 @@ vm = function() {
         // vm control
         //----------------------------------------------------------------------
         init: function(aStatement) {
-            frames.push(newFrame());
             context = {
                 statement: aStatement,
                 coro: aStatement.run(),
@@ -258,10 +111,8 @@ vm = function() {
             if (aStatement.line) highlight(line = aStatement.line);
             return line;
         },
-        getCurrentFrame: () => currentFrame(),
-        stack: () => stack,
-        clearDataAccessLog: () => {dataAccessLog = newDataAccessLog()},
-        getDataAccessLog: () => dataAccessLog,
+        getCurrentFrame: () => state.currentFrame(),
+
         step: function() {
             const next = context.coro.next(token);
             if (next.done) {
@@ -273,16 +124,16 @@ vm = function() {
                     line = undefined;
                     return undefined;
                 }
-                context = currentFrame().contexts.pop();
+                context = state.currentFrame().contexts.pop();
                 if (context === undefined) {    // reached end of function call
-                    if (deleteFrame()) {
+                    if (state.deleteFrame()) {
                         // successfully switched to previous frame; restore statement that was executing in that frame
-                        context = currentFrame().contexts.pop();
+                        context = state.currentFrame().contexts.pop();
                     }
                 }
             } else {
                 // statement delegates to sub-statement: it yielded sub-statement
-                currentFrame().contexts.push(context);
+                state.currentFrame().contexts.push(context);
                 context = {statement: next.value, coro: next.value.run()};
                 token = undefined;
             }
@@ -418,7 +269,7 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    push(readVar(name));
+                    push(state.readVar(name));
                 },
                 toString: () => name
             };
@@ -430,9 +281,9 @@ vm = function() {
                 name: name,
                 makeView: function() { return span(text(name, 'variable'), opSign(increment ? "++" : "--")); },
                 run: function* () {
-                    const value = readVar(name);
+                    const value = state.readVar(name);
                     push(value);
-                    writeVar(name, {value: increment ? value.value + 1 : value.value - 1});
+                    state.writeVar(name, {value: increment ? value.value + 1 : value.value - 1});
                 },
                 toString: () => name
             };
@@ -444,18 +295,18 @@ vm = function() {
                 name: name,
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
-                    writeVar(name, pop(), metadata);
+                    state.writeVar(name, pop(), metadata);
                     if (metadata !== undefined) {
                         if (Array.isArray(metadata)) {
                             for (let a of metadata) {
-                                addRelation(a, name);
-                                addRelation(name, a);
+                                state.addRelation(a, name);
+                                state.addRelation(name, a);
                             }
                         } else if (metadata['role'] === 'index') {
                             const targetArrays = metadata['targetArrays'];
                             for (let a of targetArrays) {
-                                addRelation(a, name);
-                                addRelation(name, a);
+                                state.addRelation(a, name);
+                                state.addRelation(name, a);
                             }
                         }
                     }
@@ -474,7 +325,7 @@ vm = function() {
                 run: function* () {
                     yield index;
                     const wrappedIndexValue = pop();
-                    const value = readArrayElement(name, wrappedIndexValue.value);
+                    const value = state.readArrayElement(name, wrappedIndexValue.value);
                     push(value);
                 },
                 toString: () => name
@@ -492,7 +343,7 @@ vm = function() {
                     yield index;
                     const wrappedIndexValue = pop();
                     const value = pop();
-                    writeArrayElement(name, wrappedIndexValue.value, value);
+                    state.writeArrayElement(name, wrappedIndexValue.value, value);
                 },
                 toString: () => name
             };
@@ -670,7 +521,7 @@ vm = function() {
                             const result = callee.call(null, ...argValues);
                             push({value: result});
                         } else {
-                            const wrappedSelfArg = getVar(self);
+                            const wrappedSelfArg = state.getVariable(self);
                             const selfValue = wrappedSelfArg.value;
                             if (Array.isArray(selfValue)) {
                                 if (decl === 'length') {    // String is transpiled to Array
@@ -681,7 +532,7 @@ vm = function() {
                                     yield args[0];
                                     const wrappedArg0 = pop();
                                     wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
-                                    writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
+                                    state.writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
                                 } else if (decl === 'pop' || decl === 'shift') {    // String is transpiled to Array
                                     const result = wrappedSelfArg.value[decl].call(wrappedSelfArg.value);
                                     push({value: result.value});
@@ -693,15 +544,15 @@ vm = function() {
                             }
                         }
                     } else {
-                        const aNewFrame = newFrame();
+                        const aNewFrame = state.newFrame();
                         for (let i = 0; i < args.length; i++) {
                             yield args[i];
                             const argValue = pop();
                             const argName = decl.args[i].name;
-                            setV(aNewFrame.variables, argName, {value: argValue.value, self: {name: argName}});
+                            state.setV_(aNewFrame.variables, argName, {value: argValue.value, self: {name: argName}});
                         }
 
-                        frames.push(aNewFrame);
+                        state.pushFrame(aNewFrame);
                         yield decl.body;
                     }
                 },
@@ -798,10 +649,9 @@ vm = function() {
                     return view;
                 },
                 run: function*() {
-                    this.variables = currentFrame().variables;
-                    replaceVariables(Object.setPrototypeOf(new Map(), this.variables));
+                    state.newSubFrame();
                     let token = yield* execute(statements);
-                    replaceVariables(this.variables);
+                    state.deleteSubFrame();
                     return token;
                 },
                 toString: () => 'sequence'

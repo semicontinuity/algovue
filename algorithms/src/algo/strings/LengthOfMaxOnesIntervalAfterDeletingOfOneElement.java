@@ -4,13 +4,13 @@ package algo.strings;
 import javax.annotation.processing.Generated;
 
 import algovue.annotations.Indexes;
-import algovue.annotations.RangeAggregate;
+import algovue.annotations.ArrayWindow;
 
 public class LengthOfMaxOnesIntervalAfterDeletingOfOneElement {
 
     @Generated("given array of 0s and 1s, find maximal sub-interval of 1s after some element is deleted")
     private int length_of_max_ones_interval_after_deleting_of_one_element(int[] a, int length) {
-        @RangeAggregate(array = "a", indices = "i")
+        @ArrayWindow(array = "a", indices = "i")
         int curSize = 0;
         int prevSize = 0;
         int maxSize = 0;

@@ -47,7 +47,6 @@ import algovue.codegen.tree.UnaryExpression;
 import algovue.codegen.tree.VarPostOp;
 import algovue.codegen.tree.VarRead;
 import algovue.codegen.tree.VarWrite;
-import algovue.codegen.tree.VariableDeclaration;
 import algovue.codegen.tree.WhileStatement;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
@@ -149,10 +148,10 @@ public class CodeGenerator {
                 metaData.put("rangeFrom", indexFrom);
                 metaData.put("rangeTo", pointers.size() == 2 ? pointers.get(1) : indexFrom);
                 metaData.put("targetArray", anns.getValue());
-                metaData.put("role", "rangeAggregate");
+                metaData.put("role", "arrayWindow");
             }
         }
-        VarWrite varWrite = VarWrite.builder().name(name)
+        VarWrite varWrite = generateVarWrite(name)
 //                .targetArrays(targetArrays)
                 .metaData(metaData);
         return ExpressionStatement.builder()
@@ -328,7 +327,7 @@ public class CodeGenerator {
         if (lhs instanceof JCTree.JCArrayAccess) {
             left = generateFrom((JCTree.JCArrayAccess) lhs, true);
         } else if (lhs instanceof JCTree.JCIdent) {
-            left = generateVarWrite((JCTree.JCIdent) lhs);
+            left = generateVarWrite(((JCTree.JCIdent) lhs).name.toString());
         } else {
             throw new IllegalArgumentException(lhs.getClass().getName());
         }
@@ -461,8 +460,8 @@ public class CodeGenerator {
         return new VarRead(e.name.toString());
     }
 
-    private Expression generateVarWrite(JCTree.JCIdent e) {
-        return VarWrite.builder().name(e.name.toString());
+    private VarWrite generateVarWrite(String name) {
+        return VarWrite.builder().name(name);
     }
 
     private Expression generateFrom(JCTree.JCUnary e) {

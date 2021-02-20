@@ -41,7 +41,7 @@ function arrayItemIsSetToVariable(list, i, variables, name) {
     }
 }
 
-function renderList(name, list, listPointerNames, variables, dataAccessLog, attachedNamesSink, highlightedPointers) {
+function renderArray(name, list, listPointerNames, variables, dataAccessLog, attachedNamesSink, highlightedPointers) {
     const t = table('listview');
     for (let i = 0; i < list.length; i++) {
         const entryPointers = new Set();
@@ -105,8 +105,7 @@ function renderList(name, list, listPointerNames, variables, dataAccessLog, atta
     return t;
 }
 
-function renderLists(tableElement, arrayVariables, variables, relations, dataAccessLog) {
-
+function renderArrays(tableElement, arrayVariables, arrayWindowVariables, variables, relations, dataAccessLog) {
     const highlightedPointers = new Set();
     for (let wArrayVariable of arrayVariables) {
         const arrayVariableName = wArrayVariable.self.name;
@@ -125,7 +124,7 @@ function renderLists(tableElement, arrayVariables, variables, relations, dataAcc
         const value = v.value;
         tableElement.appendChild(tr(
             tdWithClass('name', text(name, 'watch')),
-            td(renderList(name, value, relations.get(name), variables, dataAccessLog, attachedNames, highlightedPointers))
+            td(renderArray(name, value, relations.get(name), variables, dataAccessLog, attachedNames, highlightedPointers))
         ));
     }
     return attachedNames;
@@ -165,13 +164,30 @@ function filterArrayVariables(variables) {
     return arrayVariables;
 }
 
+function filterArrayWindowVariables(variables) {
+    const resultVariables = [];
+    for (let name in variables) {
+        // own properties correspond to current frame, properties of prototypes correspond to other frames
+        const metadata = variables[name].metadata;
+        if (metadata === undefined || metadata.role !== 'arrayWindow') continue;
+        resultVariables.push(variables[name]);
+    }
+    return resultVariables;
+}
+
+
 function renderVariables(variables, relations, dataAccessLog) {
     const tableElement = table('variables');
 
     const arrayVariables = filterArrayVariables(variables);
-    const attachedNames = renderLists(tableElement, arrayVariables, variables, relations, dataAccessLog);
+    // const arrayWindowVariables = filterArrayWindowVariables(variables);
+    const arrayWindowVariables = [];
+
+    const attachedNames = renderArrays(tableElement, arrayVariables, arrayWindowVariables, variables, relations, dataAccessLog);
+
     const specialNames = new Set();
     arrayVariables.forEach(wArrayVar => specialNames.add(wArrayVar.self.name));
+    arrayWindowVariables.forEach(wArrayVar => specialNames.add(wArrayVar.self.name));
     attachedNames.forEach(name => specialNames.add(name));
 
     for (let name in variables) {
@@ -191,7 +207,7 @@ function renderVariables(variables, relations, dataAccessLog) {
 function main() {
     $('algorithmView').appendChild(test.code.makeView(0));
 
-
+    state.initFrames();
     vm.init(test.entry);
     let line;
     do {
@@ -201,7 +217,7 @@ function main() {
     document.body.onkeydown = function (e) {
         $('info').style.display = 'none';
         if (!line) return;
-        vm.clearDataAccessLog();
+        state.clearDataAccessLog();
         while (true) {
             const newLine = vm.step();
             if (line !== newLine) {
@@ -214,7 +230,7 @@ function main() {
             renderVariables(
                 vm.getCurrentFrame().variables,
                 vm.getCurrentFrame().relations,
-                vm.getDataAccessLog()
+                state.getDataAccessLog()
             )
         );
     };

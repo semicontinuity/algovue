@@ -4,7 +4,7 @@ test = function() {
         'length_of_max_ones_interval_after_deleting_of_one_element',
         [vm.variable('a'), vm.variable('length')],
         vm.sequenceStatement([
-            vm.assignment(vm.varWrite('curSize', {"targetArray":"a", "rangeTo":"i", "role":"rangeAggregate", "rangeFrom":"i"}), vm.number(0)),
+            vm.assignment(vm.varWrite('curSize', {"targetArray":"a", "rangeTo":"i", "role":"arrayWindow", "rangeFrom":"i"}), vm.number(0)),
             vm.assignment(vm.varWrite('prevSize'), vm.number(0)),
             vm.assignment(vm.varWrite('maxSize'), vm.number(0)),
             vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(false)),
