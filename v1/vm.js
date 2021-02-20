@@ -9,8 +9,6 @@ vm = function() {
     const VAR_READ = 'variable';
     const VAR_WRITE = 'varWrite';
 
-    const DEBUG = false;
-
     const stack = [];
 
     let token;
@@ -18,12 +16,11 @@ vm = function() {
     let line;
 
 
-    function indentSpan(size) {
-        const view = document.createElement('span');
-        view.className = 'indent';
-        for (let i = 0; i < size * 4; i++) view.innerText += '\u00a0';
-        return view;
-    }
+    const indentSpan = size => {
+        let innerText = '';
+        for (let i = 0; i < size * 4; i++) innerText += '\u00a0';
+        return text(innerText, 'indent');
+    };
 
     const space = () => text(' ');
     const keyword = innerText => text(innerText, 'keyword');
@@ -64,23 +61,6 @@ vm = function() {
     const unhighlight = s => {if (s) s.classList.remove("active");};
 
 
-    function vmLog(type, action) {
-        if (DEBUG) {
-            const item = document.createElement('tr');
-            let html = '';
-            html += '<td style="background: #d3d3d3">'; html += type; html += '</td>';
-            html += '<td>'; html += statement.toString(); html += '</td>';
-            html += '<td>'; html += state; html += '</td>';
-            html += '<td>'; html += JSON.stringify(frame); html += '</td>';
-            html += '<td>'; html += register; html += '</td>';
-            if (action !== undefined) {
-                html += '<td>'; html += action.description; html += '</td>';
-            }
-            item.innerHTML = html;
-            logView.appendChild(item);
-        }
-    }
-
     function pop() {
         return stack.pop();
     }
@@ -111,7 +91,6 @@ vm = function() {
             if (aStatement.line) highlight(line = aStatement.line);
             return line;
         },
-        getCurrentFrame: () => state.currentFrame(),
 
         step: function() {
             const next = context.coro.next(token);
@@ -124,16 +103,16 @@ vm = function() {
                     line = undefined;
                     return undefined;
                 }
-                context = state.currentFrame().contexts.pop();
+                context = state.popContext();
                 if (context === undefined) {    // reached end of function call
                     if (state.deleteFrame()) {
                         // successfully switched to previous frame; restore statement that was executing in that frame
-                        context = state.currentFrame().contexts.pop();
+                        context = state.popContext();
                     }
                 }
             } else {
                 // statement delegates to sub-statement: it yielded sub-statement
-                state.currentFrame().contexts.push(context);
+                state.pushContext(context);
                 context = {statement: next.value, coro: next.value.run()};
                 token = undefined;
             }
@@ -544,15 +523,14 @@ vm = function() {
                             }
                         }
                     } else {
-                        const aNewFrame = state.newFrame();
+                        const variables = new Map();
                         for (let i = 0; i < args.length; i++) {
                             yield args[i];
                             const argValue = pop();
                             const argName = decl.args[i].name;
-                            state.setV_(aNewFrame.variables, argName, {value: argValue.value, self: {name: argName}});
+                            variables[argName] = {value: argValue.value, self: {name: argName}};
                         }
-
-                        state.pushFrame(aNewFrame);
+                        state.newFrame(variables);
                         yield decl.body;
                     }
                 },

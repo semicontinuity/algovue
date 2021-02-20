@@ -1,3 +1,7 @@
+function $(elementId) {
+    return document.getElementById(elementId);
+}
+
 function toggleClass(element, className) {
     const classes = element.classList;
     if (classes.contains(className)) {
