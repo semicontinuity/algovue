@@ -1,3 +1,25 @@
+function arrayItemIsSetFromVariable(array, i, variables, name) {
+    if (array[i].from !== undefined) {
+        for (let v in variables) {
+            const at = variables[v].at;
+            if (at !== undefined && at.name === name && at.index == i) {
+                return v;
+            }
+        }
+    }
+}
+
+function arrayItemIsSetToVariable(array, i, variables, name) {
+    if (array[i].at !== undefined) {
+        for (let v in variables) {
+            const from = variables[v].from;
+            if (from !== undefined && from.name === name && from.index == i) {
+                return v;
+            }
+        }
+    }
+}
+
 state = function() {
     let dataAccessLog;
     const frames = [];
@@ -24,10 +46,10 @@ state = function() {
         };
     }
 
-    function makeFrame() {
+    function makeFrame(variables) {
         return {
             contexts: [],
-            variables: new Map(),
+            variables: variables,
             relations: new Map()
         }
     }
@@ -95,9 +117,6 @@ state = function() {
         getDataAccessLog: () => dataAccessLog,
 
         getVariable: (name) => getVar(name),
-        // setVar: (frame, name, value) => setV(frame.variables, name, value),
-
-        setV_: (variables, name, value) => setV(variables, name, value),
 
         readVar: (name) => {
             dataAccessLog.varReads.add(name);
@@ -144,27 +163,21 @@ state = function() {
             (getVar(name).value)[indexValue] = wv;
         },
 
-        newFrame: () => makeFrame(),
-
+        initFrames: () => frames.push(makeFrame(new Map())),
+        newFrame: (variables) => frames.push(makeFrame(variables)),
         deleteFrame: () => {
             if (frames.length === 1) return false;
             frames.pop();
             return true;
         },
-
         currentFrame: () => getCurrentFrame(),
 
-        pushFrame: (frame) => frames.push(frame),
 
-        initFrames: () => frames.push(makeFrame()),
+        newSubFrame: () => replaceFrameVariables(Object.setPrototypeOf(new Map(), getCurrentFrame().variables)),
+        deleteSubFrame: () => replaceFrameVariables(Object.getPrototypeOf(getCurrentFrame().variables)),
 
-        newSubFrame: () => {
-            replaceFrameVariables(Object.setPrototypeOf(new Map(), getCurrentFrame().variables));
-        },
 
-        deleteSubFrame: () => {
-            const variables = getCurrentFrame().variables;
-            replaceFrameVariables(Object.getPrototypeOf(variables));
-        }
+        pushContext: (context) => getCurrentFrame().contexts.push(context),
+        popContext: () => getCurrentFrame().contexts.pop()
     }
 }();
