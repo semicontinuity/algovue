@@ -21,36 +21,41 @@ function arrayItemIsSetToVariable(array, i, variables, name) {
 }
 
 state = function() {
-    let dataAccessLog;
-    const frames = [];
+    const dataAccessLog = {
+        varReads: new Set(),
+        varWrites: new Set(),
+        arrayReads: new Map(),
+        arrayWrites: new Map(),
 
-    function newDataAccessLog() {
-        return {
-            varReads: new Set(),
-            varWrites: new Set(),
-            arrayReads: new Map(),
-            arrayWrites: new Map(),
+        clear: function () {
+            this.varReads.clear();
+            this.varWrites.clear();
+            this.arrayReads.clear();
+            this.arrayWrites.clear();
+        },
 
-            arrayItemWasRead: function (arrayVariableName, i) {
-                return this.arrayReads.has(arrayVariableName) && dataAccessLog.arrayReads.get(arrayVariableName).has(i);
-            },
-            arrayItemWasWritten: function (arrayVariableName, i) {
-                return this.arrayWrites.has(arrayVariableName) && dataAccessLog.arrayWrites.get(arrayVariableName).has(i);
-            },
-            varWasRead: function (varName) {
-                return this.varReads.has(varName);
-            },
-            varWasWritten: function (varName) {
-                return this.varWrites.has(varName);
-            }
-        };
+        arrayItemWasRead: function (arrayVariableName, i) {
+            return this.arrayReads.has(arrayVariableName) && dataAccessLog.arrayReads.get(arrayVariableName).has(i);
+        },
+        arrayItemWasWritten: function (arrayVariableName, i) {
+            return this.arrayWrites.has(arrayVariableName) && dataAccessLog.arrayWrites.get(arrayVariableName).has(i);
+        },
+        varWasRead: function (varName) {
+            return this.varReads.has(varName);
+        },
+        varWasWritten: function (varName) {
+            return this.varWrites.has(varName);
+        }
     }
 
+    const frames = [];
+
     function makeFrame(variables) {
-        return {
+        return Object.setPrototypeOf({
             contexts: [],
             variables: variables,
             relations: new Map(),
+
             getArrayVariables: function () {
                 const arrayVariables = [];
                 const variables = this.variables;
@@ -63,7 +68,7 @@ state = function() {
                 }
                 return arrayVariables;
             }
-        }
+        }, dataAccessLog);
     }
 
     function getCurrentFrame() {
@@ -125,8 +130,8 @@ state = function() {
             getOrEmptySet(getCurrentFrame().relations, targetArray).add(name);
         },
 
-        clearDataAccessLog: () => {dataAccessLog = newDataAccessLog()},
         getDataAccessLog: () => dataAccessLog,
+        clearDataAccessLog: () => dataAccessLog.clear(),
 
         getVariable: (name) => getVar(name),
 

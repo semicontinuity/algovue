@@ -85,34 +85,9 @@ function renderVariables(state) {
         return t;
     }
 
-    function renderArrays(arrayWindowVariables) {
-        const highlightedPointers = new Set();
-        for (let wArrayVariable of arrayVariables) {
-            const arrayVariableName = wArrayVariable.self.name;
-            const arrayPointerVariableNames = relations.get(arrayVariableName);
-            if (arrayPointerVariableNames !== undefined) {
-                fillHighlightedPointers(
-                    arrayVariableName, wArrayVariable.value, arrayPointerVariableNames, variables,
-                    dataAccessLog, highlightedPointers
-                );
-            }
-        }
-
-        const attachedNames = new Set();
-        for (let v of arrayVariables) {
-            const name = v.self.name;
-            const value = v.value;
-            tableElement.appendChild(tr(
-                tdWithClass('name', text(name, 'watch')),
-                td(renderArray(name, value, relations.get(name), variables, dataAccessLog, attachedNames, highlightedPointers))
-            ));
-        }
-        return attachedNames;
-    }
-
 
     function fillHighlightedPointers(
-        arrayVariableName, wArrayVariableValue, arrayPointerVariableNames, variables, dataAccessLog, highlightedPointers) {
+        arrayVariableName, wArrayVariableValue, arrayPointerVariableNames, dataAccessLog, highlightedPointers) {
 
         for (let p of arrayPointerVariableNames) {
             const variable = variables[p];
@@ -148,7 +123,27 @@ function renderVariables(state) {
     // const arrayWindowVariables = filterArrayWindowVariables(variables);
     const arrayWindowVariables = [];
 
-    const attachedNames = renderArrays(arrayWindowVariables);
+    const highlightedPointers = new Set();
+    for (let wArrayVariable of arrayVariables) {
+        const arrayVariableName = wArrayVariable.self.name;
+        const arrayPointerVariableNames = relations.get(arrayVariableName);
+        if (arrayPointerVariableNames !== undefined) {
+            fillHighlightedPointers(
+                arrayVariableName, wArrayVariable.value, arrayPointerVariableNames,
+                dataAccessLog, highlightedPointers
+            );
+        }
+    }
+
+    const attachedNames = new Set();
+    for (let v of arrayVariables) {
+        const name = v.self.name;
+        const value = v.value;
+        tableElement.appendChild(tr(
+            tdWithClass('name', text(name, 'watch')),
+            td(renderArray(name, value, relations.get(name), variables, dataAccessLog, attachedNames, highlightedPointers))
+        ));
+    }
 
     const specialNames = new Set();
     arrayVariables.forEach(wArrayVar => specialNames.add(wArrayVar.self.name));
