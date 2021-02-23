@@ -11,8 +11,8 @@ function renderVariables(state) {
     const relations =  frame.relations;
     const arrayVariables = frame.getArrayVariables();
     const highlightedPointers = filterHighlightedPointers();
-    // const arrayWindowVariables = filterArrayWindowVariables(variables);
-    const arrayWindowVariables = [];
+    const arrayWindowVariables = filterArrayWindowVariables(variables);
+    // const arrayWindowVariables = [];
     const attachedNames = new Set();
 
     function tryToHighlightVar(name, view) {
@@ -54,6 +54,18 @@ function renderVariables(state) {
                 }
             }
 
+            let vWindow = undefined;
+            if (arrayWindowVariables.length > 0) {
+                vWindow = e('td');
+                const vWindowName = e('span', 'pointer');
+                vWindowName.innerText = arrayWindowVariables[0].self.name;
+                vWindow.appendChild(vWindowName);
+
+                const vWindowValue = e('span', 'pointer');
+                vWindowValue.innerText = arrayWindowVariables[0].value;
+                vWindow.appendChild(vWindowValue);
+            }
+
             const vPointers = e('td', 'listview-pointers');
             for (let pointerName of entryPointers) {
                 vPointers.appendChild(renderEntryPointer(name, i, pointerName));
@@ -88,7 +100,7 @@ function renderVariables(state) {
             }
 
             tryToHighlightArrayItem(name, i, vValue);
-            t.appendChild(tr(vPointers, vIndex, vValue, vSpacer, vExtra));
+            t.appendChild(tr(vWindow, vPointers, vIndex, vValue, vSpacer, vExtra));
         }
         return t;
     }
