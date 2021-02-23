@@ -56,7 +56,17 @@ state = function() {
             variables: variables,
             relations: new Map(),
 
-            getArrayVariables: function () {
+            newSubFrame() {
+                this.variables = Object.setPrototypeOf(new Map(), this.variables);
+            },
+            deleteSubFrame() {
+                this.variables = Object.getPrototypeOf(this.variables);
+            },
+
+            getV(name) {
+                return this.variables[name];
+            },
+            getArrayVariables() {
                 const arrayVariables = [];
                 const variables = this.variables;
                 for (let name in variables) {
@@ -75,11 +85,6 @@ state = function() {
         return frames[frames.length - 1];
     }
 
-    function replaceFrameVariables(altVariables) {
-        frames[frames.length - 1].variables = altVariables;
-    }
-
-
     function getOrEmptySet(map, key) {
         let set = map.get(key);
         if (set === undefined) {
@@ -87,10 +92,6 @@ state = function() {
             map.set(key, set);
         }
         return set;
-    }
-
-    function getV(variables, name) {
-        return variables[name];
     }
 
     function setV(variables, name, value) {
@@ -107,7 +108,7 @@ state = function() {
     }
 
     function getVar(name) {
-        return getV(getCurrentFrame().variables, name);
+        return getCurrentFrame().getV(name);
     }
 
     function wrappedValueFrom(wrappedValue, self, proto, metadata) {
@@ -133,8 +134,6 @@ state = function() {
         getDataAccessLog: () => dataAccessLog,
         clearDataAccessLog: () => dataAccessLog.clear(),
 
-        getVariable: (name) => getVar(name),
-
         readVar: (name) => {
             dataAccessLog.varReads.add(name);
             const wV = getVar(name);
@@ -151,7 +150,7 @@ state = function() {
 
             if (value.self !== undefined && value.self.index !== undefined) {
                 // value comes from array element
-                (getV(getCurrentFrame().variables, value.self.name).value)[value.self.index].at = {name: name, index: value.self.index};
+                (getCurrentFrame().getV(value.self.name).value)[value.self.index].at = {name: name, index: value.self.index};
             }
 
             setV(getCurrentFrame().variables, name, wv);
@@ -189,10 +188,8 @@ state = function() {
         },
         currentFrame: () => getCurrentFrame(),
 
-
-        newSubFrame: () => replaceFrameVariables(Object.setPrototypeOf(new Map(), getCurrentFrame().variables)),
-        deleteSubFrame: () => replaceFrameVariables(Object.getPrototypeOf(getCurrentFrame().variables)),
-
+        newSubFrame: () => getCurrentFrame().newSubFrame(),
+        deleteSubFrame: () => getCurrentFrame().deleteSubFrame(),
 
         pushContext: (context) => getCurrentFrame().contexts.push(context),
         popContext: () => getCurrentFrame().contexts.pop()

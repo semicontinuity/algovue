@@ -500,7 +500,7 @@ vm = function() {
                             const result = callee.call(null, ...argValues);
                             push({value: result});
                         } else {
-                            const wrappedSelfArg = state.getVariable(self);
+                            const wrappedSelfArg = state.readVar(self);
                             const selfValue = wrappedSelfArg.value;
                             if (Array.isArray(selfValue)) {
                                 if (decl === 'length') {    // String is transpiled to Array
