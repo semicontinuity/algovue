@@ -50,7 +50,19 @@ state = function() {
         return {
             contexts: [],
             variables: variables,
-            relations: new Map()
+            relations: new Map(),
+            getArrayVariables: function () {
+                const arrayVariables = [];
+                const variables = this.variables;
+                for (let name in variables) {
+                    // own properties correspond to current frame, properties of prototypes correspond to other frames
+                    const value = variables[name].value;
+                    if (Array.isArray(value) || (typeof (value) === 'string' && value.length > 1)) {
+                        arrayVariables.push(variables[name]);
+                    }
+                }
+                return arrayVariables;
+            }
         }
     }
 

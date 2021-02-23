@@ -19,14 +19,7 @@ function main() {
                 break;
             }
         }
-        renderIn(
-            $('variables'),
-            renderVariables(
-                state.currentFrame().variables,
-                state.currentFrame().relations,
-                state.getDataAccessLog()
-            )
-        );
+        renderIn($('variables'), renderVariables(state));
     };
 }
 

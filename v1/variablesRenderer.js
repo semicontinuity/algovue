@@ -4,8 +4,12 @@ function displayValue(v) {
 }
 
 
-function renderVariables(variables, relations, dataAccessLog) {
-    const arrayVariables = filterArrayVariables();
+function renderVariables(state) {
+    const dataAccessLog = state.getDataAccessLog();
+    const frame = state.currentFrame();
+    const variables =  frame.variables;
+    const relations =  frame.relations;
+    const arrayVariables = frame.getArrayVariables();
 
     function tryToHighlightVar(name, view) {
         if (dataAccessLog.varWasRead(name)) view.classList.add('data-r');
@@ -126,18 +130,6 @@ function renderVariables(variables, relations, dataAccessLog) {
                 }
             }
         }
-    }
-
-    function filterArrayVariables() {
-        const arrayVariables = [];
-        for (let name in variables) {
-            // own properties correspond to current frame, properties of prototypes correspond to other frames
-            const value = variables[name].value;
-            if (Array.isArray(value) || (typeof (value) === 'string' && value.length > 1)) {
-                arrayVariables.push(variables[name]);
-            }
-        }
-        return arrayVariables;
     }
 
     function filterArrayWindowVariables(variables) {
