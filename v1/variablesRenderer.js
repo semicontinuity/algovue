@@ -10,6 +10,10 @@ function renderVariables(state) {
     const variables =  frame.variables;
     const relations =  frame.relations;
     const arrayVariables = frame.getArrayVariables();
+    const highlightedPointers = filterHighlightedPointers();
+    // const arrayWindowVariables = filterArrayWindowVariables(variables);
+    const arrayWindowVariables = [];
+    const attachedNames = new Set();
 
     function tryToHighlightVar(name, view) {
         if (dataAccessLog.varWasRead(name)) view.classList.add('data-r');
@@ -21,9 +25,23 @@ function renderVariables(state) {
         if (dataAccessLog.arrayItemWasWritten(name, i)) arrayItemView.classList.add('data-w');
     }
 
-    function renderArray(name, list, listPointerNames, variables, dataAccessLog, attachedNamesSink, highlightedPointers) {
+    function renderEntryPointer(arrayName, i, pointerName) {
+        const vPointer = e('span', 'pointer');
+
+        const arrItemRead = dataAccessLog.arrayItemWasRead(arrayName, i);
+        const arrItemWrit = dataAccessLog.arrayItemWasWritten(arrayName, i);
+        const pRead = dataAccessLog.varWasRead(pointerName);
+        const pWrit = dataAccessLog.varWasWritten(pointerName);
+        if ((arrItemRead && pRead) || (arrItemWrit && pRead) || (!highlightedPointers.has(pointerName) && (pRead || pWrit))) {
+            tryToHighlightVar(pointerName, vPointer);
+        }
+        vPointer.innerText = pointerName;
+        return vPointer;
+    }
+
+    function renderArray(name, array, listPointerNames) {
         const t = table('listview');
-        for (let i = 0; i < list.length; i++) {
+        for (let i = 0; i < array.length; i++) {
             const entryPointers = new Set();
             if (listPointerNames !== undefined) {
                 for (let p of listPointerNames) {
@@ -31,29 +49,19 @@ function renderVariables(state) {
                     // noinspection EqualityComparisonWithCoercionJS
                     if (variable !== undefined && variable.value == i) {
                         entryPointers.add(p);
-                        attachedNamesSink.add(p);
+                        attachedNames.add(p);
                     }
                 }
             }
 
             const vPointers = e('td', 'listview-pointers');
-            for (let p of entryPointers) {
-                const vPointer = e('span', 'pointer');
-
-                const arrItemRead = dataAccessLog.arrayItemWasRead(name, i);
-                const arrItemWrit = dataAccessLog.arrayItemWasWritten(name, i);
-                const pRead = dataAccessLog.varWasRead(p);
-                const pWrit = dataAccessLog.varWasWritten(p);
-                if ((arrItemRead && pRead) || (arrItemWrit && pRead) || (!highlightedPointers.has(p) && (pRead || pWrit))) {
-                    tryToHighlightVar(p, vPointer);
-                }
-                vPointer.innerText = p;
-                vPointers.appendChild(vPointer);
+            for (let pointerName of entryPointers) {
+                vPointers.appendChild(renderEntryPointer(name, i, pointerName));
             }
             if (entryPointers.size > 0) vPointers.appendChild(text('\u2192'));
 
-            const varToArrayItem = arrayItemIsSetFromVariable(list, i, variables, name);
-            const varFromArrayItem = arrayItemIsSetToVariable(list, i, variables, name);
+            const varToArrayItem = arrayItemIsSetFromVariable(array, i, variables, name);
+            const varFromArrayItem = arrayItemIsSetToVariable(array, i, variables, name);
             const varName = varToArrayItem || varFromArrayItem;
 
             const vIndex = e('td', 'listview-index');
@@ -63,7 +71,7 @@ function renderVariables(state) {
             const vValue = e('td', 'listview-value');
             if (entryPointers.size > 0) vValue.classList.add('listview-value-matched-pointer');
             if (varName !== undefined) vValue.classList.add('listview-value-matched-var');
-            vValue.appendChild(displayValue(list[i].value));
+            vValue.appendChild(displayValue(array[i].value));
 
             const vSpacer = e('td');
             if (varToArrayItem) vSpacer.appendChild(text('\u202F\u21d0'));
@@ -76,7 +84,7 @@ function renderVariables(state) {
                     tryToHighlightVar(varName, vView);
                 }
                 vExtra.appendChild(vView);
-                attachedNamesSink.add(varName);
+                attachedNames.add(varName);
             }
 
             tryToHighlightArrayItem(name, i, vValue);
@@ -86,8 +94,22 @@ function renderVariables(state) {
     }
 
 
+    function filterHighlightedPointers() {
+        const highlightedPointers = new Set();
+        for (let wArrayVariable of arrayVariables) {
+            const arrayVariableName = wArrayVariable.self.name;
+            const arrayPointerVariableNames = relations.get(arrayVariableName);
+            if (arrayPointerVariableNames !== undefined) {
+                fillHighlightedPointers(
+                    arrayVariableName, wArrayVariable.value, arrayPointerVariableNames, highlightedPointers
+                );
+            }
+        }
+        return highlightedPointers;
+    }
+
     function fillHighlightedPointers(
-        arrayVariableName, wArrayVariableValue, arrayPointerVariableNames, dataAccessLog, highlightedPointers) {
+        arrayVariableName, wArrayVariableValue, arrayPointerVariableNames, highlightedPointers) {
 
         for (let p of arrayPointerVariableNames) {
             const variable = variables[p];
@@ -107,6 +129,7 @@ function renderVariables(state) {
         }
     }
 
+
     function filterArrayWindowVariables(variables) {
         const resultVariables = [];
         for (let name in variables) {
@@ -120,41 +143,26 @@ function renderVariables(state) {
 
 
     const tableElement = table('variables');
-    // const arrayWindowVariables = filterArrayWindowVariables(variables);
-    const arrayWindowVariables = [];
 
-    const highlightedPointers = new Set();
-    for (let wArrayVariable of arrayVariables) {
-        const arrayVariableName = wArrayVariable.self.name;
-        const arrayPointerVariableNames = relations.get(arrayVariableName);
-        if (arrayPointerVariableNames !== undefined) {
-            fillHighlightedPointers(
-                arrayVariableName, wArrayVariable.value, arrayPointerVariableNames,
-                dataAccessLog, highlightedPointers
-            );
-        }
-    }
-
-    const attachedNames = new Set();
     for (let v of arrayVariables) {
         const name = v.self.name;
         const value = v.value;
         tableElement.appendChild(tr(
             tdWithClass('name', text(name, 'watch')),
-            td(renderArray(name, value, relations.get(name), variables, dataAccessLog, attachedNames, highlightedPointers))
+            td(renderArray(name, value, relations.get(name)))
         ));
     }
 
-    const specialNames = new Set();
-    arrayVariables.forEach(wArrayVar => specialNames.add(wArrayVar.self.name));
-    arrayWindowVariables.forEach(wArrayVar => specialNames.add(wArrayVar.self.name));
-    attachedNames.forEach(name => specialNames.add(name));
+    const speciallyRenderedVariableNames = new Set();
+    arrayVariables.forEach(wArrayVar => speciallyRenderedVariableNames.add(wArrayVar.self.name));
+    arrayWindowVariables.forEach(wArrayVar => speciallyRenderedVariableNames.add(wArrayVar.self.name));
+    attachedNames.forEach(name => speciallyRenderedVariableNames.add(name));
 
+    // render remaining plain variables
     for (let name in variables) {
         // own properties correspond to current frame, properties of prototypes correspond to other frames
-        if (specialNames.has(name)) continue;
+        if (speciallyRenderedVariableNames.has(name)) continue;
 
-        // plain variable
         const value = variables[name].value;
         const view = displayValue(value);
         tryToHighlightVar(name, view);
