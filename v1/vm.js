@@ -65,8 +65,19 @@ vm = function() {
         return stack.pop();
     }
 
-    function push(value) {
-        stack.push(value);
+    function push(richVar) {
+        stack.push(richVar);
+    }
+
+    function makeRichVar(value, metadata) {
+        return Object.setPrototypeOf({value: value}, metadata === undefined ? null : metadata);
+    }
+
+    function makeNamedRichVar(name, value, metadata) {
+        return Object.setPrototypeOf(
+            {value: value, self: {name: name}},
+            metadata === undefined ? null : metadata
+        );
     }
 
     function* execute(statements) {
@@ -138,7 +149,7 @@ vm = function() {
             return {
                 makeView: function() { return keyword('null');},
                 run: function* () {
-                    push({value: null});
+                    push(makeRichVar(null));
                 },
                 toString: () => 'null'
             };
@@ -148,7 +159,7 @@ vm = function() {
             return {
                 makeView: function() { return span(text("'" + value + "'", 'char'));},
                 run: function* () {
-                    push({value: value});
+                    push(makeRichVar(value));
                 },
                 toString: () => value
             };
@@ -160,9 +171,9 @@ vm = function() {
                 run: function* () {
                     const array = [];
                     for (let c of value) {
-                        array.push({value: c});
+                        array.push(makeRichVar(c));
                     }
-                    push({value: array});
+                    push(makeRichVar(array));
                 },
                 toString: () => value
             };
@@ -172,7 +183,7 @@ vm = function() {
             return {
                 makeView: function() { return text(value, 'number');},
                 run: function* () {
-                    push({value: value});
+                    push(makeRichVar(value));
                 },
                 toString: () => value
             };
@@ -182,7 +193,7 @@ vm = function() {
             return {
                 makeView: function() { return keyword(value);},
                 run: function* () {
-                    push({value: value});
+                    push(makeRichVar(value));
                 },
                 toString: () => value
             };
@@ -210,7 +221,7 @@ vm = function() {
                         yield items[i];
                         value.push(pop());
                     }
-                    push({value: value});
+                    push(makeRichVar(value));
                 },
                 toString: () => '[...]'
             };
@@ -234,10 +245,10 @@ vm = function() {
 
                     const value = [];
                     for (let i = 0; i < length; i++) {
-                        value.push({value: 0});
+                        value.push(makeRichVar(0));
                     }
 
-                    push({value: value});
+                    push(makeRichVar(value));
                 },
                 toString: () => `new int[...]`
             };
@@ -260,9 +271,9 @@ vm = function() {
                 name: name,
                 makeView: function() { return span(text(name, 'variable'), opSign(increment ? "++" : "--")); },
                 run: function* () {
-                    const value = state.readVar(name);
-                    push(value);
-                    state.writeVar(name, {value: increment ? value.value + 1 : value.value - 1});
+                    const richVar = state.readVar(name);
+                    push(richVar);
+                    state.writeVar(name, makeRichVar(increment ? richVar.value + 1 : richVar.value - 1));
                 },
                 toString: () => name
             };
@@ -303,9 +314,8 @@ vm = function() {
                 },
                 run: function* () {
                     yield index;
-                    const wrappedIndexValue = pop();
-                    const value = state.readArrayElement(name, wrappedIndexValue.value);
-                    push(value);
+                    const richIndexVar = pop();
+                    push(state.readArrayElement(name, richIndexVar.value));
                 },
                 toString: () => name
             };
@@ -337,9 +347,8 @@ vm = function() {
                 },
                 run: function*() {
                     yield expression;
-                    const wrappedResult = pop();
-                    const r = !wrappedResult.value;
-                    push({value: r});
+                    const richArg = pop();
+                    push(makeRichVar(!richArg.value));
                 },
                 toString: () => '!' + expression.toString()
             };
@@ -354,20 +363,19 @@ vm = function() {
                 },
                 run: function*() {
                     yield leftSide;
-                    const wrappedLeftValue = pop();
+                    const richLeftValue = pop();
 
                     if (functor.computeRight !== undefined) {
-                        if (!functor.computeRight(wrappedLeftValue.value)) {
-                            push({value: wrappedLeftValue.value});
+                        if (!functor.computeRight(richLeftValue.value)) {
+                            push(makeRichVar(richLeftValue.value));
                             return;
                         }
                     }
 
                     yield rightSide;
-                    const wrappedRightValue = pop();
+                    const richRightValue = pop();
 
-                    const r = functor.apply(wrappedLeftValue.value, wrappedRightValue.value);
-                    push({value: r});
+                    push(makeRichVar(functor.apply(richLeftValue.value, richRightValue.value)));
                 },
                 toString: () => leftSide.toString() + ' ' + functor.toString() + ' ' + rightSide.toString()
             };
@@ -498,23 +506,23 @@ vm = function() {
 
                             const callee = Math[decl];
                             const result = callee.call(null, ...argValues);
-                            push({value: result});
+                            push(makeRichVar(result));
                         } else {
-                            const wrappedSelfArg = state.readVar(self);
-                            const selfValue = wrappedSelfArg.value;
+                            const richSelfArg = state.readVar(self);
+                            const selfValue = richSelfArg.value;
                             if (Array.isArray(selfValue)) {
                                 if (decl === 'length') {    // String is transpiled to Array
-                                    push({value: selfValue.length});
+                                    push(makeRichVar(selfValue.length));
                                 } else if (decl === 'isEmpty') {    // String is transpiled to Array
-                                    push({value: selfValue.length === 0});
+                                    push(makeRichVar(selfValue.length === 0));
                                 } else if (decl === 'push' || decl === 'unshift') {    // String is transpiled to Array
                                     yield args[0];
-                                    const wrappedArg0 = pop();
-                                    wrappedSelfArg.value[decl].call(wrappedSelfArg.value, {value: wrappedArg0.value});
-                                    state.writeArrayElement(self, wrappedSelfArg.value.length - 1, wrappedArg0);
+                                    const richArg0 = pop();
+                                    richSelfArg.value[decl].call(richSelfArg.value, makeRichVar(richArg0.value));
+                                    state.writeArrayElement(self, richSelfArg.value.length - 1, richArg0);
                                 } else if (decl === 'pop' || decl === 'shift') {    // String is transpiled to Array
-                                    const result = wrappedSelfArg.value[decl].call(wrappedSelfArg.value);
-                                    push({value: result.value});
+                                    const result = richSelfArg.value[decl].call(richSelfArg.value);
+                                    push(makeRichVar(result.value));
                                 } else {
                                     alert('Unsupported');
                                 }
@@ -526,9 +534,9 @@ vm = function() {
                         const variables = new Map();
                         for (let i = 0; i < args.length; i++) {
                             yield args[i];
-                            const argValue = pop();
+                            const richArgValue = pop();
                             const argName = decl.args[i].name;
-                            variables[argName] = {value: argValue.value, self: {name: argName}};
+                            variables[argName] = makeNamedRichVar(argName, richArgValue.value);
                         }
                         state.newFrame(variables);
                         yield decl.body;
