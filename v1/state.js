@@ -56,6 +56,9 @@ state = function() {
             variables: variables,
             relations: new Map(),
 
+            addRelation(name1, name2) {
+                getOrEmptySet(this.relations, name1).add(name2);
+            },
             newSubFrame() {
                 this.variables = Object.setPrototypeOf(new Map(), this.variables);
             },
@@ -74,11 +77,21 @@ state = function() {
                 const richValue = makeRichValueFrom(value, {name: name}, Object.getPrototypeOf(value), metadata);
 
                 if (value.self !== undefined && value.self.index !== undefined) {
-                    // value comes from array element
+                    // if value comes from array element...
                     (this.getV(value.self.name).value)[value.self.index].at = {name: name, index: value.self.index};
                 }
 
                 this.setV(name, richValue);
+
+                if (metadata !== undefined) {
+                    if (metadata['role'] === 'index') {
+                        const targetArrays = metadata['targetArrays'];
+                        for (let a of targetArrays) {
+                            this.addRelation(a, name);
+                            this.addRelation(name, a);
+                        }
+                    }
+                }
             },
 
             getV(name) {
@@ -122,16 +135,14 @@ state = function() {
                 console.log(`READ ARR ITEM ${name} ${indexValue} -> ${JSON.stringify(result)}`);
                 return result;
             },
-            writeArrayElement (name, indexValue, value) {
+            writeArrayElement (name, indexValue, richValue) {
                 getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
-                const aRichValue = makeRichValueFrom(
-                    value, {name: name, index: indexValue}, Object.getPrototypeOf(value)
-                );
-                if (value.self !== undefined && value.self.index === undefined) {
-                    this.getV(value.self.name).at = {name: name, index: indexValue};
+                const aRichValue = makeRichArrayItem(name, indexValue, richValue);
+                if (richValue.self !== undefined && richValue.self.index === undefined) {
+                    this.getV(richValue.self.name).at = {name: name, index: indexValue};
                 }
 
-                console.log("WRITE ARR ITEM " + name + " " + indexValue + " = " + JSON.stringify(value) + " -> " + JSON.stringify(aRichValue));
+                console.log(`WRITE ARR ITEM ${name} ${indexValue} = ${JSON.stringify(richValue)} -> ${JSON.stringify(aRichValue)}`);
                 (this.getV(name).value)[indexValue] = aRichValue;
             }
         }, dataAccessLog);
@@ -150,30 +161,8 @@ state = function() {
         return set;
     }
 
-    function getVar(name) {
-        return getCurrentFrame().getV(name);
-    }
-
-    function makeRichValueFrom(richValue, self, proto, metadata) {
-        const aRichValue = Object.setPrototypeOf(
-            {value: richValue.value, self: self}, proto
-        );
-
-        if (metadata !== undefined) {
-            aRichValue.metadata = metadata;
-        }
-        if (richValue.self !== undefined) {
-            aRichValue.from = richValue.self;
-        }
-        return aRichValue;
-    }
-
 
     return {
-        addRelation: (name1, name2) => {
-            getOrEmptySet(getCurrentFrame().relations, name1).add(name2);
-        },
-
         getDataAccessLog: () => dataAccessLog,
         clearDataAccessLog: () => dataAccessLog.clear(),
 

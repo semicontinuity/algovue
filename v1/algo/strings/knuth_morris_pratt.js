@@ -5,12 +5,27 @@ test = function() {
         [vm.variable('pat')],
         vm.sequenceStatement([
             vm.standAloneComment('// Note, this is exacly like KMP, only it compares pattern with itself and fills lps as it runs'),
-            vm.assignment(vm.varWrite('M'), vm.functionCall('length', [], 'pat')),
-            vm.assignment(vm.varWrite('lps'), vm.newIntArray(vm.variable('M'))),
-            vm.assignment(vm.arrItemWrite('lps', vm.number(0)), vm.number(0)),
+            vm.assignment(
+                vm.varWrite('M'),
+                vm.functionCall('length', [], 'pat')
+            ),
+            vm.assignment(
+                vm.varWrite('lps'),
+                vm.newIntArray(vm.variable('M'))
+            ),
+            vm.assignment(
+                vm.arrItemWrite('lps', vm.number(0)),
+                vm.number(0)
+            ),
             vm.standAloneComment(),
-            vm.assignment(vm.varWrite('j', ['pat', 'lps']), vm.number(0)),
-            vm.assignment(vm.varWrite('i', ['pat', 'lps']), vm.number(1)),
+            vm.assignment(
+                vm.varWrite('j', {"role":"index", "targetArrays":["pat", "lps"]}),
+                vm.number(0)
+            ),
+            vm.assignment(
+                vm.varWrite('i', {"role":"index", "targetArrays":["pat", "lps"]}),
+                vm.number(1)
+            ),
             vm.standAloneComment(),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('M')),
@@ -20,9 +35,18 @@ test = function() {
                         vm.sequenceStatement([
                             vm.group('// Match at position i','#F0FFF0', 'D0FFD0',
                                 [
-                                    vm.assignment(vm.arrItemWrite('lps', vm.variable('i')), vm.expression(vm.plus(), vm.variable('j'), vm.number(1))),
-                                    vm.assignment(undefined, vm.varPostOp('j', true)),
-                                    vm.assignment(undefined, vm.varPostOp('i', true))
+                                    vm.assignment(
+                                        vm.arrItemWrite('lps', vm.variable('i')),
+                                        vm.expression(vm.plus(), vm.variable('j'), vm.number(1))
+                                    ),
+                                    vm.assignment(
+                                        undefined,
+                                        vm.varPostOp('j', true)
+                                    ),
+                                    vm.assignment(
+                                        undefined,
+                                        vm.varPostOp('i', true)
+                                    )
                                 ])
                         ]),
                         vm.sequenceStatement([
@@ -33,14 +57,23 @@ test = function() {
                                         vm.sequenceStatement([
                                             vm.group(undefined,'#F4F0FF', 'E0D0FF',
                                                 [
-                                                    vm.assignment(vm.arrItemWrite('lps', vm.variable('i')), vm.variable('j')),
-                                                    vm.assignment(undefined, vm.varPostOp('i', true))
+                                                    vm.assignment(
+                                                        vm.arrItemWrite('lps', vm.variable('i')),
+                                                        vm.variable('j')
+                                                    ),
+                                                    vm.assignment(
+                                                        undefined,
+                                                        vm.varPostOp('i', true)
+                                                    )
                                                 ])
                                         ]),
                                         vm.sequenceStatement([
                                             vm.group(undefined,'#F0F8FF', 'A0D0FF',
                                                 [
-                                                    vm.assignment(vm.varWrite('j'), vm.arrItem('lps', vm.expression(vm.minus(), vm.variable('j'), vm.number(1))), ' // Note, that i is NOT incremented')
+                                                    vm.assignment(
+                                                        vm.varWrite('j'),
+                                                        vm.arrItem('lps', vm.expression(vm.minus(), vm.variable('j'), vm.number(1))), ' // Note, that i is NOT incremented'
+                                                    )
                                                 ])
                                         ])
                                     )
@@ -58,17 +91,32 @@ test = function() {
         'kmp',
         [vm.variable('txt'), vm.variable('pat')],
         vm.sequenceStatement([
-            vm.assignment(vm.varWrite('N'), vm.functionCall('length', [], 'txt')),
-            vm.assignment(vm.varWrite('M'), vm.functionCall('length', [], 'pat')),
+            vm.assignment(
+                vm.varWrite('N'),
+                vm.functionCall('length', [], 'txt')
+            ),
+            vm.assignment(
+                vm.varWrite('M'),
+                vm.functionCall('length', [], 'pat')
+            ),
             vm.ifStatement(
                 vm.expression(vm.le(), vm.variable('M'), vm.number(0)),
                 vm.returnStatement(vm.number(-1)),
                 undefined
             ),
             vm.standAloneComment(),
-            vm.assignment(vm.varWrite('lps'), vm.functionCall(computeLPSArray, [vm.variable('pat')])),
-            vm.assignment(vm.varWrite('j', ['pat', 'lps']), vm.number(0)),
-            vm.assignment(vm.varWrite('i', ['txt']), vm.number(0)),
+            vm.assignment(
+                vm.varWrite('lps'),
+                vm.functionCall(computeLPSArray, [vm.variable('pat')])
+            ),
+            vm.assignment(
+                vm.varWrite('j', {"role":"index", "targetArrays":["pat", "lps"]}),
+                vm.number(0)
+            ),
+            vm.assignment(
+                vm.varWrite('i', {"role":"index", "targetArrays":["txt"]}),
+                vm.number(0)
+            ),
             vm.standAloneComment(),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('N')),
@@ -78,8 +126,14 @@ test = function() {
                         vm.sequenceStatement([
                             vm.group('// Match at position i','#F0FFF0', 'D0FFD0',
                                 [
-                                    vm.assignment(undefined, vm.varPostOp('j', true)),
-                                    vm.assignment(undefined, vm.varPostOp('i', true)),
+                                    vm.assignment(
+                                        undefined,
+                                        vm.varPostOp('j', true)
+                                    ),
+                                    vm.assignment(
+                                        undefined,
+                                        vm.varPostOp('i', true)
+                                    ),
                                     vm.ifStatement(
                                         vm.expression(vm.eq(), vm.variable('j'), vm.variable('M')),
                                         vm.sequenceStatement([
@@ -97,13 +151,19 @@ test = function() {
                                         vm.sequenceStatement([
                                             vm.group(undefined,'#F4F0FF', 'E0D0FF',
                                                 [
-                                                    vm.assignment(undefined, vm.varPostOp('i', true))
+                                                    vm.assignment(
+                                                        undefined,
+                                                        vm.varPostOp('i', true)
+                                                    )
                                                 ])
                                         ]),
                                         vm.sequenceStatement([
                                             vm.group(undefined,'#F0F8FF', 'A0D0FF',
                                                 [
-                                                    vm.assignment(vm.varWrite('j'), vm.arrItem('lps', vm.expression(vm.minus(), vm.variable('j'), vm.number(1))), ' // We know that j charaters match. Note, that i is NOT incremented.')
+                                                    vm.assignment(
+                                                        vm.varWrite('j'),
+                                                        vm.arrItem('lps', vm.expression(vm.minus(), vm.variable('j'), vm.number(1))), ' // We know that j charaters match. Note, that i is NOT incremented.'
+                                                    )
                                                 ])
                                         ])
                                     )
@@ -118,7 +178,13 @@ test = function() {
         '// Knuth-Morris-Pratt algorithm'
     );
 
-    const usage = vm.assignment(vm.varWrite('index'), vm.functionCall(kmp, [vm.string('ABABDABACDABABCABAB'), vm.string('ABABCABAB')]));
+    const usage = vm.sequenceStatement([
+        vm.assignment(
+            vm.varWrite('index'),
+            vm.functionCall(kmp, [vm.string('ABABDABACDABABCABAB'), vm.string('ABABCABAB')])
+        ),
+        vm.stop()
+    ]);
 
     return {
         code: vm.codeBlocks([computeLPSArray, kmp, usage]),

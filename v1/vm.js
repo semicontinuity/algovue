@@ -1,3 +1,33 @@
+function makeRichFunctionArg(name, value, metadata) {
+    const self = {name: name};
+    return Object.setPrototypeOf(
+        {value: value, self: self},
+        metadata === undefined ? null : metadata
+    );
+}
+
+function makeRichArrayItem(name, index, richValue) {
+    // assume dumb array items, without metadata, most likely will never be useful.
+    return {value: richValue.value, name: name, index: index};
+}
+
+function makeRichValue(value, metadata) {
+    const o = {value: value};
+    return metadata !== undefined ? Object.setPrototypeOf(o, metadata) : o;
+}
+
+function makeRichValueFrom(richValue, self, proto, metadata) {
+    const aRichValue = Object.setPrototypeOf(
+        {value: richValue.value, self: self}, proto
+    );
+
+    aRichValue.metadata = metadata !== undefined ? metadata : richValue.metadata;
+    if (richValue.self !== undefined) {
+        aRichValue.from = richValue.self;
+    }
+    return aRichValue;
+}
+
 vm = function() {
     const TOKEN_CONTINUE = 0;
     const TOKEN_BREAK = -1;
@@ -69,17 +99,6 @@ vm = function() {
         stack.push(richVar);
     }
 
-    function makeRichVar(value, metadata) {
-        return Object.setPrototypeOf({value: value}, metadata === undefined ? null : metadata);
-    }
-
-    function makeNamedRichVar(name, value, metadata) {
-        return Object.setPrototypeOf(
-            {value: value, self: {name: name}},
-            metadata === undefined ? null : metadata
-        );
-    }
-
     function* execute(statements) {
         let token;
         for (let i = 0; i < statements.length; i++) {
@@ -149,7 +168,7 @@ vm = function() {
             return {
                 makeView: function() { return keyword('null');},
                 run: function* () {
-                    push(makeRichVar(null));
+                    push(makeRichValue(null));
                 },
                 toString: () => 'null'
             };
@@ -159,7 +178,7 @@ vm = function() {
             return {
                 makeView: function() { return span(text(`'${value}'`, 'char'));},
                 run: function* () {
-                    push(makeRichVar(value));
+                    push(makeRichValue(value));
                 },
                 toString: () => value
             };
@@ -171,9 +190,9 @@ vm = function() {
                 run: function* () {
                     const array = [];
                     for (let c of value) {
-                        array.push(makeRichVar(c));
+                        array.push(makeRichValue(c));
                     }
-                    push(makeRichVar(array));
+                    push(makeRichValue(array));
                 },
                 toString: () => value
             };
@@ -183,7 +202,7 @@ vm = function() {
             return {
                 makeView: function() { return text(value, 'number');},
                 run: function* () {
-                    push(makeRichVar(value));
+                    push(makeRichValue(value));
                 },
                 toString: () => value
             };
@@ -193,7 +212,7 @@ vm = function() {
             return {
                 makeView: function() { return keyword(value);},
                 run: function* () {
-                    push(makeRichVar(value));
+                    push(makeRichValue(value));
                 },
                 toString: () => value
             };
@@ -216,12 +235,14 @@ vm = function() {
                     return view;
                 },
                 run: function*() {
+                    // N.B. there can be situation, when array items contain the same reference, like [1, x, x]
+                    // It is probably ok, but better to double-check, that there is no interference.
                     const value = [];
                     for (let i = 0; i < items.length; i++) {
                         yield items[i];
                         value.push(pop());
                     }
-                    push(makeRichVar(value));
+                    push(makeRichValue(value));
                 },
                 toString: () => '[...]'
             };
@@ -245,10 +266,10 @@ vm = function() {
 
                     const value = [];
                     for (let i = 0; i < length; i++) {
-                        value.push(makeRichVar(0));
+                        value.push(makeRichValue(0));
                     }
 
-                    push(makeRichVar(value));
+                    push(makeRichValue(value));
                 },
                 toString: () => `new int[...]`
             };
@@ -273,7 +294,12 @@ vm = function() {
                 run: function* () {
                     const richVar = state.readVar(name);
                     push(richVar);
-                    state.writeVar(name, makeRichVar(increment ? richVar.value + 1 : richVar.value - 1));
+
+                    // copy metadata, but discard "from", "at", because value has changed; name will be assigned.
+                    state.writeVar(
+                        name,
+                        makeRichValue(increment ? richVar.value + 1 : richVar.value - 1, richVar.metadata)
+                    );
                 },
                 toString: () => name
             };
@@ -286,20 +312,6 @@ vm = function() {
                 makeView: function() { return text(name, 'variable');},
                 run: function* () {
                     state.writeVar(name, pop(), metadata);
-                    if (metadata !== undefined) {
-                        if (Array.isArray(metadata)) {
-                            for (let a of metadata) {
-                                state.addRelation(a, name);
-                                state.addRelation(name, a);
-                            }
-                        } else if (metadata['role'] === 'index') {
-                            const targetArrays = metadata['targetArrays'];
-                            for (let a of targetArrays) {
-                                state.addRelation(a, name);
-                                state.addRelation(name, a);
-                            }
-                        }
-                    }
                 },
                 toString: () => name
             };
@@ -348,7 +360,7 @@ vm = function() {
                 run: function*() {
                     yield expression;
                     const richArg = pop();
-                    push(makeRichVar(!richArg.value));
+                    push(makeRichValue(!richArg.value));
                 },
                 toString: () => '!' + expression.toString()
             };
@@ -367,7 +379,7 @@ vm = function() {
 
                     if (functor.computeRight !== undefined) {
                         if (!functor.computeRight(richLeftValue.value)) {
-                            push(makeRichVar(richLeftValue.value));
+                            push(makeRichValue(richLeftValue.value));
                             return;
                         }
                     }
@@ -375,7 +387,7 @@ vm = function() {
                     yield rightSide;
                     const richRightValue = pop();
 
-                    push(makeRichVar(functor.apply(richLeftValue.value, richRightValue.value)));
+                    push(makeRichValue(functor.apply(richLeftValue.value, richRightValue.value)));
                 },
                 toString: () => leftSide.toString() + ' ' + functor.toString() + ' ' + rightSide.toString()
             };
@@ -506,23 +518,23 @@ vm = function() {
 
                             const callee = Math[decl];
                             const result = callee.call(null, ...argValues);
-                            push(makeRichVar(result));
+                            push(makeRichValue(result));
                         } else {
                             const richSelfArg = state.readVar(self);
                             const selfValue = richSelfArg.value;
                             if (Array.isArray(selfValue)) {
                                 if (decl === 'length') {    // String is transpiled to Array
-                                    push(makeRichVar(selfValue.length));
+                                    push(makeRichValue(selfValue.length));
                                 } else if (decl === 'isEmpty') {    // String is transpiled to Array
-                                    push(makeRichVar(selfValue.length === 0));
+                                    push(makeRichValue(selfValue.length === 0));
                                 } else if (decl === 'push' || decl === 'unshift') {    // String is transpiled to Array
                                     yield args[0];
                                     const richArg0 = pop();
-                                    richSelfArg.value[decl].call(richSelfArg.value, makeRichVar(richArg0.value));
+                                    richSelfArg.value[decl].call(richSelfArg.value, makeRichValue(richArg0.value));
                                     state.writeArrayElement(self, richSelfArg.value.length - 1, richArg0);
                                 } else if (decl === 'pop' || decl === 'shift') {    // String is transpiled to Array
                                     const result = richSelfArg.value[decl].call(richSelfArg.value);
-                                    push(makeRichVar(result.value));
+                                    push(makeRichValue(result.value));
                                 } else {
                                     alert('Unsupported');
                                 }
@@ -536,7 +548,7 @@ vm = function() {
                             yield args[i];
                             const richArgValue = pop();
                             const argName = decl.args[i].name;
-                            variables[argName] = makeNamedRichVar(argName, richArgValue.value);
+                            variables[argName] = makeRichFunctionArg(argName, richArgValue.value);
                         }
                         state.newFrame(variables);
                         yield decl.body;

@@ -4,7 +4,10 @@ test = function() {
         'firstMissingPositive',
         [vm.variable('a'), vm.variable('n')],
         vm.sequenceStatement([
-            vm.assignment(vm.varWrite('i', ['a']), vm.number(0)),
+            vm.assignment(
+                vm.varWrite('i', {"role":"index", "targetArrays":["a"]}),
+                vm.number(0)
+            ),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('n')),
                 vm.sequenceStatement([
@@ -14,7 +17,10 @@ test = function() {
                         vm.sequenceStatement([
                             vm.group(undefined,'FFF0F0', 'FFD0D0',
                                 [
-                                    vm.assignment(vm.varWrite('a_i'), vm.arrItem('a', vm.variable('i'))),
+                                    vm.assignment(
+                                        vm.varWrite('a_i'),
+                                        vm.arrItem('a', vm.variable('i'))
+                                    ),
                                     vm.ifStatement(
                                         vm.expression(vm.or(), vm.expression(vm.le(), vm.variable('a_i'), vm.number(0)), vm.expression(vm.gt(), vm.variable('a_i'), vm.variable('n'))),
                                         vm.sequenceStatement([
@@ -26,7 +32,10 @@ test = function() {
                             vm.standAloneComment(),
                             vm.group(undefined,'#F0FFF0', 'D0FFD0',
                                 [
-                                    vm.assignment(vm.varWrite('j', ['a']), vm.expression(vm.minus(), vm.variable('a_i'), vm.number(1)), ' // Proper place for value in a[i]'),
+                                    vm.assignment(
+                                        vm.varWrite('j', {"role":"index", "targetArrays":["a"]}),
+                                        vm.expression(vm.minus(), vm.variable('a_i'), vm.number(1)), ' // Proper place for value in a[i]'
+                                    ),
                                     vm.ifStatement(
                                         vm.expression(vm.eq(), vm.variable('i'), vm.variable('j')),
                                         vm.sequenceStatement([
@@ -38,7 +47,10 @@ test = function() {
                             vm.standAloneComment(),
                             vm.group(undefined,'#FFFFF0', 'FFFFD0',
                                 [
-                                    vm.assignment(vm.varWrite('a_j'), vm.arrItem('a', vm.variable('j'))),
+                                    vm.assignment(
+                                        vm.varWrite('a_j'),
+                                        vm.arrItem('a', vm.variable('j'))
+                                    ),
                                     vm.ifStatement(
                                         vm.expression(vm.eq(), vm.variable('a_i'), vm.variable('a_j')),
                                         vm.sequenceStatement([
@@ -50,20 +62,32 @@ test = function() {
                             vm.standAloneComment(),
                             vm.group('// Exchange a[i] and a[j]','#F0F8FF', 'C0E0FF',
                                 [
-                                    vm.assignment(vm.arrItemWrite('a', vm.variable('i')), vm.variable('a_j')),
-                                    vm.assignment(vm.arrItemWrite('a', vm.variable('j')), vm.variable('a_i'))
+                                    vm.assignment(
+                                        vm.arrItemWrite('a', vm.variable('i')),
+                                        vm.variable('a_j')
+                                    ),
+                                    vm.assignment(
+                                        vm.arrItemWrite('a', vm.variable('j')),
+                                        vm.variable('a_i')
+                                    )
                                 ]),
                             vm.standAloneComment(),
                             vm.continueStatement(' // Dummy, to visualize')
                         ])
                     ),
-                    vm.assignment(undefined, vm.varPostOp('i', true))
+                    vm.assignment(
+                        undefined,
+                        vm.varPostOp('i', true)
+                    )
                 ])
             ),
             vm.standAloneComment(),
             vm.group('// Scan to find out-of-place value','#F4F0FF', 'E0D0FF',
                 [
-                    vm.assignment(vm.varWrite('k', ['a']), vm.number(0)),
+                    vm.assignment(
+                        vm.varWrite('k', {"role":"index", "targetArrays":["a"]}),
+                        vm.number(0)
+                    ),
                     vm.whileStatement(
                         vm.expression(vm.lt(), vm.variable('k'), vm.variable('n')),
                         vm.sequenceStatement([
@@ -74,7 +98,10 @@ test = function() {
                                 ]),
                                 undefined
                             ),
-                            vm.assignment(undefined, vm.varPostOp('k', true))
+                            vm.assignment(
+                                undefined,
+                                vm.varPostOp('k', true)
+                            )
                         ])
                     ),
                     vm.standAloneComment(),
@@ -85,7 +112,10 @@ test = function() {
     );
 
     const usage = vm.sequenceStatement([
-        vm.assignment(vm.varWrite('result'), vm.functionCall(firstMissingPositive, [vm.arrayLiteral([vm.number(3), vm.number(3), vm.number(4), vm.number(-1), vm.number(1)]), vm.number(5)])),
+        vm.assignment(
+            vm.varWrite('result'),
+            vm.functionCall(firstMissingPositive, [vm.arrayLiteral([vm.number(3), vm.number(3), vm.number(4), vm.number(-1), vm.number(1)]), vm.number(5)])
+        ),
         vm.stop()
     ]);
 
