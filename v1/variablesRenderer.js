@@ -44,11 +44,12 @@ function renderVariables(state) {
         let rangeFrom = undefined;
         let rangeTo = undefined;
         if (arrayWindowVariables.length > 0) {
-            const arrayWindowVariable = arrayWindowVariables[0];
-            const metadata = arrayWindowVariable.metadata;
-            console.log(metadata);
-            rangeFrom = variables[metadata.rangeFromVar].value;
-            rangeTo = variables[metadata.rangeToVar].value + 1;
+            if (metadata.rangeFromVar !== metadata.rangeToVar) {
+                const arrayWindowVariable = arrayWindowVariables[0];
+                const metadata = arrayWindowVariable.metadata;
+                rangeFrom = variables[metadata.rangeFromVar].value;
+                rangeTo = variables[metadata.rangeToVar].value + 1;
+            }
         }
 
         for (let i = 0; i < array.length; i++) {
