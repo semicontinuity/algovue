@@ -44,8 +44,8 @@ function renderVariables(state) {
         let rangeFrom = undefined;
         let rangeTo = undefined;
         if (arrayWindowVariables.length > 0) {
-            if (metadata.rangeFromVar !== metadata.rangeToVar) {
-                const arrayWindowVariable = arrayWindowVariables[0];
+            const arrayWindowVariable = arrayWindowVariables[0];
+            if (arrayWindowVariable.metadata.rangeFromVar !== arrayWindowVariable.metadata.rangeToVar) {
                 const metadata = arrayWindowVariable.metadata;
                 rangeFrom = variables[metadata.rangeFromVar].value;
                 rangeTo = variables[metadata.rangeToVar].value + 1;

@@ -157,7 +157,7 @@ vm = function() {
 
         char: function (value) {
             return {
-                makeView: function() { return span(text("'" + value + "'", 'char'));},
+                makeView: function() { return span(text(`'${value}'`, 'char'));},
                 run: function* () {
                     push(makeRichVar(value));
                 },
@@ -167,7 +167,7 @@ vm = function() {
 
         string: function (value) {
             return {
-                makeView: function() { return span(text('"' + value + '"', 'string'));},
+                makeView: function() { return span(text(`"${value}"`, 'string'));},
                 run: function* () {
                     const array = [];
                     for (let c of value) {
@@ -564,8 +564,9 @@ vm = function() {
         /**
          * Assignment.
          * Also used for function call statements, including case when the return value is discarded.
-         * @param lvalue    the lvalue of assignment
-         * @param rvalue    the rvalue of assignment
+         * @param lvalue        the lvalue of assignment
+         * @param rvalue        the rvalue of assignment
+         * @param commentTxt    optional end-of-line comment
          */
         assignment: function(lvalue, rvalue, commentTxt) {
             return {
