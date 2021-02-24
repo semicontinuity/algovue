@@ -145,8 +145,8 @@ public class CodeGenerator {
                 List<String> pointers = anns.getKey();
                 metaData = new HashMap<>();
                 String indexFrom = pointers.get(0);
-                metaData.put("rangeFrom", indexFrom);
-                metaData.put("rangeTo", pointers.size() == 2 ? pointers.get(1) : indexFrom);
+                metaData.put("rangeFromVar", indexFrom);
+                metaData.put("rangeToVar", pointers.size() == 2 ? pointers.get(1) : indexFrom);
                 metaData.put("targetArray", anns.getValue());
                 metaData.put("role", "arrayWindow");
             }

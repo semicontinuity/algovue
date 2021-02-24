@@ -44,6 +44,14 @@ function tr(...args) {
     return view;
 }
 
+function tdWithRowspanAndClass(rowSpan, clazz, ...args) {
+    const view = document.createElement('td');
+    view.rowSpan = rowSpan;
+    if (clazz) view.className = clazz;
+    args.forEach(c => view.appendChild(c));
+    return view;
+}
+
 function tdWithClass(clazz, ...args) {
     const view = document.createElement('td');
     view.className = clazz;

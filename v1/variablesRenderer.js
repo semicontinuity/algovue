@@ -12,7 +12,6 @@ function renderVariables(state) {
     const arrayVariables = frame.getArrayVariables();
     const highlightedPointers = filterHighlightedPointers();
     const arrayWindowVariables = filterArrayWindowVariables(variables);
-    // const arrayWindowVariables = [];
     const attachedNames = new Set();
 
     function tryToHighlightVar(name, view) {
@@ -41,6 +40,17 @@ function renderVariables(state) {
 
     function renderArray(name, array, listPointerNames) {
         const t = table('listview');
+
+        let rangeFrom = undefined;
+        let rangeTo = undefined;
+        if (arrayWindowVariables.length > 0) {
+            const arrayWindowVariable = arrayWindowVariables[0];
+            const metadata = arrayWindowVariable.metadata;
+            console.log(metadata);
+            rangeFrom = variables[metadata.rangeFromVar].value;
+            rangeTo = variables[metadata.rangeToVar].value + 1;
+        }
+
         for (let i = 0; i < array.length; i++) {
             const entryPointers = new Set();
             if (listPointerNames !== undefined) {
@@ -54,16 +64,28 @@ function renderVariables(state) {
                 }
             }
 
-            let vWindow = undefined;
-            if (arrayWindowVariables.length > 0) {
-                vWindow = e('td');
-                const vWindowName = e('span', 'pointer');
-                vWindowName.innerText = arrayWindowVariables[0].self.name;
-                vWindow.appendChild(vWindowName);
+            let vWindowVar = undefined;
+            let vWindowBracket = undefined;
 
-                const vWindowValue = e('span', 'pointer');
-                vWindowValue.innerText = arrayWindowVariables[0].value;
-                vWindow.appendChild(vWindowValue);
+            if (rangeFrom !== undefined && rangeTo !== undefined) {
+                if (i === 0 && rangeFrom > 0) {
+                    vWindowVar = tdWithRowspanAndClass(rangeFrom);
+                    vWindowBracket = tdWithRowspanAndClass(rangeFrom);
+                } else if (i === rangeFrom && rangeFrom < rangeTo) {
+                    const windowVarName = arrayWindowVariables[0].self.name;
+                    const vWindowVarName = text(windowVarName, 'pointer');
+                    tryToHighlightVar(windowVarName, vWindowVarName);
+                    vWindowVar = tdWithRowspanAndClass(
+                        rangeTo - rangeFrom,
+                        undefined,
+                        vWindowVarName,
+                        text(arrayWindowVariables[0].value, 'number')
+                    );
+                    vWindowBracket = tdWithRowspanAndClass(rangeTo - rangeFrom, 'listview-window', textBlock(' '));
+                } else if (i === rangeTo) {
+                    vWindowVar = tdWithRowspanAndClass(array.length - rangeTo);
+                    vWindowBracket = tdWithRowspanAndClass(array.length - rangeTo);
+                }
             }
 
             const vPointers = e('td', 'listview-pointers');
@@ -100,7 +122,7 @@ function renderVariables(state) {
             }
 
             tryToHighlightArrayItem(name, i, vValue);
-            t.appendChild(tr(vWindow, vPointers, vIndex, vValue, vSpacer, vExtra));
+            t.appendChild(tr(vWindowVar, vWindowBracket, vPointers, vIndex, vValue, vSpacer, vExtra));
         }
         return t;
     }
@@ -148,7 +170,9 @@ function renderVariables(state) {
             // own properties correspond to current frame, properties of prototypes correspond to other frames
             const metadata = variables[name].metadata;
             if (metadata === undefined || metadata.role !== 'arrayWindow') continue;
-            resultVariables.push(variables[name]);
+            if (metadata.rangeFromVar in variables && metadata.rangeToVar in variables) {
+                resultVariables.push(variables[name]);
+            }
         }
         return resultVariables;
     }
