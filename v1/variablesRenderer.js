@@ -99,9 +99,9 @@ function renderVariables(state) {
             }
             if (entryPointers.size > 0) vPointers.appendChild(text('\u2192'));
 
-            const varToArrayItem = arrayItemIsSetFromVariable(array, i, variables, name);
+            const arrayItemFromVar = arrayItemIsSetFromVariable(array, i, variables, name);
             const varFromArrayItem = arrayItemIsSetToVariable(array, i, variables, name);
-            const varName = varToArrayItem || varFromArrayItem;
+            const hasBond = arrayItemFromVar || varFromArrayItem;
 
             const vIndex = e('td', 'listview-index');
             if (entryPointers.size > 0) vIndex.classList.add('listview-index-matched-pointer');
@@ -109,21 +109,21 @@ function renderVariables(state) {
 
             const vValue = e('td', 'listview-value');
             if (entryPointers.size > 0) vValue.classList.add('listview-value-matched-pointer');
-            if (varName !== undefined) vValue.classList.add('listview-value-matched-var');
+            if (hasBond !== undefined) vValue.classList.add('listview-value-matched-var');
             vValue.appendChild(displayValue(array[i].value));
 
             const vSpacer = e('td');
-            if (varToArrayItem) vSpacer.appendChild(text('\u202F\u21d0'));
+            if (arrayItemFromVar) vSpacer.appendChild(text('\u202F\u21d0'));
             if (varFromArrayItem) vSpacer.appendChild(text('\u202F\u21d2'));
 
             const vExtra = e('td');
-            if (varName !== undefined) {
-                const vView = text(varName, 'floating-var');
-                if (!highlightedPointers.has(varName)) {
-                    tryToHighlightVar(varName, vView);
+            if (hasBond !== undefined) {
+                const vView = text(hasBond, 'floating-var');
+                if (!highlightedPointers.has(hasBond)) {
+                    tryToHighlightVar(hasBond, vView);
                 }
                 vExtra.appendChild(vView);
-                attachedNames.add(varName);
+                attachedNames.add(hasBond);
             }
 
             tryToHighlightArrayItem(name, i, vValue);

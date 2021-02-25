@@ -1,32 +1,54 @@
+const basicValue = {
+    getValue() {
+        return this.value;
+    }
+};
+
 function makeRichFunctionArg(name, value, metadata) {
     const self = {name: name};
-    return Object.setPrototypeOf(
-        {value: value, self: self},
-        metadata === undefined ? null : metadata
-    );
+    return Object.setPrototypeOf({value: value, self: self}, basicValue);
 }
 
-function makeRichArrayItem(name, index, richValue) {
+function makeRichArrayItem(name, index, aRichValue) {
     // assume dumb array items, without metadata, most likely will never be useful.
-    return {value: richValue.value, name: name, index: index};
-}
-
-function makeRichValue(value, metadata) {
-    const o = {value: value};
-    return metadata !== undefined ? Object.setPrototypeOf(o, metadata) : o;
-}
-
-function makeRichValueFrom(richValue, self, proto, metadata) {
-    const aRichValue = Object.setPrototypeOf(
-        Object.assign({}, richValue, {self: self}), proto
+    const richValue = Object.setPrototypeOf(
+        Object.assign({}, aRichValue, {self: {name: name, index: index}}), basicValue
     );
 
-    aRichValue.metadata = metadata !== undefined ? metadata : richValue.metadata;
-    if (richValue.self !== undefined) {
-        aRichValue.from = richValue.self;
-    }
-    return aRichValue;
+    delete richValue.metadata;
+    return richValue;
 }
+
+function makeRichValue(value) {
+    return Object.setPrototypeOf({value: value}, basicValue);
+}
+
+function makeRichValueWithMetadataFrom(aRichValue, self, metadata) {
+    const richValue = Object.setPrototypeOf(
+        Object.assign({}, aRichValue, {self: self}), basicValue
+    );
+
+    if (metadata !== undefined) richValue.metadata = metadata;
+
+    if (aRichValue.self !== undefined) {
+        richValue.from = aRichValue.self;
+    }
+    return richValue;
+}
+
+function makeRichValueFrom(aRichValue, from) {
+    const richValue = Object.setPrototypeOf(
+        Object.assign({}, aRichValue, {from: from}), basicValue
+    );
+
+    if (aRichValue.self !== undefined) {
+        richValue.from = aRichValue.self;
+    }
+    delete richValue.metadata;
+    delete richValue.self;
+    return richValue;
+}
+
 
 vm = function() {
     const TOKEN_CONTINUE = 0;

@@ -68,23 +68,25 @@ state = function() {
 
             readVar(name) {
                 dataAccessLog.varReads.add(name);
-                const richValue = this.getV(name);
+                const aRichValue = this.getV(name);
                 // if name is always filled, excessive?
-                return makeRichValueFrom(richValue, {name: name}, Object.getPrototypeOf(richValue));
+                // return richValue;
+                const richValue = makeRichValueFrom(aRichValue, {name: name});
+                console.log(`READ VAR ${name}  -> ${JSON.stringify(richValue)}`);
+                return richValue;
             },
             writeVar(name, richValue, metadata) {
                 console.log('UPDATE ' + name + " = " + richValue.value);
-                console.log(metadata);
                 dataAccessLog.varWrites.add(name);
 
                 const currentRichValue = this.getV(name);
                 metadata = metadata || (currentRichValue && currentRichValue.metadata);
-                const aRichValue = makeRichValueFrom(richValue, {name: name}, Object.getPrototypeOf(richValue), metadata);
+                const aRichValue = makeRichValueWithMetadataFrom(richValue, {name: name}, metadata);
                 console.log(aRichValue);
 
                 // if value comes from array element...
-                if (richValue.self !== undefined && richValue.self.index !== undefined) {
-                    (this.getV(richValue.self.name).value)[richValue.self.index].at = {name: name, index: richValue.self.index};
+                if (richValue.from !== undefined && richValue.from.index !== undefined) {
+                    (this.getV(richValue.from.name).value)[richValue.from.index].at = {name: name};
                 }
 
                 if (metadata !== undefined) {
@@ -151,7 +153,7 @@ state = function() {
                 const richElement = richArray.value[indexValue];
                 // if name is always filled, excessive?
                 const result = makeRichValueFrom(
-                    richElement, {name: name, index: indexValue}, Object.getPrototypeOf(richElement)
+                    richElement, {name: name, index: indexValue}
                 );
                 console.log(`READ ARR ITEM ${name} ${indexValue} -> ${JSON.stringify(result)}`);
                 return result;
@@ -159,8 +161,12 @@ state = function() {
             writeArrayElement (name, indexValue, richValue) {
                 getOrEmptySet(dataAccessLog.arrayWrites, name).add(indexValue);
                 const aRichValue = makeRichArrayItem(name, indexValue, richValue);
-                if (richValue.self !== undefined && richValue.self.index === undefined) {
-                    this.getV(richValue.self.name).at = {name: name, index: indexValue};
+
+                console.log(`WRITE ARR ITEM ${name} ${indexValue} : value from=${JSON.stringify(richValue.from)}`)
+                if (richValue.from !== undefined && richValue.from.index === undefined) {
+                    // add "at" attribute to the variable that is assigned to this array element
+                    console.log(`WRITE ARR ITEM ${name} ${indexValue} := ${richValue.from.name}`)
+                    this.getV(richValue.from.name).at = {name: name, index: indexValue};
                 }
 
                 console.log(`WRITE ARR ITEM ${name} ${indexValue} = ${JSON.stringify(richValue)} -> ${JSON.stringify(aRichValue)}`);
