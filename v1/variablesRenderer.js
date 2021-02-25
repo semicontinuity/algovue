@@ -45,10 +45,14 @@ function renderVariables(state) {
         let rangeTo = undefined;
         if (arrayWindowVariables.length > 0) {
             const arrayWindowVariable = arrayWindowVariables[0];
-            if (arrayWindowVariable.metadata.rangeFromVar !== arrayWindowVariable.metadata.rangeToVar) {
-                const metadata = arrayWindowVariable.metadata;
+            console.log("arrayWindowVariable: " + arrayWindowVariable.self.name);
+            const metadata = arrayWindowVariable.metadata;
+            if (metadata.role === 'arrayWindow') {
                 rangeFrom = variables[metadata.rangeFromVar].value;
                 rangeTo = variables[metadata.rangeToVar].value + 1;
+            } else if (metadata.role === 'arrayRangeAggregate') {
+                rangeFrom = arrayWindowVariable.rangeFrom + 1;  // ?
+                rangeTo = arrayWindowVariable.rangeTo + 1;  // ?
             }
         }
 
@@ -169,10 +173,17 @@ function renderVariables(state) {
         const resultVariables = [];
         for (let name in variables) {
             // own properties correspond to current frame, properties of prototypes correspond to other frames
-            const metadata = variables[name].metadata;
-            if (metadata === undefined || metadata.role !== 'arrayWindow') continue;
-            if (metadata.rangeFromVar in variables && metadata.rangeToVar in variables) {
-                resultVariables.push(variables[name]);
+            const richVar = variables[name];
+            const metadata = richVar.metadata;
+            if (metadata === undefined) continue;
+            if (metadata.role === 'arrayWindow') {
+                if (metadata.rangeFromVar in variables && metadata.rangeToVar in variables) {
+                    resultVariables.push(richVar);
+                }
+            } else if (metadata.role === 'arrayRangeAggregate') {
+                if (richVar.rangeFrom !== undefined && richVar.rangeTo !== undefined) {
+                    resultVariables.push(richVar);
+                }
             }
         }
         return resultVariables;

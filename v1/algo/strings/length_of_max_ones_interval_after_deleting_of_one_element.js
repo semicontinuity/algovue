@@ -4,16 +4,34 @@ test = function() {
         'length_of_max_ones_interval_after_deleting_of_one_element',
         [vm.variable('a'), vm.variable('length')],
         vm.sequenceStatement([
-            vm.assignment(vm.varWrite('curSize', {"targetArray":"a", "rangeToVar":"i", "role":"arrayWindow", "rangeFromVar":"i"}), vm.number(0)),
-            vm.assignment(vm.varWrite('prevSize'), vm.number(0)),
-            vm.assignment(vm.varWrite('maxSize'), vm.number(0)),
-            vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(false)),
+            vm.assignment(
+                vm.varWrite('i', {"role":"index", "targetArrays":["a"]}),
+                vm.number(0)
+            ),
+            vm.assignment(
+                vm.varWrite('curSize', {"targetArray":"a", "indexVar":"i", "role":"arrayRangeAggregate"}),
+                vm.number(0)
+            ),
+            vm.assignment(
+                vm.varWrite('prevSize'),
+                vm.number(0)
+            ),
+            vm.assignment(
+                vm.varWrite('maxSize'),
+                vm.number(0)
+            ),
+            vm.assignment(
+                vm.varWrite('zeroesOccurred'),
+                vm.bool(false)
+            ),
             vm.standAloneComment(),
-            vm.assignment(vm.varWrite('i', ["a"]), vm.number(0)),
             vm.whileStatement(
                 vm.expression(vm.lt(), vm.variable('i'), vm.variable('length')),
                 vm.sequenceStatement([
-                    vm.assignment(vm.varWrite('value'), vm.arrItem('a', vm.variable('i'))),
+                    vm.assignment(
+                        vm.varWrite('value'),
+                        vm.arrItem('a', vm.variable('i'))
+                    ),
                     vm.standAloneComment(),
                     vm.ifStatement(
                         vm.expression(vm.eq(), vm.variable('value'), vm.number(1)),
@@ -21,11 +39,17 @@ test = function() {
                             vm.group('// one','#F0FFF0', 'D0FFD0',
                                 [
                                     vm.standAloneComment('// current block of 1s grows'),
-                                    vm.assignment(vm.varWrite('curSize'), vm.expression(vm.plus(), vm.variable('curSize'), vm.number(1))),
+                                    vm.assignment(
+                                        undefined,
+                                        vm.varPostOp('curSize', true)
+                                    ),
                                     vm.ifStatement(
                                         vm.expression(vm.gt(), vm.expression(vm.plus(), vm.variable('curSize'), vm.variable('prevSize')), vm.variable('maxSize')),
                                         vm.sequenceStatement([
-                                            vm.assignment(vm.varWrite('maxSize'), vm.expression(vm.plus(), vm.variable('curSize'), vm.variable('prevSize')))
+                                            vm.assignment(
+                                                vm.varWrite('maxSize'),
+                                                vm.expression(vm.plus(), vm.variable('curSize'), vm.variable('prevSize'))
+                                            )
                                         ]),
                                         undefined
                                     )
@@ -34,16 +58,28 @@ test = function() {
                         vm.sequenceStatement([
                             vm.group('// zero','FFF0F0', 'FFD0D0',
                                 [
-                                    vm.assignment(vm.varWrite('zeroesOccurred'), vm.bool(true)),
+                                    vm.assignment(
+                                        vm.varWrite('zeroesOccurred'),
+                                        vm.bool(true)
+                                    ),
                                     vm.standAloneComment('// current block becomes previous'),
-                                    vm.assignment(vm.varWrite('prevSize'), vm.variable('curSize')),
+                                    vm.assignment(
+                                        vm.varWrite('prevSize'),
+                                        vm.variable('curSize')
+                                    ),
                                     vm.standAloneComment('// New empty block starts'),
-                                    vm.assignment(vm.varWrite('curSize'), vm.number(0))
+                                    vm.assignment(
+                                        vm.varWrite('curSize'),
+                                        vm.number(0)
+                                    )
                                 ])
                         ])
                     ),
                     vm.standAloneComment(),
-                    vm.assignment(vm.varWrite('i'), vm.expression(vm.plus(), vm.variable('i'), vm.number(1)))
+                    vm.assignment(
+                        vm.varWrite('i'),
+                        vm.expression(vm.plus(), vm.variable('i'), vm.number(1))
+                    )
                 ])
             ),
             vm.standAloneComment(),
@@ -62,7 +98,10 @@ test = function() {
     );
 
     const usage = vm.sequenceStatement([
-        vm.assignment(vm.varWrite('result'), vm.functionCall(length_of_max_ones_interval_after_deleting_of_one_element, [vm.arrayLiteral([vm.number(0), vm.number(0), vm.number(1), vm.number(1), vm.number(1), vm.number(0), vm.number(1), vm.number(1), vm.number(0), vm.number(1), vm.number(1), vm.number(1), vm.number(1), vm.number(0), vm.number(0)]), vm.number(15)])),
+        vm.assignment(
+            vm.varWrite('result'),
+            vm.functionCall(length_of_max_ones_interval_after_deleting_of_one_element, [vm.arrayLiteral([vm.number(0), vm.number(0), vm.number(1), vm.number(1), vm.number(1), vm.number(0), vm.number(1), vm.number(1), vm.number(0), vm.number(1), vm.number(1), vm.number(1), vm.number(1), vm.number(0), vm.number(0)]), vm.number(15)])
+        ),
         vm.stop()
     ]);
 

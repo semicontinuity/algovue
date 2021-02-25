@@ -23,11 +23,6 @@ public class VarWrite extends Expression {
         return this;
     }
 
-    public VarWrite targetArrays(List<?> a) {
-        this.targetArrays = a;
-        return this;
-    }
-
     public VarWrite metaData(Map<String, Object> m) {
         this.metaData = m;
         return this;

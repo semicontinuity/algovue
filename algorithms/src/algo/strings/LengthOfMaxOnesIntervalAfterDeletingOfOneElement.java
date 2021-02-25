@@ -10,6 +10,9 @@ public class LengthOfMaxOnesIntervalAfterDeletingOfOneElement {
 
     @Generated("given array of 0s and 1s, find maximal sub-interval of 1s after some element is deleted")
     private int length_of_max_ones_interval_after_deleting_of_one_element(int[] a, int length) {
+        @Indexes("a")
+        int i = 0;  // currently, must be before "maxSize = 0"
+
         @ArrayWindow(array = "a", indices = "i")
         int curSize = 0;
         int prevSize = 0;
@@ -18,9 +21,6 @@ public class LengthOfMaxOnesIntervalAfterDeletingOfOneElement {
 
         int _1;
 
-        @Indexes("a")
-        int i = 0;
-
         while (i < length) {
             int value = a[i];
             int _2_1;
@@ -28,7 +28,7 @@ public class LengthOfMaxOnesIntervalAfterDeletingOfOneElement {
             if (value == 1) {
                 @Generated(comments = "one", value = {"#F0FFF0", "D0FFD0"}) int $;
                 @Generated("current block of 1s grows") int _2_2_1;
-                curSize = curSize + 1;
+                curSize++;
                 if (curSize + prevSize > maxSize) {
                     maxSize = curSize + prevSize;
                 }

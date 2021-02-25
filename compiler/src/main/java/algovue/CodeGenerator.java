@@ -145,14 +145,19 @@ public class CodeGenerator {
                 List<String> pointers = anns.getKey();
                 metaData = new HashMap<>();
                 String indexFrom = pointers.get(0);
-                metaData.put("rangeFromVar", indexFrom);
-                metaData.put("rangeToVar", pointers.size() == 2 ? pointers.get(1) : indexFrom);
-                metaData.put("targetArray", anns.getValue());
-                metaData.put("role", "arrayWindow");
+                if (pointers.size() == 2) {
+                    metaData.put("rangeFromVar", indexFrom);
+                    metaData.put("rangeToVar", pointers.get(1));
+                    metaData.put("targetArray", anns.getValue());
+                    metaData.put("role", "arrayWindow");
+                } else {
+                    metaData.put("indexVar", indexFrom);
+                    metaData.put("targetArray", anns.getValue());
+                    metaData.put("role", "arrayRangeAggregate");
+                }
             }
         }
         VarWrite varWrite = generateVarWrite(name)
-//                .targetArrays(targetArrays)
                 .metaData(metaData);
         return ExpressionStatement.builder()
                 .left(varWrite)

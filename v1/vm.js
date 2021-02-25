@@ -18,7 +18,7 @@ function makeRichValue(value, metadata) {
 
 function makeRichValueFrom(richValue, self, proto, metadata) {
     const aRichValue = Object.setPrototypeOf(
-        {value: richValue.value, self: self}, proto
+        Object.assign({}, richValue, {self: self}), proto
     );
 
     aRichValue.metadata = metadata !== undefined ? metadata : richValue.metadata;
@@ -296,9 +296,15 @@ vm = function() {
                     push(richVar);
 
                     // copy metadata, but discard "from", "at", because value has changed; name will be assigned.
+                    console.log('POST-OP ' + name);
+                    // const metadata = richVar.metadata;
+                    // console.log(metadata);
+
+                    const updatedRichValue = Object.assign({}, richVar);
+                    updatedRichValue.value = increment ? richVar.value + 1 : richVar.value - 1;
                     state.writeVar(
                         name,
-                        makeRichValue(increment ? richVar.value + 1 : richVar.value - 1, richVar.metadata)
+                        updatedRichValue
                     );
                 },
                 toString: () => name

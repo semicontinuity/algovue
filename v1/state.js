@@ -72,26 +72,47 @@ state = function() {
                 // if name is always filled, excessive?
                 return makeRichValueFrom(richValue, {name: name}, Object.getPrototypeOf(richValue));
             },
-            writeVar(name, value, metadata) {
+            writeVar(name, richValue, metadata) {
+                console.log('UPDATE ' + name + " = " + richValue.value);
+                console.log(metadata);
                 dataAccessLog.varWrites.add(name);
-                const richValue = makeRichValueFrom(value, {name: name}, Object.getPrototypeOf(value), metadata);
 
-                if (value.self !== undefined && value.self.index !== undefined) {
-                    // if value comes from array element...
-                    (this.getV(value.self.name).value)[value.self.index].at = {name: name, index: value.self.index};
+                const currentRichValue = this.getV(name);
+                metadata = metadata || (currentRichValue && currentRichValue.metadata);
+                const aRichValue = makeRichValueFrom(richValue, {name: name}, Object.getPrototypeOf(richValue), metadata);
+                console.log(aRichValue);
+
+                // if value comes from array element...
+                if (richValue.self !== undefined && richValue.self.index !== undefined) {
+                    (this.getV(richValue.self.name).value)[richValue.self.index].at = {name: name, index: richValue.self.index};
                 }
 
-                this.setV(name, richValue);
-
                 if (metadata !== undefined) {
+                    console.log('has metadata');
                     if (metadata['role'] === 'index') {
                         const targetArrays = metadata['targetArrays'];
                         for (let a of targetArrays) {
                             this.addRelation(a, name);
                             this.addRelation(name, a);
                         }
+                    } else if (metadata['role'] === 'arrayRangeAggregate') {
+                        const metadatum = metadata['indexVar'];
+                        const richIndexValue = this.getV(metadatum);
+                        if (richIndexValue !== undefined) {
+                            console.log('UPDATE arrayRangeAggregate ' + name + " = " + richValue.value);
+                            console.log(richIndexValue);
+                            const indexVarValue = richIndexValue.value;
+                            if (richValue.value === 0) {
+                                aRichValue['rangeFrom'] = indexVarValue;
+                            } else {
+                                aRichValue['rangeTo'] = indexVarValue;
+                            }
+                            console.log(aRichValue);
+                        }
                     }
                 }
+
+                this.setV(name, aRichValue);
             },
 
             getV(name) {
