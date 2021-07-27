@@ -8,8 +8,8 @@ public class BreakStatement extends Statement {
 
     @Override
     public CharSequence charSequence(int indent) {
-        StringBuilder b = new StringBuilder();
-        indent(b, indent).append("vm.breakStatement(");
+        StringBuilder b = stringBuilder(indent);
+        b.append("vm.breakStatement(");
         if (eolComment != null) b.append(jsString(eolComment));
         b.append(")");
         return b;

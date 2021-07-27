@@ -64,6 +64,10 @@ public class CodeGenerator {
 
 
     public static void main(String[] args) throws IOException {
+        if (args.length != 1) {
+            System.err.println("Argument: java source file");
+            return;
+        }
         final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
         final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
@@ -427,6 +431,11 @@ public class CodeGenerator {
                     break;
                 case "charAt":
                     return new ArrayElementRead(self, generateFrom(e.args.last()));
+                case "toString":
+                    return FunctionCall.builder()
+                            .self(self)
+                            .name("join")
+                            .params(List.of(new StringLiteral().value("")));
             }
         } else {
             name = meth.toString(); // e.g. length() ?

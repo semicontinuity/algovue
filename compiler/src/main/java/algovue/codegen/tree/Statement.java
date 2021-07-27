@@ -9,4 +9,5 @@ public abstract class Statement implements Node {
     public void setEolComment(EolComment eolComment) {
         this.eolComment = eolComment != null ? eolComment.txt : null;
     }
+
 }

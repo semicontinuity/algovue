@@ -2,12 +2,10 @@ package algovue.codegen.tree;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 public class Statements extends Statement {
 
-    private List<Statement> statements = new ArrayList<>();
+    private final List<Statement> statements = new ArrayList<>();
 
     public static Statements builder() {
         return new Statements();
