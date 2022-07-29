@@ -137,7 +137,7 @@ public class CodeGenerator {
         String name = e.name.toString();
         AbstractMap.SimpleEntry<List<String>, String> anns = annotationValues(e.mods);
 
-        List<String> targetArrays = null;
+        List<String> targetArrays;
         Map<String, Object> metaData = null;
         if (anns != null) {
             if (anns.getValue() == null) {
@@ -172,8 +172,35 @@ public class CodeGenerator {
     // assume @Generated
     private AbstractMap.SimpleEntry<List<String>, String> annotationValues(JCTree.JCModifiers mods) {
         String s = null;
-        ArrayList<String> result = new ArrayList<>();
+        List<String> result = new ArrayList<>();
+        List<String> annotationNames = new ArrayList<>();
+
         for (JCTree.JCAnnotation annotation : mods.annotations) {
+
+            for (JCTree.JCExpression expression : annotation.args) {
+//                var tag = expression.getTag();
+                annotationNames.add(annotation.type.toString());
+
+                if (expression instanceof JCTree.JCAssign) {
+                    var jcAssign = (JCTree.JCAssign) expression;
+                    var rhs = jcAssign.rhs;
+
+                    if (rhs instanceof JCTree.JCNewArray) {
+                        var jcNewArray = (JCTree.JCNewArray) rhs;
+                        for (JCTree.JCExpression elem : jcNewArray.elems) {
+                            var jcLiteral = (JCTree.JCLiteral) elem;
+                            result.add((String) jcLiteral.getValue());
+                        }
+                    } else if (rhs instanceof JCTree.JCLiteral) {
+                        var jcLiteral = (JCTree.JCLiteral) rhs;
+                        s = (String) jcLiteral.getValue();
+                    } else {
+                        throw new IllegalArgumentException();
+                    }
+                }
+            }
+
+/*
             for (Pair<Symbol.MethodSymbol, Attribute> value : annotation.attribute.values) {
                 Attribute snd = value.snd;
                 if (snd.type.getTag() == TypeTag.ARRAY) {
@@ -185,7 +212,14 @@ public class CodeGenerator {
                     s = (String) snd.getValue();
                 }
             }
+*/
         }
+
+        // dirty, rework
+        if (annotationNames.contains("StandAloneComment")) {
+            return new AbstractMap.SimpleEntry<>(List.of(s), null);
+        }
+
         return s == null && result.isEmpty() ? null : new AbstractMap.SimpleEntry<>(result, s);
     }
 
@@ -251,9 +285,10 @@ public class CodeGenerator {
                         .activeColor(anns.getKey().size() > 1 ? anns.getKey().get(1) : null);
             } else if (name.startsWith("_")) {
                 if (anns != null) {
-                    if (anns.getValue() == null)
-                        return new StandAloneComment(commentText(anns));
-                    else
+                    var txt = commentText(anns);
+                    if (anns.getValue() == null) {
+                        return new StandAloneComment(txt);
+                    } else
                         return new EolComment(" // " + anns.getValue());
                 }
                 return new StandAloneComment(null); // line break
