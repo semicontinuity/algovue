@@ -84,7 +84,7 @@ public class KnuthMorrisPratt {
                     i++;  // Mismatch right at the first character: restart matching from the next one
                 } else {
                     @Block(colors = {"#F0F8FF", "A0D0FF"}) int $b1;
-                    @EolComment("We know that j charaters match. Note, that i is NOT incremented.") int _c2;
+                    @EolComment("We know that j characters match. Note, that i is NOT incremented.") int _c2;
                     j = lps[j - 1];
                 }
             }

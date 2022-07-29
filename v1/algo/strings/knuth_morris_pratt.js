@@ -114,7 +114,7 @@ test = function() {
                 vm.number(0)
             ),
             vm.assignment(
-                vm.varWrite('i', {"role":"index", "targetArrays":["txt"]}),
+                vm.varWrite('i'),
                 vm.number(0)
             ),
             vm.standAloneComment(),
@@ -162,7 +162,7 @@ test = function() {
                                                 [
                                                     vm.assignment(
                                                         vm.varWrite('j'),
-                                                        vm.arrItem('lps', vm.expression(vm.minus(), vm.variable('j'), vm.number(1))), ' // We know that j charaters match. Note, that i is NOT incremented.'
+                                                        vm.arrItem('lps', vm.expression(vm.minus(), vm.variable('j'), vm.number(1))), ' // We know that j characters match. Note, that i is NOT incremented.'
                                                     )
                                                 ])
                                         ])
