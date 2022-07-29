@@ -219,6 +219,9 @@ public class CodeGenerator {
         if (annotationNames.contains("StandAloneComment")) {
             return new AbstractMap.SimpleEntry<>(List.of(s), null);
         }
+        if (annotationNames.contains("Indexes") && s != null) {
+            return new AbstractMap.SimpleEntry<>(List.of(s), null);
+        }
 
         return s == null && result.isEmpty() ? null : new AbstractMap.SimpleEntry<>(result, s);
     }

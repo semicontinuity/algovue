@@ -114,7 +114,7 @@ test = function() {
                 vm.number(0)
             ),
             vm.assignment(
-                vm.varWrite('i'),
+                vm.varWrite('i', {"role":"index", "targetArrays":["txt"]}),
                 vm.number(0)
             ),
             vm.standAloneComment(),
